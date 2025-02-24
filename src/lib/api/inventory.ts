@@ -1,4 +1,3 @@
-
 import { supabase } from "@/integrations/supabase/client";
 import type { 
   InventoryLocation, 
@@ -128,7 +127,6 @@ export async function updateVehicleStatus(
 }
 
 export async function searchInventory(query: string, filters: SearchFilters = {}) {
-  type FilterKey = keyof typeof filters;
   const { minPrice, maxPrice, minYear, maxYear, ...restFilters } = filters;
   
   let dbQuery = supabase
@@ -146,13 +144,12 @@ export async function searchInventory(query: string, filters: SearchFilters = {}
   if (minYear) dbQuery = dbQuery.gte('year', minYear);
   if (maxYear) dbQuery = dbQuery.lte('year', maxYear);
 
-  // Apply exact match filters with type safety
-  (Object.keys(restFilters) as FilterKey[]).forEach((key) => {
-    const value = restFilters[key];
+  // Apply exact match filters
+  for (const [key, value] of Object.entries(restFilters)) {
     if (value !== undefined && value !== null) {
       dbQuery = dbQuery.eq(key, value);
     }
-  });
+  }
 
   const { data, error } = await dbQuery;
   if (error) throw error;
