@@ -1,3 +1,18 @@
 
-[functions.jobs]
+project_id = "pfraresupodbfeggrwiy"
+
+[api]
+enabled = true
+port = 54321
+schemas = ["public", "storage", "graphql_public"]
+
+[db]
+port = 54322
+
+[studio]
+enabled = true
+port = 54323
+
+[[functions]]
+name = "send-notification"
 verify_jwt = true
