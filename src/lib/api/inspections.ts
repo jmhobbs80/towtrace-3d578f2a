@@ -1,4 +1,3 @@
-
 import { supabase } from "@/integrations/supabase/client";
 import type { VehicleInspection, InspectionChecklistItem, UpdateInspectionStatusParams } from "../types/inspection";
 
@@ -73,6 +72,46 @@ export async function getInspectionDetails(inspectionId: string): Promise<{
     },
     checklistItems: checklistResult.data as InspectionChecklistItem[]
   };
+}
+
+export async function uploadInspectionPhoto(
+  inspectionId: string,
+  file: File
+): Promise<string> {
+  const { data: userData } = await supabase.auth.getUser();
+  if (!userData.user) throw new Error("Not authenticated");
+
+  const fileExt = file.name.split('.').pop();
+  const fileName = `${inspectionId}/${Date.now()}.${fileExt}`;
+  const filePath = `inspection-photos/${fileName}`;
+
+  const { error: uploadError } = await supabase.storage
+    .from('vehicle-inspections')
+    .upload(filePath, file);
+
+  if (uploadError) throw uploadError;
+
+  const { data: publicUrl } = supabase.storage
+    .from('vehicle-inspections')
+    .getPublicUrl(filePath);
+
+  return publicUrl.publicUrl;
+}
+
+export async function updateChecklistItemWithPhotos(
+  itemId: string,
+  files: File[]
+): Promise<void> {
+  const photoUrls = await Promise.all(
+    files.map(file => uploadInspectionPhoto(itemId, file))
+  );
+
+  const { error } = await supabase
+    .from('inspection_checklist_items')
+    .update({ photos: photoUrls })
+    .eq('id', itemId);
+
+  if (error) throw error;
 }
 
 export async function updateChecklistItem(

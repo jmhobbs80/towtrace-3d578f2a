@@ -1,4 +1,3 @@
-
 import { useState } from "react";
 import { useQuery, useMutation } from "@tanstack/react-query";
 import { Button } from "@/components/ui/button";
@@ -9,6 +8,7 @@ import {
   updateInspectionStatus,
   addChecklistItem,
   updateChecklistItem,
+  updateChecklistItemWithPhotos,
   getInspectionDetails,
 } from "@/lib/api/inspections";
 import type { InspectionChecklistItem, UpdateInspectionStatusParams } from "@/lib/types/inspection";
@@ -81,6 +81,17 @@ export function VehicleInspectionForm({ vehicleId, inspectionId, onComplete }: P
     },
   });
 
+  const updatePhotosForItemMutation = useMutation({
+    mutationFn: ({ itemId, files }: { itemId: string, files: File[] }) => 
+      updateChecklistItemWithPhotos(itemId, files),
+    onSuccess: () => {
+      toast({
+        title: "Photos Updated",
+        description: "Photos have been uploaded successfully",
+      });
+    },
+  });
+
   const handlePhotoUpload = (itemName: string, event: React.ChangeEvent<HTMLInputElement>) => {
     const files = event.target.files;
     if (!files) return;
@@ -110,36 +121,60 @@ export function VehicleInspectionForm({ vehicleId, inspectionId, onComplete }: P
   };
 
   const handleItemStatus = async (itemName: string, status: InspectionChecklistItem['status']) => {
-    if (!inspectionId) {
-      const newInspection = await createInspectionMutation.mutateAsync(vehicleId);
-      await addChecklistItemMutation.mutateAsync({
-        inspection_id: newInspection.id,
-        category: selectedCategory,
-        item_name: itemName,
-        status,
-        notes,
-      });
-    } else {
-      const existingItem = inspectionData?.checklistItems.find(
-        item => item.category === selectedCategory && item.item_name === itemName
-      );
-
-      if (existingItem) {
-        await updateChecklistItem(existingItem.id, { status, notes });
-      } else {
-        await addChecklistItemMutation.mutateAsync({
-          inspection_id: inspectionId,
+    try {
+      if (!inspectionId) {
+        const newInspection = await createInspectionMutation.mutateAsync(vehicleId);
+        const newItem = await addChecklistItemMutation.mutateAsync({
+          inspection_id: newInspection.id,
           category: selectedCategory,
           item_name: itemName,
           status,
           notes,
         });
-      }
 
-      if (selectedPhotos[itemName]?.length > 0) {
-        const photoUrls = selectedPhotos[itemName].map((_, index) => `photo-${index}.jpg`);
-        await updateChecklistItem(existingItem?.id || '', { photos: photoUrls });
+        if (selectedPhotos[itemName]?.length > 0) {
+          await updatePhotosForItemMutation.mutateAsync({
+            itemId: newItem.id,
+            files: selectedPhotos[itemName],
+          });
+        }
+      } else {
+        const existingItem = inspectionData?.checklistItems.find(
+          item => item.category === selectedCategory && item.item_name === itemName
+        );
+
+        if (existingItem) {
+          await updateChecklistItem(existingItem.id, { status, notes });
+          
+          if (selectedPhotos[itemName]?.length > 0) {
+            await updatePhotosForItemMutation.mutateAsync({
+              itemId: existingItem.id,
+              files: selectedPhotos[itemName],
+            });
+          }
+        } else {
+          const newItem = await addChecklistItemMutation.mutateAsync({
+            inspection_id: inspectionId,
+            category: selectedCategory,
+            item_name: itemName,
+            status,
+            notes,
+          });
+
+          if (selectedPhotos[itemName]?.length > 0) {
+            await updatePhotosForItemMutation.mutateAsync({
+              itemId: newItem.id,
+              files: selectedPhotos[itemName],
+            });
+          }
+        }
       }
+    } catch (error) {
+      toast({
+        title: "Error",
+        description: "Failed to update inspection item",
+        variant: "destructive",
+      });
     }
   };
 
