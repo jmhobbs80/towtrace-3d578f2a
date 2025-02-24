@@ -19,6 +19,8 @@ interface Driver {
   id: string;
   first_name: string;
   last_name: string;
+  role: string;
+  organization_id: string;
 }
 
 interface CreateJobModalProps {
@@ -46,22 +48,21 @@ export const CreateJobModal = ({ open, onClose, onSuccess }: CreateJobModalProps
     driverId: "",
   });
 
-  // Separate error handling function
-  const handleError = (error: Error, title: string) => {
+  const handleError = useCallback((error: Error, title: string) => {
     console.error(title, error);
     toast({
       variant: "destructive",
       title,
       description: error.message,
     });
-  };
+  }, [toast]);
 
   const fetchDrivers = useCallback(async () => {
     if (!organization?.id) return;
 
     const { data, error } = await supabase
       .from('profiles')
-      .select('id, first_name, last_name')
+      .select('id, first_name, last_name, role, organization_id')
       .eq('role', 'driver')
       .eq('organization_id', organization.id);
 
@@ -70,8 +71,8 @@ export const CreateJobModal = ({ open, onClose, onSuccess }: CreateJobModalProps
       return;
     }
 
-    setDrivers(data || []);
-  }, [organization?.id]);
+    setDrivers((data ?? []) as Driver[]);
+  }, [organization?.id, handleError]);
 
   useEffect(() => {
     fetchDrivers();
