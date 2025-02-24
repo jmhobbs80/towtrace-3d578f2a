@@ -134,39 +134,54 @@ export async function searchInventory(
 ): Promise<VehicleSearchResult[]> {
   const { minPrice, maxPrice, minYear, maxYear, ...restFilters } = filters;
 
-  let dbQuery = supabase
+  const { data: vehiclesData, error: vehiclesError } = await supabase
     .from('inventory_vehicles')
     .select(`
-      *,
-      location:inventory_locations (name, address),
-      condition_logs:vehicle_condition_logs (*)
+      id,
+      organization_id,
+      location_id,
+      make,
+      model,
+      year,
+      vin,
+      color,
+      trim,
+      mileage,
+      purchase_price,
+      listing_price,
+      status,
+      condition,
+      created_at,
+      updated_at
     `)
     .or(`make.ilike.%${query}%,model.ilike.%${query}%,vin.ilike.%${query}%`);
 
-  // Apply numeric range filters
-  if (minPrice) dbQuery = dbQuery.gte('listing_price', minPrice);
-  if (maxPrice) dbQuery = dbQuery.lte('listing_price', maxPrice);
-  if (minYear) dbQuery = dbQuery.gte('year', minYear);
-  if (maxYear) dbQuery = dbQuery.lte('year', maxYear);
+  if (vehiclesError) throw vehiclesError;
+  if (!vehiclesData) return [];
 
-  // Apply exact match filters
-  for (const [key, value] of Object.entries(restFilters)) {
-    if (value !== undefined && value !== null) {
-      dbQuery = dbQuery.eq(key, value);
-    }
-  }
+  const vehicles = await Promise.all(
+    vehiclesData.map(async (vehicle) => {
+      const [locationData, logsData] = await Promise.all([
+        supabase
+          .from('inventory_locations')
+          .select('name, address')
+          .eq('id', vehicle.location_id)
+          .single(),
+        supabase
+          .from('vehicle_condition_logs')
+          .select('*')
+          .eq('vehicle_id', vehicle.id)
+      ]);
 
-  const { data, error } = await dbQuery;
-  if (error) throw error;
+      return {
+        ...vehicle,
+        location: locationData.data as LocationSummary,
+        condition_logs: (logsData.data || []) as VehicleConditionLog[]
+      };
+    })
+  );
 
-  return (data || []).map(item => {
-    const { location, condition_logs, ...vehicleData } = item;
-    return {
-      ...vehicleData,
-      location: location as LocationSummary,
-      condition_logs: condition_logs as VehicleConditionLog[]
-    };
-  });
+  return vehicles;
 }
 
 export async function getVehicleInspectionHistory(vehicleId: string) {

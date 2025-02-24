@@ -44,11 +44,27 @@ export interface SearchFilters {
   maxYear?: number;
 }
 
-// Base vehicle search result interface
-export interface VehicleSearchResult extends Omit<InventoryVehicle, 'location'> {
+// Simplified search result type to avoid deep nesting
+export type VehicleSearchResult = {
+  id: string;
+  organization_id: string;
+  location_id: string | null;
+  make: string;
+  model: string;
+  year: number;
+  vin: string;
+  color: string | null;
+  trim: string | null;
+  mileage: number | null;
+  purchase_price: number | null;
+  listing_price: number | null;
+  status: InventoryStatus | null;
+  condition: VehicleCondition | null;
+  created_at: string;
+  updated_at: string;
   location: LocationSummary;
   condition_logs: VehicleConditionLog[];
-}
+};
 
 export interface InspectionLogWithInspector extends VehicleConditionLog {
   inspector?: {
