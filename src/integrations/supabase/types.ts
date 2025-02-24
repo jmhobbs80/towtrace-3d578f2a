@@ -138,6 +138,50 @@ export type Database = {
           },
         ]
       }
+      inspection_checklist_items: {
+        Row: {
+          category: string
+          created_at: string | null
+          id: string
+          inspection_id: string
+          item_name: string
+          notes: string | null
+          photos: string[] | null
+          status: string
+          updated_at: string | null
+        }
+        Insert: {
+          category: string
+          created_at?: string | null
+          id?: string
+          inspection_id: string
+          item_name: string
+          notes?: string | null
+          photos?: string[] | null
+          status: string
+          updated_at?: string | null
+        }
+        Update: {
+          category?: string
+          created_at?: string | null
+          id?: string
+          inspection_id?: string
+          item_name?: string
+          notes?: string | null
+          photos?: string[] | null
+          status?: string
+          updated_at?: string | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "inspection_checklist_items_inspection_id_fkey"
+            columns: ["inspection_id"]
+            isOneToOne: false
+            referencedRelation: "vehicle_inspections"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       inventory_locations: {
         Row: {
           address: Json
@@ -658,6 +702,63 @@ export type Database = {
           },
         ]
       }
+      vehicle_inspections: {
+        Row: {
+          completed_at: string | null
+          created_at: string | null
+          id: string
+          inspection_data: Json | null
+          inspection_date: string | null
+          inspector_id: string
+          notes: string | null
+          photos: string[] | null
+          status: Database["public"]["Enums"]["inspection_status"] | null
+          updated_at: string | null
+          vehicle_id: string
+        }
+        Insert: {
+          completed_at?: string | null
+          created_at?: string | null
+          id?: string
+          inspection_data?: Json | null
+          inspection_date?: string | null
+          inspector_id: string
+          notes?: string | null
+          photos?: string[] | null
+          status?: Database["public"]["Enums"]["inspection_status"] | null
+          updated_at?: string | null
+          vehicle_id: string
+        }
+        Update: {
+          completed_at?: string | null
+          created_at?: string | null
+          id?: string
+          inspection_data?: Json | null
+          inspection_date?: string | null
+          inspector_id?: string
+          notes?: string | null
+          photos?: string[] | null
+          status?: Database["public"]["Enums"]["inspection_status"] | null
+          updated_at?: string | null
+          vehicle_id?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "vehicle_inspections_inspector_id_fkey"
+            columns: ["inspector_id"]
+            isOneToOne: false
+            referencedRelation: "profiles"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "vehicle_inspections_vehicle_id_fkey"
+            columns: ["vehicle_id"]
+            isOneToOne: false
+            referencedRelation: "inventory_vehicles"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       vehicles_in_transit: {
         Row: {
           created_at: string
@@ -725,6 +826,7 @@ export type Database = {
     }
     Enums: {
       app_role: "admin" | "dispatcher" | "provider" | "consumer"
+      inspection_status: "pending" | "in_progress" | "completed" | "failed"
       inventory_status:
         | "available"
         | "pending_inspection"
