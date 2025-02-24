@@ -1,3 +1,4 @@
+
 interface VehicleDecodedData {
   make: string;
   model: string;
@@ -56,7 +57,7 @@ export const decodeVIN = async (vin: string): Promise<VehicleDecodedData> => {
     safetyRating: results.find((item: any) => item.Variable === "Safety Rating")?.Value || "",
   };
 
-  // Store in cache (with a maximum of 100 entries to prevent memory issues)
+  // Store in cache
   if (vinCache.size >= 100) {
     const firstKey = vinCache.keys().next().value;
     vinCache.delete(firstKey);
@@ -66,7 +67,6 @@ export const decodeVIN = async (vin: string): Promise<VehicleDecodedData> => {
   return vehicleData;
 };
 
-// Validate VIN format
 export const validateVIN = (vin: string): boolean => {
   // VIN must be 17 characters
   if (vin.length !== 17) return false;
@@ -178,32 +178,56 @@ class WebcamVINScanner implements VINScannerHardware {
   }
 }
 
+interface BluetoothDeviceWithGATT extends BluetoothDevice {
+  gatt?: {
+    connect: () => Promise<BluetoothRemoteGATTServer>;
+    connected: boolean;
+    disconnect: () => void;
+  };
+}
+
+interface BluetoothRemoteGATTServer {
+  getPrimaryService: (service: string) => Promise<BluetoothRemoteGATTService>;
+}
+
+interface BluetoothRemoteGATTService {
+  getCharacteristic: (characteristic: string) => Promise<BluetoothRemoteGATTCharacteristic>;
+}
+
+interface BluetoothRemoteGATTCharacteristic {
+  readValue: () => Promise<DataView>;
+}
+
 class BluetoothVINScanner implements VINScannerHardware {
-  private device: BluetoothDevice | null = null;
+  private device: BluetoothDeviceWithGATT | null = null;
   private characteristic: BluetoothRemoteGATTCharacteristic | null = null;
 
   async isAvailable(): Promise<boolean> {
-    return 'bluetooth' in navigator && 'requestDevice' in navigator.bluetooth;
+    return !!(navigator as Navigator & { bluetooth?: { requestDevice: Function } }).bluetooth;
   }
 
   async startScanning(): Promise<string> {
     try {
       // Request Bluetooth device with Serial Port Profile
-      this.device = await navigator.bluetooth.requestDevice({
+      const bluetooth = (navigator as Navigator & { bluetooth?: { requestDevice: Function } }).bluetooth;
+      if (!bluetooth) {
+        throw new Error('Bluetooth not supported');
+      }
+
+      this.device = await bluetooth.requestDevice({
         filters: [
-          { services: ['battery_service'] } // Example service, replace with your scanner's service UUID
+          { services: ['battery_service'] }
         ]
-      });
+      }) as BluetoothDeviceWithGATT;
 
       if (!this.device.gatt) {
         throw new Error('Bluetooth device not found');
       }
 
       const server = await this.device.gatt.connect();
-      const service = await server.getPrimaryService('battery_service'); // Replace with your service UUID
-      this.characteristic = await service.getCharacteristic('battery_level'); // Replace with your characteristic UUID
+      const service = await server.getPrimaryService('battery_service');
+      this.characteristic = await service.getCharacteristic('battery_level');
 
-      // Read the value
       const value = await this.characteristic.readValue();
       const decoder = new TextDecoder();
       const vin = decoder.decode(value);
@@ -221,7 +245,7 @@ class BluetoothVINScanner implements VINScannerHardware {
 
   async stopScanning(): Promise<void> {
     if (this.device?.gatt?.connected) {
-      await this.device.gatt.disconnect();
+      this.device.gatt.disconnect();
     }
     this.device = null;
     this.characteristic = null;
