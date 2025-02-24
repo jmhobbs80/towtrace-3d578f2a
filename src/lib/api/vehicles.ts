@@ -188,16 +188,11 @@ class WebcamVINScanner implements VINScannerHardware {
   }
 }
 
-interface BluetoothDeviceWithGATT extends BluetoothDevice {
-  gatt?: {
-    connect: () => Promise<BluetoothRemoteGATTServer>;
-    connected: boolean;
-    disconnect: () => void;
-  };
-}
-
 interface BluetoothRemoteGATTServer {
   getPrimaryService: (service: string) => Promise<BluetoothRemoteGATTService>;
+  connect: () => Promise<BluetoothRemoteGATTServer>;
+  connected: boolean;
+  disconnect: () => void;
 }
 
 interface BluetoothRemoteGATTService {
@@ -206,6 +201,10 @@ interface BluetoothRemoteGATTService {
 
 interface BluetoothRemoteGATTCharacteristic {
   readValue: () => Promise<DataView>;
+}
+
+interface BluetoothDeviceWithGATT extends BluetoothDevice {
+  gatt?: BluetoothRemoteGATTServer;
 }
 
 class BluetoothVINScanner implements VINScannerHardware {
