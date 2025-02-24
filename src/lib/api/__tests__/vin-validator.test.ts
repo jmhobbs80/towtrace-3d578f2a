@@ -1,4 +1,5 @@
 
+import { describe, test, expect } from 'vitest';
 import { validateVIN } from '../vin-validator';
 
 describe('VIN Validator', () => {

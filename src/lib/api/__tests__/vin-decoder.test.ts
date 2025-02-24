@@ -1,6 +1,6 @@
 
+import { describe, test, expect, beforeEach, afterEach, vi } from 'vitest';
 import { decodeVIN } from '../vin-decoder';
-import { beforeEach, afterEach, vi } from 'vitest';
 
 describe('VIN Decoder', () => {
   const mockVIN = '1HGCM82633A123456';
@@ -32,7 +32,7 @@ describe('VIN Decoder', () => {
   });
 
   test('successfully decodes a VIN', async () => {
-    (global.fetch as jest.Mock).mockResolvedValueOnce({
+    (global.fetch as ReturnType<typeof vi.fn>).mockResolvedValueOnce({
       ok: true,
       json: async () => mockResponse
     });
@@ -45,7 +45,7 @@ describe('VIN Decoder', () => {
   });
 
   test('handles API errors with retry', async () => {
-    (global.fetch as jest.Mock)
+    (global.fetch as ReturnType<typeof vi.fn>)
       .mockRejectedValueOnce(new Error('Network error'))
       .mockRejectedValueOnce(new Error('Network error'))
       .mockResolvedValueOnce({
