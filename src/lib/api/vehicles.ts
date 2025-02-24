@@ -1,4 +1,3 @@
-
 interface VehicleDecodedData {
   make: string;
   model: string;
@@ -104,7 +103,21 @@ export interface VINScannerHardware {
 }
 
 // Different scanner implementations
+import { BrowserMultiFormatReader, DecodeHintType, BarcodeFormat } from '@zxing/library';
+import { HTMLCanvasElementLuminanceSource, BrowserCodeReader } from '@zxing/browser';
+
 class WebcamVINScanner implements VINScannerHardware {
+  private reader: BrowserMultiFormatReader;
+  private videoElement: HTMLVideoElement | null = null;
+  private stream: MediaStream | null = null;
+
+  constructor() {
+    const hints = new Map();
+    hints.set(DecodeHintType.POSSIBLE_FORMATS, [BarcodeFormat.CODE_39, BarcodeFormat.CODE_128]);
+    hints.set(DecodeHintType.TRY_HARDER, true);
+    this.reader = new BrowserMultiFormatReader(hints);
+  }
+
   async isAvailable(): Promise<boolean> {
     try {
       const devices = await navigator.mediaDevices.enumerateDevices();
@@ -115,39 +128,103 @@ class WebcamVINScanner implements VINScannerHardware {
   }
 
   async startScanning(): Promise<string> {
-    // In a real implementation, this would use a barcode scanning library
-    // For demo purposes, we're returning a mock VIN
-    return new Promise(resolve => {
-      setTimeout(() => {
-        resolve("1HGCM82633A123456");
-      }, 1500);
-    });
+    try {
+      this.videoElement = document.createElement('video');
+      this.videoElement.style.position = 'fixed';
+      this.videoElement.style.top = '50%';
+      this.videoElement.style.left = '50%';
+      this.videoElement.style.transform = 'translate(-50%, -50%)';
+      this.videoElement.style.zIndex = '1000';
+      document.body.appendChild(this.videoElement);
+
+      // Get user media
+      this.stream = await navigator.mediaDevices.getUserMedia({
+        video: { facingMode: 'environment' }
+      });
+      
+      this.videoElement.srcObject = this.stream;
+      await this.videoElement.play();
+
+      // Start continuous scanning
+      const result = await this.reader.decodeFromVideoElement(this.videoElement);
+      
+      // Clean up after successful scan
+      this.cleanup();
+      
+      if (!result?.getText()) {
+        throw new Error('No barcode detected');
+      }
+
+      return result.getText();
+    } catch (error) {
+      this.cleanup();
+      throw new Error('Failed to scan barcode');
+    }
   }
 
   async stopScanning(): Promise<void> {
-    // Clean up camera resources
-    return Promise.resolve();
+    this.cleanup();
+  }
+
+  private cleanup() {
+    if (this.stream) {
+      this.stream.getTracks().forEach(track => track.stop());
+      this.stream = null;
+    }
+    if (this.videoElement) {
+      this.videoElement.remove();
+      this.videoElement = null;
+    }
   }
 }
 
 class BluetoothVINScanner implements VINScannerHardware {
+  private device: BluetoothDevice | null = null;
+  private characteristic: BluetoothRemoteGATTCharacteristic | null = null;
+
   async isAvailable(): Promise<boolean> {
-    return 'bluetooth' in navigator;
+    return 'bluetooth' in navigator && 'requestDevice' in navigator.bluetooth;
   }
 
   async startScanning(): Promise<string> {
-    // In a real implementation, this would connect to a Bluetooth scanner
-    // For demo purposes, we're returning a mock VIN
-    return new Promise(resolve => {
-      setTimeout(() => {
-        resolve("5FNRL6H58NB058437");
-      }, 1500);
-    });
+    try {
+      // Request Bluetooth device with Serial Port Profile
+      this.device = await navigator.bluetooth.requestDevice({
+        filters: [
+          { services: ['battery_service'] } // Example service, replace with your scanner's service UUID
+        ]
+      });
+
+      if (!this.device.gatt) {
+        throw new Error('Bluetooth device not found');
+      }
+
+      const server = await this.device.gatt.connect();
+      const service = await server.getPrimaryService('battery_service'); // Replace with your service UUID
+      this.characteristic = await service.getCharacteristic('battery_level'); // Replace with your characteristic UUID
+
+      // Read the value
+      const value = await this.characteristic.readValue();
+      const decoder = new TextDecoder();
+      const vin = decoder.decode(value);
+
+      if (!vin) {
+        throw new Error('No VIN detected');
+      }
+
+      return vin;
+    } catch (error) {
+      await this.stopScanning();
+      throw new Error('Failed to connect to Bluetooth scanner');
+    }
   }
 
   async stopScanning(): Promise<void> {
-    // Disconnect from Bluetooth device
-    return Promise.resolve();
+    if (this.device?.gatt?.connected) {
+      await this.device.gatt.disconnect();
+    }
+    this.device = null;
+    this.characteristic = null;
   }
 }
 

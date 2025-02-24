@@ -58,7 +58,7 @@ export const UpdateStatusDialog = ({ vehicle, onUpdate, open, onOpenChange }: Up
       toast({
         variant: "destructive",
         title: "Scanner Not Available",
-        description: "No VIN scanner hardware was detected."
+        description: "No VIN scanner hardware was detected. Please enter VIN manually."
       });
       return;
     }
@@ -72,7 +72,7 @@ export const UpdateStatusDialog = ({ vehicle, onUpdate, open, onOpenChange }: Up
         toast({
           variant: "destructive",
           title: "Invalid VIN",
-          description: "The scanned VIN appears to be invalid. Please try again."
+          description: "The scanned VIN appears to be invalid. Please try again or enter manually."
         });
         return;
       }
@@ -98,7 +98,7 @@ export const UpdateStatusDialog = ({ vehicle, onUpdate, open, onOpenChange }: Up
       toast({
         variant: "destructive",
         title: "Scanning Failed",
-        description: "Failed to decode VIN. Please try again or enter manually."
+        description: error instanceof Error ? error.message : "Failed to scan VIN. Please try again or enter manually."
       });
     } finally {
       setScanning(false);
