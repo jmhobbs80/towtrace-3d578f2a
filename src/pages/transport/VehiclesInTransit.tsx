@@ -1,6 +1,6 @@
 
-import { useState } from "react";
-import { useQuery } from "@tanstack/react-query";
+import { useState, useEffect } from "react";
+import { useQuery, useQueryClient } from "@tanstack/react-query";
 import { supabase } from "@/integrations/supabase/client";
 import { Button } from "@/components/ui/button";
 import { Sidebar } from "@/components/ui/layout/Sidebar";
@@ -15,11 +15,14 @@ import {
 import { Badge } from "@/components/ui/badge";
 import { useToast } from "@/components/ui/use-toast";
 import { getVehiclesInTransit } from "@/lib/api/fleet";
+import { UpdateStatusDialog } from "@/components/transport/UpdateStatusDialog";
 import type { VehicleInTransit } from "@/lib/types/fleet";
 
 const VehiclesInTransitDashboard = () => {
   const { toast } = useToast();
+  const queryClient = useQueryClient();
   const [selectedVehicle, setSelectedVehicle] = useState<VehicleInTransit | null>(null);
+  const [isDialogOpen, setIsDialogOpen] = useState(false);
 
   const { data: vehicles, isLoading } = useQuery({
     queryKey: ['vehicles-in-transit'],
@@ -42,6 +45,29 @@ const VehiclesInTransitDashboard = () => {
     }
   });
 
+  // Set up real-time subscription
+  useEffect(() => {
+    const channel = supabase
+      .channel('vehicles-updates')
+      .on(
+        'postgres_changes',
+        {
+          event: '*',
+          schema: 'public',
+          table: 'vehicles_in_transit'
+        },
+        () => {
+          // Refetch data when changes occur
+          queryClient.invalidateQueries({ queryKey: ['vehicles-in-transit'] });
+        }
+      )
+      .subscribe();
+
+    return () => {
+      supabase.removeChannel(channel);
+    };
+  }, [queryClient]);
+
   const getPickupStatusColor = (status: VehicleInTransit['pickup_status']) => {
     switch (status) {
       case 'confirmed':
@@ -62,6 +88,10 @@ const VehiclesInTransitDashboard = () => {
       default:
         return 'outline';
     }
+  };
+
+  const handleStatusUpdate = () => {
+    queryClient.invalidateQueries({ queryKey: ['vehicles-in-transit'] });
   };
 
   if (isLoading) {
@@ -130,7 +160,10 @@ const VehiclesInTransitDashboard = () => {
                       <Button
                         variant="outline"
                         size="sm"
-                        onClick={() => setSelectedVehicle(vehicle)}
+                        onClick={() => {
+                          setSelectedVehicle(vehicle);
+                          setIsDialogOpen(true);
+                        }}
                       >
                         Update Status
                       </Button>
@@ -142,6 +175,15 @@ const VehiclesInTransitDashboard = () => {
           </div>
         </div>
       </main>
+
+      {selectedVehicle && (
+        <UpdateStatusDialog
+          vehicle={selectedVehicle}
+          onUpdate={handleStatusUpdate}
+          open={isDialogOpen}
+          onOpenChange={setIsDialogOpen}
+        />
+      )}
     </div>
   );
 };
