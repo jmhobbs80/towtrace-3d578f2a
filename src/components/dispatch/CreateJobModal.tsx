@@ -1,5 +1,5 @@
 
-import { useState, useEffect, useCallback } from "react";
+import { useState, useEffect, useCallback, useRef } from "react";
 import { Dialog, DialogContent, DialogHeader, DialogTitle } from "@/components/ui/dialog";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
@@ -37,6 +37,7 @@ interface FormData {
 export const CreateJobModal = ({ open, onClose, onSuccess }: CreateJobModalProps) => {
   const { organization } = useAuth();
   const { toast } = useToast();
+  const toastFn = useRef(toast);
   const [isLoading, setIsLoading] = useState(false);
   const [drivers, setDrivers] = useState<Driver[]>([]);
   const [formData, setFormData] = useState<FormData>({
@@ -60,14 +61,13 @@ export const CreateJobModal = ({ open, onClose, onSuccess }: CreateJobModalProps
       setDrivers(data || []);
     } catch (error: any) {
       console.error('Error fetching drivers:', error);
-      // Create a new toast call inside the function rather than using the one from closure
-      useToast().toast({
+      toastFn.current({
         variant: "destructive",
         title: "Error fetching drivers",
         description: error.message,
       });
     }
-  }, [organization?.id]); // Remove toast from dependencies
+  }, [organization?.id]);
 
   useEffect(() => {
     fetchDrivers();
