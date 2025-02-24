@@ -42,26 +42,9 @@ export interface LocationSummary {
 }
 
 // Base vehicle search result interface with explicit typing
-export interface VehicleSearchResult {
-  id: string;
-  organization_id: string;
-  location_id: string | null;
-  make: string;
-  model: string;
-  year: number;
-  vin: string;
-  status: InventoryStatus | null;
-  condition: VehicleCondition | null;
+export interface VehicleSearchResult extends Omit<InventoryVehicle, 'location'> {
   location: LocationSummary;
   condition_logs: VehicleConditionLog[];
-  color?: string | null;
-  mileage?: number | null;
-  listing_price?: number | null;
-  purchase_price?: number | null;
-  trim?: string | null;
-  notes?: string | null;
-  created_at: string;
-  updated_at: string;
 }
 
 export interface InspectionLogWithInspector extends VehicleConditionLog {
@@ -78,4 +61,4 @@ export interface LocationStats {
   capacity: number;
 }
 
-type Json = Database["public"]["CompositeTypes"] extends { json: infer T } ? T : never;
+type Json = string | number | boolean | null | { [key: string]: Json } | Json[];

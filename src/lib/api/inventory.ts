@@ -135,7 +135,11 @@ export async function searchInventory(
 
   let dbQuery = supabase
     .from('inventory_vehicles')
-    .select('*, location:inventory_locations!inner (name, address), condition_logs:vehicle_condition_logs (*)')
+    .select(`
+      *,
+      location:inventory_locations (name, address),
+      condition_logs:vehicle_condition_logs (*)
+    `)
     .or(`make.ilike.%${query}%,model.ilike.%${query}%,vin.ilike.%${query}%`);
 
   // Apply numeric range filters
@@ -153,7 +157,13 @@ export async function searchInventory(
 
   const { data, error } = await dbQuery;
   if (error) throw error;
-  return (data || []) as VehicleSearchResult[];
+  
+  // Type assertion with proper type checking
+  return (data || []).map(item => ({
+    ...item,
+    location: item.location as LocationSummary,
+    condition_logs: item.condition_logs as VehicleConditionLog[]
+  })) as VehicleSearchResult[];
 }
 
 export async function getVehicleInspectionHistory(vehicleId: string) {
