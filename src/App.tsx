@@ -8,6 +8,7 @@ import ProtectedRoute from "@/components/auth/ProtectedRoute";
 import DispatchDashboard from "@/pages/dispatch/DispatchDashboard";
 import VehiclesInTransitDashboard from "@/pages/transport/VehiclesInTransit";
 import InspectionHistoryDashboard from "@/pages/inventory/InspectionHistoryDashboard";
+import InspectionDetails from "@/pages/inventory/InspectionDetails";
 
 function App() {
   return (
@@ -44,6 +45,14 @@ function App() {
             element={
               <ProtectedRoute>
                 <InspectionHistoryDashboard />
+              </ProtectedRoute>
+            }
+          />
+          <Route
+            path="/inventory/inspections/:id"
+            element={
+              <ProtectedRoute>
+                <InspectionDetails />
               </ProtectedRoute>
             }
           />
