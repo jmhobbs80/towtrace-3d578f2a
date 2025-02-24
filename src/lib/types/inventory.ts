@@ -21,7 +21,6 @@ export interface BulkUploadRow {
   notes?: string;
 }
 
-// Break the recursive type by explicitly defining the search filter properties
 export interface SearchFilters {
   status?: InventoryStatus;
   condition?: VehicleCondition;
@@ -34,6 +33,18 @@ export interface SearchFilters {
   maxPrice?: number;
   minYear?: number;
   maxYear?: number;
+}
+
+// Simplified location type for nested data
+export interface LocationSummary {
+  name: string;
+  address: Json;
+}
+
+// Base vehicle search result interface
+export interface VehicleSearchResult extends InventoryVehicle {
+  location: LocationSummary | null;
+  condition_logs: VehicleConditionLog[];
 }
 
 export interface InspectionLogWithInspector extends VehicleConditionLog {
@@ -54,3 +65,5 @@ export interface LocationStats {
   pending: number;
   capacity: number;
 }
+
+type Json = Database["public"]["CompositeTypes"] extends { json: infer T } ? T : never;
