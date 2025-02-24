@@ -1,6 +1,6 @@
 
 import { supabase } from "@/integrations/supabase/client";
-import type { VehicleInspection, InspectionChecklistItem } from "../types/inspection";
+import type { VehicleInspection, InspectionChecklistItem, UpdateInspectionStatusParams } from "../types/inspection";
 
 export async function createInspection(vehicleId: string): Promise<VehicleInspection> {
   const { data: userData } = await supabase.auth.getUser();
@@ -11,19 +11,23 @@ export async function createInspection(vehicleId: string): Promise<VehicleInspec
     .insert({
       vehicle_id: vehicleId,
       inspector_id: userData.user.id,
-      status: 'pending'
+      status: 'pending',
+      inspection_data: {}
     })
     .select()
     .single();
 
   if (error) throw error;
-  return data;
+  return {
+    ...data,
+    inspection_data: data.inspection_data as Record<string, any>
+  };
 }
 
 export async function updateInspectionStatus(
-  inspectionId: string, 
-  status: VehicleInspection['status']
+  params: UpdateInspectionStatusParams
 ): Promise<void> {
+  const { inspectionId, status } = params;
   const { error } = await supabase
     .from('vehicle_inspections')
     .update({ status })
@@ -40,7 +44,7 @@ export async function addChecklistItem(item: Omit<InspectionChecklistItem, 'id' 
     .single();
 
   if (error) throw error;
-  return data;
+  return data as InspectionChecklistItem;
 }
 
 export async function getInspectionDetails(inspectionId: string): Promise<{
@@ -63,8 +67,11 @@ export async function getInspectionDetails(inspectionId: string): Promise<{
   if (checklistResult.error) throw checklistResult.error;
 
   return {
-    inspection: inspectionResult.data,
-    checklistItems: checklistResult.data
+    inspection: {
+      ...inspectionResult.data,
+      inspection_data: inspectionResult.data.inspection_data as Record<string, any>
+    },
+    checklistItems: checklistResult.data as InspectionChecklistItem[]
   };
 }
 

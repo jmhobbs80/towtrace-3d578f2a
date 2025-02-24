@@ -14,7 +14,7 @@ import {
   updateChecklistItem,
   getInspectionDetails,
 } from "@/lib/api/inspections";
-import type { InspectionChecklistItem } from "@/lib/types/inspection";
+import type { InspectionChecklistItem, UpdateInspectionStatusParams } from "@/lib/types/inspection";
 
 const CHECKLIST_CATEGORIES = [
   "Exterior",
@@ -112,7 +112,10 @@ export function VehicleInspectionForm({ vehicleId, inspectionId, onComplete }: P
 
   const handleComplete = () => {
     if (inspectionId) {
-      updateStatusMutation.mutate({ inspectionId, status: 'completed' });
+      updateStatusMutation.mutate({
+        inspectionId,
+        status: 'completed'
+      });
     }
   };
 

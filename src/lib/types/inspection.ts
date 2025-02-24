@@ -26,3 +26,8 @@ export interface VehicleInspection {
   created_at: string;
   updated_at: string;
 }
+
+export interface UpdateInspectionStatusParams {
+  inspectionId: string;
+  status: InspectionStatus;
+}
