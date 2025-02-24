@@ -1,12 +1,21 @@
 
 import type { Database } from "@/integrations/supabase/types";
 
+// Basic types from database
 export type InventoryLocation = Database["public"]["Tables"]["inventory_locations"]["Row"];
 export type InventoryVehicle = Database["public"]["Tables"]["inventory_vehicles"]["Row"];
 export type VehicleConditionLog = Database["public"]["Tables"]["vehicle_condition_logs"]["Row"];
-
 export type InventoryStatus = Database["public"]["Enums"]["inventory_status"];
 export type VehicleCondition = Database["public"]["Enums"]["vehicle_condition"];
+
+// Simple JSON type definition
+type Json = string | number | boolean | null | { [key: string]: Json } | Json[];
+
+// Simplified location type for nested data
+export interface LocationSummary {
+  name: string;
+  address: Json;
+}
 
 export interface BulkUploadRow {
   vin: string;
@@ -35,13 +44,7 @@ export interface SearchFilters {
   maxYear?: number;
 }
 
-// Simplified location type for nested data
-export interface LocationSummary {
-  name: string;
-  address: Json;
-}
-
-// Base vehicle search result interface with explicit typing
+// Base vehicle search result interface
 export interface VehicleSearchResult extends Omit<InventoryVehicle, 'location'> {
   location: LocationSummary;
   condition_logs: VehicleConditionLog[];
@@ -60,5 +63,3 @@ export interface LocationStats {
   pending: number;
   capacity: number;
 }
-
-type Json = string | number | boolean | null | { [key: string]: Json } | Json[];

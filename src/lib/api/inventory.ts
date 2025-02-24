@@ -5,7 +5,8 @@ import type {
   VehicleConditionLog,
   BulkUploadRow,
   SearchFilters,
-  VehicleSearchResult
+  VehicleSearchResult,
+  LocationSummary
 } from "../types/inventory";
 import { decodeVIN } from "./vin-decoder";
 
@@ -157,13 +158,15 @@ export async function searchInventory(
 
   const { data, error } = await dbQuery;
   if (error) throw error;
-  
-  // Type assertion with proper type checking
-  return (data || []).map(item => ({
-    ...item,
-    location: item.location as LocationSummary,
-    condition_logs: item.condition_logs as VehicleConditionLog[]
-  })) as VehicleSearchResult[];
+
+  return (data || []).map(item => {
+    const { location, condition_logs, ...vehicleData } = item;
+    return {
+      ...vehicleData,
+      location: location as LocationSummary,
+      condition_logs: condition_logs as VehicleConditionLog[]
+    };
+  });
 }
 
 export async function getVehicleInspectionHistory(vehicleId: string) {
