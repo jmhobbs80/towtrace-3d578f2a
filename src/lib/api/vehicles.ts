@@ -1,4 +1,3 @@
-
 interface VehicleDecodedData {
   make: string;
   model: string;
@@ -94,6 +93,17 @@ export const validateVIN = (vin: string): boolean => {
   const checkDigit = check === 10 ? 'X' : check.toString();
   return checkDigit === vin[8];
 };
+
+// Web Bluetooth API types
+interface BluetoothDevice {
+  id: string;
+  name?: string;
+  gatt?: BluetoothRemoteGATTServer;
+  watchAdvertisements?: () => Promise<void>;
+  unwatchAdvertisements?: () => void;
+  addEventListener?: (type: string, listener: EventListener) => void;
+  removeEventListener?: (type: string, listener: EventListener) => void;
+}
 
 // Hardware integration interface
 export interface VINScannerHardware {
