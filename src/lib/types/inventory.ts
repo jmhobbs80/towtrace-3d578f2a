@@ -21,7 +21,15 @@ export interface BulkUploadRow {
   notes?: string;
 }
 
-export interface SearchFilters extends Partial<InventoryVehicle> {
+// Break the recursive type by explicitly defining the search filter properties
+export interface SearchFilters {
+  status?: InventoryStatus;
+  condition?: VehicleCondition;
+  make?: string;
+  model?: string;
+  year?: number;
+  color?: string;
+  location_id?: string;
   minPrice?: number;
   maxPrice?: number;
   minYear?: number;
