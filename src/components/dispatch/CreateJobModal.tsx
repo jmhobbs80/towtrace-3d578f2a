@@ -35,7 +35,7 @@ interface FormData {
 }
 
 export const CreateJobModal = ({ open, onClose, onSuccess }: CreateJobModalProps) => {
-  const { organization } = useAuth();
+  const { organization, user } = useAuth();
   const { toast } = useToast();
   const [isLoading, setIsLoading] = useState(false);
   const [drivers, setDrivers] = useState<Driver[]>([]);
@@ -56,13 +56,13 @@ export const CreateJobModal = ({ open, onClose, onSuccess }: CreateJobModalProps
   }, [toast]);
 
   const fetchDrivers = useCallback(async () => {
-    if (!organization?.id) return;
+    if (!organization?.id || !user?.id) return;
 
     try {
       const { data, error } = await supabase
         .from('profiles')
         .select('id, first_name, last_name')
-        .eq('user_id', supabase.auth.getUser())
+        .eq('id', user.id)
         .throwOnError();
 
       if (error) {
@@ -74,7 +74,7 @@ export const CreateJobModal = ({ open, onClose, onSuccess }: CreateJobModalProps
     } catch (error) {
       handleError(error as Error, 'Error fetching drivers');
     }
-  }, [organization?.id, handleError]);
+  }, [organization?.id, user?.id, handleError]);
 
   useEffect(() => {
     fetchDrivers();
