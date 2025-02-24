@@ -1,3 +1,4 @@
+
 import { supabase } from "@/integrations/supabase/client";
 import type { 
   InventoryLocation, 
@@ -7,7 +8,6 @@ import type {
   SearchFilters 
 } from "../types/inventory";
 import { decodeVIN } from "./vin-decoder";
-import { useAuth } from "@/components/auth/AuthProvider";
 
 export async function getLocations() {
   const { data, error } = await supabase

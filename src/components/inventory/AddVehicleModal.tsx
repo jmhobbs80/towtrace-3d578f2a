@@ -8,7 +8,7 @@ import { Form, FormControl, FormField, FormItem, FormLabel } from "@/components/
 import { Input } from "@/components/ui/input";
 import { Button } from "@/components/ui/button";
 import { Textarea } from "@/components/ui/textarea";
-import { useAuth } from "@/components/auth/AuthProvider";
+import { useAuth } from "@/lib/auth";
 import {
   Select,
   SelectContent,
@@ -67,10 +67,13 @@ export const AddVehicleModal = ({
 
     try {
       setIsSubmitting(true);
-      await addVehicleToInventory({
+      const vehicleData = {
         ...values,
+        year: Number(values.year),
         organization_id: user.organization_id,
-      });
+      };
+      
+      await addVehicleToInventory(vehicleData);
       onSuccess();
       onClose();
     } catch (error) {
