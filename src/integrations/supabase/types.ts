@@ -9,6 +9,44 @@ export type Json =
 export type Database = {
   public: {
     Tables: {
+      dealerships: {
+        Row: {
+          address: Json
+          contact_info: Json
+          created_at: string
+          id: string
+          name: string
+          organization_id: string
+          updated_at: string
+        }
+        Insert: {
+          address: Json
+          contact_info: Json
+          created_at?: string
+          id?: string
+          name: string
+          organization_id: string
+          updated_at?: string
+        }
+        Update: {
+          address?: Json
+          contact_info?: Json
+          created_at?: string
+          id?: string
+          name?: string
+          organization_id?: string
+          updated_at?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "dealerships_organization_id_fkey"
+            columns: ["organization_id"]
+            isOneToOne: false
+            referencedRelation: "organizations"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       driver_locations: {
         Row: {
           coordinates: Json
@@ -37,6 +75,65 @@ export type Database = {
             columns: ["job_id"]
             isOneToOne: false
             referencedRelation: "tow_jobs"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      fleet_vehicles: {
+        Row: {
+          capacity: number
+          created_at: string
+          id: string
+          last_maintenance_date: string | null
+          license_plate: string | null
+          make: string | null
+          model: string | null
+          next_maintenance_date: string | null
+          organization_id: string
+          status: string
+          updated_at: string
+          vehicle_type: string
+          vin: string | null
+          year: number | null
+        }
+        Insert: {
+          capacity: number
+          created_at?: string
+          id?: string
+          last_maintenance_date?: string | null
+          license_plate?: string | null
+          make?: string | null
+          model?: string | null
+          next_maintenance_date?: string | null
+          organization_id: string
+          status?: string
+          updated_at?: string
+          vehicle_type: string
+          vin?: string | null
+          year?: number | null
+        }
+        Update: {
+          capacity?: number
+          created_at?: string
+          id?: string
+          last_maintenance_date?: string | null
+          license_plate?: string | null
+          make?: string | null
+          model?: string | null
+          next_maintenance_date?: string | null
+          organization_id?: string
+          status?: string
+          updated_at?: string
+          vehicle_type?: string
+          vin?: string | null
+          year?: number | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "fleet_vehicles_organization_id_fkey"
+            columns: ["organization_id"]
+            isOneToOne: false
+            referencedRelation: "organizations"
             referencedColumns: ["id"]
           },
         ]
@@ -364,6 +461,59 @@ export type Database = {
           user_id?: string
         }
         Relationships: []
+      }
+      vehicles_in_transit: {
+        Row: {
+          created_at: string
+          delivery_confirmation: string | null
+          delivery_status: string
+          id: string
+          job_id: string
+          make: string
+          model: string
+          pickup_confirmation: string | null
+          pickup_status: string
+          updated_at: string
+          vin: string
+          year: number | null
+        }
+        Insert: {
+          created_at?: string
+          delivery_confirmation?: string | null
+          delivery_status?: string
+          id?: string
+          job_id: string
+          make: string
+          model: string
+          pickup_confirmation?: string | null
+          pickup_status?: string
+          updated_at?: string
+          vin: string
+          year?: number | null
+        }
+        Update: {
+          created_at?: string
+          delivery_confirmation?: string | null
+          delivery_status?: string
+          id?: string
+          job_id?: string
+          make?: string
+          model?: string
+          pickup_confirmation?: string | null
+          pickup_status?: string
+          updated_at?: string
+          vin?: string
+          year?: number | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "vehicles_in_transit_job_id_fkey"
+            columns: ["job_id"]
+            isOneToOne: false
+            referencedRelation: "tow_jobs"
+            referencedColumns: ["id"]
+          },
+        ]
       }
     }
     Views: {
