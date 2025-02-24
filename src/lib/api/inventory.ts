@@ -128,6 +128,7 @@ export async function updateVehicleStatus(
 }
 
 export async function searchInventory(query: string, filters: SearchFilters = {}) {
+  type FilterKey = keyof typeof filters;
   const { minPrice, maxPrice, minYear, maxYear, ...restFilters } = filters;
   
   let dbQuery = supabase
@@ -145,8 +146,9 @@ export async function searchInventory(query: string, filters: SearchFilters = {}
   if (minYear) dbQuery = dbQuery.gte('year', minYear);
   if (maxYear) dbQuery = dbQuery.lte('year', maxYear);
 
-  // Apply exact match filters
-  Object.entries(restFilters).forEach(([key, value]) => {
+  // Apply exact match filters with type safety
+  (Object.keys(restFilters) as FilterKey[]).forEach((key) => {
+    const value = restFilters[key];
     if (value !== undefined && value !== null) {
       dbQuery = dbQuery.eq(key, value);
     }

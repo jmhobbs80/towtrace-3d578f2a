@@ -19,6 +19,7 @@ import {
 import { addVehicleToInventory } from "@/lib/api/inventory";
 import type { InventoryLocation } from "@/lib/types/inventory";
 
+// Required fields aligned with the API requirements
 const formSchema = z.object({
   vin: z.string().min(17).max(17),
   make: z.string().min(1),
@@ -67,10 +68,21 @@ export const AddVehicleModal = ({
 
     try {
       setIsSubmitting(true);
+      // Ensure all required fields are present and properly typed
       const vehicleData = {
-        ...values,
+        vin: values.vin,
+        make: values.make,
+        model: values.model,
         year: Number(values.year),
         organization_id: user.organization_id,
+        // Optional fields
+        trim: values.trim,
+        color: values.color,
+        mileage: values.mileage,
+        purchase_price: values.purchase_price,
+        listing_price: values.listing_price,
+        location_id: values.location_id,
+        notes: values.notes,
       };
       
       await addVehicleToInventory(vehicleData);
