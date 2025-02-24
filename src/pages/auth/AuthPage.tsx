@@ -1,122 +1,130 @@
 
-import { useState } from "react";
+import { useEffect, useState } from "react";
+import { useNavigate } from "react-router-dom";
 import { supabase } from "@/integrations/supabase/client";
 import { Button } from "@/components/ui/button";
-import { useNavigate } from "react-router-dom";
+import { Input } from "@/components/ui/input";
+import { useToast } from "@/components/ui/use-toast";
+import { PushNotificationService } from "@/lib/services/push-notifications";
 
-export const AuthPage = () => {
+export default function AuthPage() {
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
-  const [isLoading, setIsLoading] = useState(false);
-  const [error, setError] = useState<string | null>(null);
+  const [loading, setLoading] = useState(false);
   const [isSignUp, setIsSignUp] = useState(false);
   const navigate = useNavigate();
+  const { toast } = useToast();
+  const pushNotificationService = PushNotificationService.getInstance();
 
-  const handleAuth = async (e: React.FormEvent) => {
+  useEffect(() => {
+    // Check if user is already logged in
+    supabase.auth.getSession().then(({ data: { session } }) => {
+      if (session) {
+        navigate("/");
+      }
+    });
+  }, [navigate]);
+
+  async function handleSubmit(e: React.FormEvent) {
     e.preventDefault();
-    setIsLoading(true);
-    setError(null);
+    setLoading(true);
 
     try {
-      if (isSignUp) {
-        const { error } = await supabase.auth.signUp({
-          email,
-          password,
-        });
-        if (error) throw error;
-      } else {
-        const { error } = await supabase.auth.signInWithPassword({
-          email,
-          password,
-        });
-        if (error) throw error;
+      const { error } = isSignUp
+        ? await supabase.auth.signUp({ email, password })
+        : await supabase.auth.signInWithPassword({ email, password });
+
+      if (error) throw error;
+
+      // Request push notification permission after successful login/signup
+      if ('Notification' in window) {
+        try {
+          await pushNotificationService.subscribe();
+          toast({
+            title: "Notifications enabled",
+            description: "You'll receive updates about new jobs and status changes",
+          });
+        } catch (error) {
+          console.error('Failed to enable notifications:', error);
+          toast({
+            variant: "destructive",
+            title: "Notification setup failed",
+            description: "You may not receive job updates. Please check your browser settings.",
+          });
+        }
       }
+
       navigate("/");
-    } catch (error: any) {
-      setError(error.message);
+    } catch (error) {
+      toast({
+        variant: "destructive",
+        title: "Authentication error",
+        description: error instanceof Error ? error.message : "An error occurred",
+      });
     } finally {
-      setIsLoading(false);
+      setLoading(false);
     }
-  };
+  }
 
   return (
     <div className="min-h-screen flex items-center justify-center bg-gray-50 py-12 px-4 sm:px-6 lg:px-8">
       <div className="max-w-md w-full space-y-8">
         <div>
-          <h1 className="text-3xl font-bold text-center text-gray-900">
-            TowTrace
-          </h1>
-          <h2 className="mt-6 text-center text-2xl font-semibold text-gray-900">
+          <h2 className="mt-6 text-center text-3xl font-extrabold text-gray-900">
             {isSignUp ? "Create your account" : "Sign in to your account"}
           </h2>
         </div>
-        <form className="mt-8 space-y-6" onSubmit={handleAuth}>
+        <form className="mt-8 space-y-6" onSubmit={handleSubmit}>
           <div className="rounded-md shadow-sm -space-y-px">
             <div>
-              <label htmlFor="email-address" className="sr-only">
-                Email address
-              </label>
-              <input
-                id="email-address"
+              <Input
+                id="email"
                 name="email"
                 type="email"
                 required
-                className="appearance-none rounded-none relative block w-full px-3 py-2 border border-gray-300 placeholder-gray-500 text-gray-900 rounded-t-md focus:outline-none focus:ring-primary focus:border-primary focus:z-10 sm:text-sm"
                 placeholder="Email address"
                 value={email}
                 onChange={(e) => setEmail(e.target.value)}
+                className="rounded-t-md"
               />
             </div>
             <div>
-              <label htmlFor="password" className="sr-only">
-                Password
-              </label>
-              <input
+              <Input
                 id="password"
                 name="password"
                 type="password"
                 required
-                className="appearance-none rounded-none relative block w-full px-3 py-2 border border-gray-300 placeholder-gray-500 text-gray-900 rounded-b-md focus:outline-none focus:ring-primary focus:border-primary focus:z-10 sm:text-sm"
                 placeholder="Password"
                 value={password}
                 onChange={(e) => setPassword(e.target.value)}
+                className="rounded-b-md"
               />
             </div>
           </div>
-
-          {error && (
-            <div className="text-red-500 text-sm text-center">{error}</div>
-          )}
 
           <div>
             <Button
               type="submit"
               className="w-full"
-              disabled={isLoading}
+              disabled={loading}
             >
-              {isLoading
-                ? "Loading..."
-                : isSignUp
-                ? "Create Account"
-                : "Sign In"}
+              {loading ? "Loading..." : (isSignUp ? "Sign Up" : "Sign In")}
             </Button>
           </div>
-
-          <div className="text-center">
-            <button
-              type="button"
-              className="text-sm text-primary hover:underline"
-              onClick={() => setIsSignUp(!isSignUp)}
-            >
-              {isSignUp
-                ? "Already have an account? Sign in"
-                : "Need an account? Sign up"}
-            </button>
-          </div>
         </form>
+
+        <div className="text-center">
+          <Button
+            variant="ghost"
+            className="text-sm"
+            onClick={() => setIsSignUp(!isSignUp)}
+          >
+            {isSignUp
+              ? "Already have an account? Sign in"
+              : "Don't have an account? Sign up"}
+          </Button>
+        </div>
       </div>
     </div>
   );
-};
-
-export default AuthPage;
+}
