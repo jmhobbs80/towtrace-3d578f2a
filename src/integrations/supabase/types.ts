@@ -41,6 +41,59 @@ export type Database = {
           },
         ]
       }
+      invoices: {
+        Row: {
+          created_at: string
+          customer_id: string | null
+          due_date: string | null
+          id: string
+          invoice_number: string
+          issued_date: string
+          items: Json
+          organization_id: string
+          paid_date: string | null
+          status: string
+          total_amount: number
+          updated_at: string
+        }
+        Insert: {
+          created_at?: string
+          customer_id?: string | null
+          due_date?: string | null
+          id?: string
+          invoice_number: string
+          issued_date?: string
+          items?: Json
+          organization_id: string
+          paid_date?: string | null
+          status?: string
+          total_amount: number
+          updated_at?: string
+        }
+        Update: {
+          created_at?: string
+          customer_id?: string | null
+          due_date?: string | null
+          id?: string
+          invoice_number?: string
+          issued_date?: string
+          items?: Json
+          organization_id?: string
+          paid_date?: string | null
+          status?: string
+          total_amount?: number
+          updated_at?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "invoices_organization_id_fkey"
+            columns: ["organization_id"]
+            isOneToOne: false
+            referencedRelation: "organizations"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       organization_members: {
         Row: {
           created_at: string
@@ -80,6 +133,7 @@ export type Database = {
         Row: {
           accounting_settings: Json | null
           billing_details: Json | null
+          billing_settings: Json | null
           created_at: string
           id: string
           name: string
@@ -91,6 +145,7 @@ export type Database = {
         Insert: {
           accounting_settings?: Json | null
           billing_details?: Json | null
+          billing_settings?: Json | null
           created_at?: string
           id?: string
           name: string
@@ -102,6 +157,7 @@ export type Database = {
         Update: {
           accounting_settings?: Json | null
           billing_details?: Json | null
+          billing_settings?: Json | null
           created_at?: string
           id?: string
           name?: string
@@ -111,6 +167,66 @@ export type Database = {
           updated_at?: string
         }
         Relationships: []
+      }
+      payments: {
+        Row: {
+          amount: number
+          created_at: string
+          id: string
+          job_id: string
+          metadata: Json | null
+          method: Database["public"]["Enums"]["payment_method"]
+          notes: string | null
+          organization_id: string
+          processed_at: string | null
+          reference_number: string | null
+          status: string
+          updated_at: string
+        }
+        Insert: {
+          amount: number
+          created_at?: string
+          id?: string
+          job_id: string
+          metadata?: Json | null
+          method: Database["public"]["Enums"]["payment_method"]
+          notes?: string | null
+          organization_id: string
+          processed_at?: string | null
+          reference_number?: string | null
+          status?: string
+          updated_at?: string
+        }
+        Update: {
+          amount?: number
+          created_at?: string
+          id?: string
+          job_id?: string
+          metadata?: Json | null
+          method?: Database["public"]["Enums"]["payment_method"]
+          notes?: string | null
+          organization_id?: string
+          processed_at?: string | null
+          reference_number?: string | null
+          status?: string
+          updated_at?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "payments_job_id_fkey"
+            columns: ["job_id"]
+            isOneToOne: false
+            referencedRelation: "tow_jobs"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "payments_organization_id_fkey"
+            columns: ["organization_id"]
+            isOneToOne: false
+            referencedRelation: "organizations"
+            referencedColumns: ["id"]
+          },
+        ]
       }
       profiles: {
         Row: {
@@ -270,6 +386,12 @@ export type Database = {
         | "on_site"
         | "completed"
         | "cancelled"
+      payment_method:
+        | "cash"
+        | "credit_card"
+        | "check"
+        | "insurance"
+        | "motor_club"
       service_type:
         | "tow"
         | "jumpstart"
