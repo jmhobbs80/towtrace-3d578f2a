@@ -9,6 +9,38 @@ export type Json =
 export type Database = {
   public: {
     Tables: {
+      driver_locations: {
+        Row: {
+          coordinates: Json
+          created_at: string
+          driver_id: string
+          id: string
+          job_id: string | null
+        }
+        Insert: {
+          coordinates: Json
+          created_at?: string
+          driver_id: string
+          id?: string
+          job_id?: string | null
+        }
+        Update: {
+          coordinates?: Json
+          created_at?: string
+          driver_id?: string
+          id?: string
+          job_id?: string | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "fk_job"
+            columns: ["job_id"]
+            isOneToOne: false
+            referencedRelation: "tow_jobs"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       organization_members: {
         Row: {
           created_at: string
