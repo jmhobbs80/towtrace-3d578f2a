@@ -3,7 +3,8 @@ import { Dialog, DialogContent, DialogHeader, DialogTitle } from "@/components/u
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { PaymentForm } from "@/components/billing/PaymentForm";
 import { PaymentHistory } from "@/components/billing/PaymentHistory";
-import type { Job, Location, isLocation } from "@/lib/types/job";
+import { isLocation } from "@/lib/types/job";
+import type { Job, Location } from "@/lib/types/job";
 
 interface JobDetailsProps {
   job: Job | null;

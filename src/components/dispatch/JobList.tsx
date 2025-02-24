@@ -12,7 +12,8 @@ import { Button } from "@/components/ui/button";
 import { JobStatusManager } from "./JobStatusManager";
 import { JobDetails } from "./JobDetails";
 import { useState } from "react";
-import type { Job, Location, isLocation } from "@/lib/types/job";
+import { isLocation } from "@/lib/types/job";
+import type { Job, Location } from "@/lib/types/job";
 import type { Database } from "@/integrations/supabase/types";
 
 type JobStatus = Database["public"]["Enums"]["job_status"];
