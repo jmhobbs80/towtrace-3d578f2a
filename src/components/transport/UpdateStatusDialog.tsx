@@ -58,7 +58,7 @@ export const UpdateStatusDialog = ({ vehicle, onUpdate, open, onOpenChange }: Up
           decodedData.model !== vehicle.model || 
           decodedData.year !== vehicle.year) {
         toast({
-          variant: "warning",
+          variant: "destructive",  // Changed from "warning" to "destructive"
           title: "Vehicle Data Mismatch",
           description: "The scanned vehicle details don't match our records. Please verify the correct vehicle."
         });
