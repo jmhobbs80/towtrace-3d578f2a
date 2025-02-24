@@ -36,6 +36,17 @@ export class PushNotificationService {
     return permission;
   }
 
+  private serializeSubscription(subscription: PushSubscription): Record<string, any> {
+    return {
+      endpoint: subscription.endpoint,
+      expirationTime: subscription.expirationTime,
+      keys: {
+        p256dh: subscription.toJSON().keys?.p256dh,
+        auth: subscription.toJSON().keys?.auth
+      }
+    };
+  }
+
   async subscribe() {
     const permission = await this.requestPermission();
     if (permission !== 'granted') {
@@ -52,12 +63,17 @@ export class PushNotificationService {
         applicationServerKey: 'YOUR_VAPID_PUBLIC_KEY' // We'll need to set this up in Supabase
       });
 
-      // Store the subscription in Supabase
+      const userId = (await supabase.auth.getUser()).data.user?.id;
+      if (!userId) {
+        throw new Error('User not authenticated');
+      }
+
+      // Store the serialized subscription in Supabase
       const { error } = await supabase
         .from('push_subscriptions')
         .upsert({
-          user_id: (await supabase.auth.getUser()).data.user?.id,
-          subscription: subscription
+          user_id: userId,
+          subscription: this.serializeSubscription(subscription)
         });
 
       if (error) throw error;
@@ -77,11 +93,14 @@ export class PushNotificationService {
       if (subscription) {
         await subscription.unsubscribe();
 
+        const userId = (await supabase.auth.getUser()).data.user?.id;
+        if (!userId) return;
+
         // Remove subscription from Supabase
         const { error } = await supabase
           .from('push_subscriptions')
           .delete()
-          .match({ user_id: (await supabase.auth.getUser()).data.user?.id });
+          .eq('user_id', userId);
 
         if (error) throw error;
       }
