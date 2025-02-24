@@ -1,7 +1,10 @@
 
 import { supabase } from "@/integrations/supabase/client";
+import type { Database } from "@/integrations/supabase/types";
 
-export const updateJobStatus = async (jobId: string, status: string) => {
+type JobStatus = Database["public"]["Enums"]["job_status"];
+
+export const updateJobStatus = async (jobId: string, status: JobStatus) => {
   const { data, error } = await supabase.functions.invoke(`jobs/${jobId}`, {
     method: 'PATCH',
     body: { status }
