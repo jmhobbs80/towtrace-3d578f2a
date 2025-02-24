@@ -1,7 +1,6 @@
 
 export interface AuthUser {
   id: string;
-  organization_id: string;
   email?: string;
 }
 
