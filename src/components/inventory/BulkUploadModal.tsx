@@ -23,14 +23,14 @@ export const BulkUploadModal = ({
 }: BulkUploadModalProps) => {
   const [isUploading, setIsUploading] = useState(false);
   const { toast } = useToast();
-  const { user } = useAuth();
+  const { organization } = useAuth();
 
   const handleFileUpload = async (event: React.ChangeEvent<HTMLInputElement>) => {
-    if (!user?.organization_id) {
+    if (!organization?.id) {
       toast({
         variant: "destructive",
         title: "Error",
-        description: "No organization ID found",
+        description: "No organization found",
       });
       return;
     }
@@ -63,7 +63,7 @@ export const BulkUploadModal = ({
             };
           });
 
-        await bulkAddVehicles(vehicles, locationId, user.organization_id);
+        await bulkAddVehicles(vehicles, locationId, organization.id);
         onSuccess();
         onClose();
         toast({

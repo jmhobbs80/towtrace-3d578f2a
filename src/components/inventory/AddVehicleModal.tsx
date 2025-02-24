@@ -48,7 +48,7 @@ export const AddVehicleModal = ({
   locations,
 }: AddVehicleModalProps) => {
   const [isSubmitting, setIsSubmitting] = useState(false);
-  const { user } = useAuth();
+  const { organization } = useAuth();
 
   const form = useForm<z.infer<typeof formSchema>>({
     resolver: zodResolver(formSchema),
@@ -61,8 +61,8 @@ export const AddVehicleModal = ({
   });
 
   const onSubmit = async (values: z.infer<typeof formSchema>) => {
-    if (!user?.organization_id) {
-      console.error("No organization ID found");
+    if (!organization?.id) {
+      console.error("No organization found");
       return;
     }
 
@@ -74,7 +74,7 @@ export const AddVehicleModal = ({
         make: values.make,
         model: values.model,
         year: Number(values.year),
-        organization_id: user.organization_id,
+        organization_id: organization.id,
         // Optional fields
         trim: values.trim,
         color: values.color,
