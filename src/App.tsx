@@ -5,6 +5,7 @@ import NotFound from "@/pages/NotFound";
 import AuthPage from "@/pages/auth/AuthPage";
 import { AuthProvider } from "@/components/auth/AuthProvider";
 import ProtectedRoute from "@/components/auth/ProtectedRoute";
+import DispatchDashboard from "@/pages/dispatch/DispatchDashboard";
 
 function App() {
   return (
@@ -17,6 +18,14 @@ function App() {
             element={
               <ProtectedRoute>
                 <Index />
+              </ProtectedRoute>
+            }
+          />
+          <Route
+            path="/dispatch"
+            element={
+              <ProtectedRoute>
+                <DispatchDashboard />
               </ProtectedRoute>
             }
           />
