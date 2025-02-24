@@ -1,11 +1,10 @@
 
-import { BrowserMultiFormatReader, DecodeHintType, BarcodeFormat, PreviewTracker } from '@zxing/library';
+import { BrowserMultiFormatReader, DecodeHintType, BarcodeFormat } from '@zxing/library';
 import type { VINScannerHardware } from '../scanner-types';
 
 interface ScannerOptions {
   preferredCamera?: 'environment' | 'user';
   enableHighQuality?: boolean;
-  autoFocus?: boolean;
 }
 
 export class WebcamVINScanner implements VINScannerHardware {
@@ -16,8 +15,7 @@ export class WebcamVINScanner implements VINScannerHardware {
   private offlineCache: Set<string> = new Set();
   private readonly defaultOptions: ScannerOptions = {
     preferredCamera: 'environment',
-    enableHighQuality: true,
-    autoFocus: true
+    enableHighQuality: true
   };
 
   constructor() {
@@ -34,10 +32,7 @@ export class WebcamVINScanner implements VINScannerHardware {
     hints.set(DecodeHintType.ASSUME_GS1, false);
     hints.set(DecodeHintType.RETURN_CODABAR_START_END, true);
     
-    this.reader = new BrowserMultiFormatReader(hints, {
-      delayBetweenScanAttempts: 100, // Faster scanning attempts
-      delayBetweenScanSuccess: 300   // Prevent duplicate scans
-    });
+    this.reader = new BrowserMultiFormatReader(hints);
   }
 
   async isAvailable(): Promise<boolean> {
@@ -54,41 +49,10 @@ export class WebcamVINScanner implements VINScannerHardware {
       facingMode: { ideal: 'environment' },
       width: { ideal: 1920 },
       height: { ideal: 1080 },
-      aspectRatio: { ideal: 1.7777777778 },
-      frameRate: { max: 30 },
-      focusMode: { ideal: 'continuous' },
-      whiteBalanceMode: { ideal: 'continuous' },
-      exposureMode: { ideal: 'continuous' }
+      aspectRatio: { ideal: 1.7777777778 }
     };
 
-    // Check if advanced features are supported
-    const isAdvancedSupported = await this.checkAdvancedCameraSupport();
-    if (isAdvancedSupported) {
-      constraints.advanced = [
-        {
-          autoFocus: true,
-          zoom: 2,
-          torch: true
-        }
-      ];
-    }
-
     return constraints;
-  }
-
-  private async checkAdvancedCameraSupport(): Promise<boolean> {
-    try {
-      const stream = await navigator.mediaDevices.getUserMedia({
-        video: {
-          facingMode: 'environment',
-          advanced: [{ torch: true }]
-        }
-      });
-      stream.getTracks().forEach(track => track.stop());
-      return true;
-    } catch {
-      return false;
-    }
   }
 
   private createVideoOverlay(): HTMLDivElement {
@@ -124,7 +88,6 @@ export class WebcamVINScanner implements VINScannerHardware {
     try {
       this.scanning = true;
       
-      // Create and style video element
       this.videoElement = document.createElement('video');
       this.videoElement.style.position = 'fixed';
       this.videoElement.style.top = '50%';
@@ -135,12 +98,10 @@ export class WebcamVINScanner implements VINScannerHardware {
       this.videoElement.style.objectFit = 'cover';
       this.videoElement.style.zIndex = '998';
 
-      // Add scanning overlay
       const overlay = this.createVideoOverlay();
       document.body.appendChild(overlay);
       document.body.appendChild(this.videoElement);
 
-      // Get optimal camera settings
       const constraints = await this.getOptimalCameraSettings();
       
       this.stream = await navigator.mediaDevices.getUserMedia({
@@ -148,11 +109,9 @@ export class WebcamVINScanner implements VINScannerHardware {
         audio: false
       });
 
-      // Apply stream to video element
       this.videoElement.srcObject = this.stream;
       await this.videoElement.play();
 
-      // Start continuous scanning
       const result = await this.reader.decodeFromVideoElement(this.videoElement);
       
       if (!result?.getText()) {
@@ -161,10 +120,8 @@ export class WebcamVINScanner implements VINScannerHardware {
 
       const vin = result.getText();
 
-      // Cache VIN if offline
       if (!navigator.onLine) {
         this.offlineCache.add(vin);
-        // Attempt to sync when back online
         window.addEventListener('online', this.syncOfflineCache.bind(this));
       }
 
@@ -181,7 +138,6 @@ export class WebcamVINScanner implements VINScannerHardware {
     if (navigator.onLine && this.offlineCache.size > 0) {
       const vins = Array.from(this.offlineCache);
       try {
-        // Sync cached VINs
         for (const vin of vins) {
           await this.syncVIN(vin);
           this.offlineCache.delete(vin);
@@ -193,8 +149,6 @@ export class WebcamVINScanner implements VINScannerHardware {
   }
 
   private async syncVIN(vin: string): Promise<void> {
-    // Implement your sync logic here
-    // This could be an API call to your backend
     console.log('Syncing VIN:', vin);
   }
 
@@ -215,7 +169,6 @@ export class WebcamVINScanner implements VINScannerHardware {
       this.videoElement = null;
     }
 
-    // Remove overlay if it exists
     const overlay = document.querySelector('div[style*="rgba(0,0,0,0.7)"]');
     if (overlay) {
       overlay.remove();

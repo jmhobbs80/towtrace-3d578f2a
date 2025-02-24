@@ -1,3 +1,4 @@
+
 interface VehicleDecodedData {
   make: string;
   model: string;
@@ -16,85 +17,9 @@ interface VehicleDecodedData {
   safetyRating: string;
 }
 
-// Cache for VIN lookups with timestamp and sync status
-interface CachedVehicleData extends VehicleDecodedData {
-  timestamp: number;
-  needsSync: boolean;
-}
-
 const CACHE_DURATION = 24 * 60 * 60 * 1000; // 24 hours
 const MAX_RETRIES = 3;
 const INITIAL_RETRY_DELAY = 1000; // 1 second
-
-// Cache implementation with offline support
-class VINCache {
-  private cache = new Map<string, CachedVehicleData>();
-  private readonly maxSize: number;
-  private offlineMode: boolean = !navigator.onLine;
-
-  constructor(maxSize = 100) {
-    this.maxSize = maxSize;
-    this.setupNetworkListeners();
-  }
-
-  private setupNetworkListeners() {
-    window.addEventListener('online', () => {
-      this.offlineMode = false;
-      this.syncPendingData();
-    });
-    window.addEventListener('offline', () => {
-      this.offlineMode = true;
-      console.log('Switched to offline mode');
-    });
-  }
-
-  async syncPendingData() {
-    for (const [vin, data] of this.cache.entries()) {
-      if (data.needsSync) {
-        try {
-          const freshData = await fetchVehicleData(vin);
-          this.set(vin, freshData, false);
-        } catch (error) {
-          console.error(`Failed to sync VIN ${vin}:`, error);
-        }
-      }
-    }
-  }
-
-  get(vin: string): VehicleDecodedData | null {
-    const data = this.cache.get(vin);
-    if (!data) return null;
-
-    // Check if cache entry is expired
-    if (Date.now() - data.timestamp > CACHE_DURATION) {
-      this.cache.delete(vin);
-      return null;
-    }
-
-    const { timestamp, needsSync, ...vehicleData } = data;
-    return vehicleData;
-  }
-
-  set(vin: string, data: VehicleDecodedData, needsSync = false) {
-    if (this.cache.size >= this.maxSize) {
-      const oldestKey = this.cache.keys().next().value;
-      this.cache.delete(oldestKey);
-    }
-
-    this.cache.set(vin, {
-      ...data,
-      timestamp: Date.now(),
-      needsSync
-    });
-  }
-
-  isOffline(): boolean {
-    return this.offlineMode;
-  }
-}
-
-// Create a singleton instance of the cache
-const vinCache = new VINCache();
 
 // Utility function to implement exponential backoff
 const sleep = (ms: number) => new Promise(resolve => setTimeout(resolve, ms));
@@ -151,11 +76,12 @@ async function fetchVehicleData(vin: string): Promise<VehicleDecodedData> {
 
 import { VINCacheService } from './services/vin-cache';
 
-const vinCache = VINCacheService.getInstance();
+// Get singleton instance of VINCacheService
+const cacheService = VINCacheService.getInstance();
 
 export const decodeVIN = async (vin: string): Promise<VehicleDecodedData> => {
   // Check cache first
-  const cachedData = await vinCache.get(vin);
+  const cachedData = await cacheService.get(vin);
   if (cachedData) {
     console.log('VIN data retrieved from cache');
     return cachedData;
@@ -163,7 +89,7 @@ export const decodeVIN = async (vin: string): Promise<VehicleDecodedData> => {
 
   try {
     const vehicleData = await fetchVehicleData(vin);
-    vinCache.set(vin, vehicleData);
+    cacheService.set(vin, vehicleData);
     return vehicleData;
   } catch (error) {
     if (!navigator.onLine) {
@@ -185,7 +111,7 @@ export const decodeVIN = async (vin: string): Promise<VehicleDecodedData> => {
         doors: 0,
         safetyRating: "",
       };
-      vinCache.set(vin, placeholderData);
+      cacheService.set(vin, placeholderData);
       return placeholderData;
     }
     throw error;
