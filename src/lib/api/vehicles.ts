@@ -1,6 +1,9 @@
 
 import { supabase } from "@/integrations/supabase/client";
 import type { Vehicle, VehicleDetails, VehicleSearchFilters, VehicleStatus } from "../types/vehicles";
+import type { VehicleInspection } from "../types/inspection";
+import type { VehicleInTransit } from "../types/fleet";
+import type { VINScannerHardware } from "./scanner-types";
 
 export async function searchVehicles(filters: VehicleSearchFilters): Promise<Vehicle[]> {
   let query = supabase
@@ -58,15 +61,14 @@ export async function getVehicleDetails(vehicleId: string): Promise<VehicleDetai
     .from('vehicle_condition_logs')
     .select('*')
     .eq('vehicle_id', vehicleId)
-    .eq('condition', 'damaged')
     .order('created_at', { ascending: false });
 
   if (damageError) throw damageError;
 
   return {
     ...vehicle,
-    inspections,
-    transitHistory,
+    inspections: inspections as VehicleInspection[],
+    transitHistory: transitHistory as VehicleInTransit[],
     damageReports
   };
 }
@@ -81,4 +83,36 @@ export async function updateVehicleStatus(
     .eq('id', vehicleId);
 
   if (error) throw error;
+}
+
+// VIN validation and scanning functionality
+export function validateVIN(vin: string): boolean {
+  // Basic VIN validation (17 characters, alphanumeric)
+  return /^[A-HJ-NPR-Z0-9]{17}$/.test(vin);
+}
+
+export async function decodeVIN(vin: string): Promise<any> {
+  // Simplified VIN decoding mock
+  return {
+    make: "Unknown",
+    model: "Unknown",
+    year: 0,
+    trim: "Unknown",
+    bodyClass: "Unknown",
+    engineSize: 0,
+    engineCylinders: 0,
+    fuelType: "Unknown",
+    plantCountry: "Unknown"
+  };
+}
+
+export async function createVINScanner(): Promise<VINScannerHardware> {
+  // Mock VIN scanner implementation
+  return {
+    isAvailable: async () => true,
+    startScanning: async () => {
+      throw new Error("VIN scanner not implemented");
+    },
+    stopScanning: async () => {}
+  };
 }
