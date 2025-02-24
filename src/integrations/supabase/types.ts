@@ -138,6 +138,137 @@ export type Database = {
           },
         ]
       }
+      inventory_locations: {
+        Row: {
+          address: Json
+          capacity: number | null
+          created_at: string
+          id: string
+          name: string
+          organization_id: string
+          updated_at: string
+        }
+        Insert: {
+          address: Json
+          capacity?: number | null
+          created_at?: string
+          id?: string
+          name: string
+          organization_id: string
+          updated_at?: string
+        }
+        Update: {
+          address?: Json
+          capacity?: number | null
+          created_at?: string
+          id?: string
+          name?: string
+          organization_id?: string
+          updated_at?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "inventory_locations_organization_id_fkey"
+            columns: ["organization_id"]
+            isOneToOne: false
+            referencedRelation: "organizations"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      inventory_vehicles: {
+        Row: {
+          auction_date: string | null
+          color: string | null
+          condition: Database["public"]["Enums"]["vehicle_condition"] | null
+          created_at: string
+          damage_report: Json | null
+          id: string
+          inspection_date: string | null
+          listing_price: number | null
+          location_id: string | null
+          make: string
+          metadata: Json | null
+          mileage: number | null
+          model: string
+          notes: string | null
+          organization_id: string
+          photos: string[] | null
+          purchase_price: number | null
+          service_history: Json | null
+          status: Database["public"]["Enums"]["inventory_status"] | null
+          trim: string | null
+          updated_at: string
+          vin: string
+          year: number
+        }
+        Insert: {
+          auction_date?: string | null
+          color?: string | null
+          condition?: Database["public"]["Enums"]["vehicle_condition"] | null
+          created_at?: string
+          damage_report?: Json | null
+          id?: string
+          inspection_date?: string | null
+          listing_price?: number | null
+          location_id?: string | null
+          make: string
+          metadata?: Json | null
+          mileage?: number | null
+          model: string
+          notes?: string | null
+          organization_id: string
+          photos?: string[] | null
+          purchase_price?: number | null
+          service_history?: Json | null
+          status?: Database["public"]["Enums"]["inventory_status"] | null
+          trim?: string | null
+          updated_at?: string
+          vin: string
+          year: number
+        }
+        Update: {
+          auction_date?: string | null
+          color?: string | null
+          condition?: Database["public"]["Enums"]["vehicle_condition"] | null
+          created_at?: string
+          damage_report?: Json | null
+          id?: string
+          inspection_date?: string | null
+          listing_price?: number | null
+          location_id?: string | null
+          make?: string
+          metadata?: Json | null
+          mileage?: number | null
+          model?: string
+          notes?: string | null
+          organization_id?: string
+          photos?: string[] | null
+          purchase_price?: number | null
+          service_history?: Json | null
+          status?: Database["public"]["Enums"]["inventory_status"] | null
+          trim?: string | null
+          updated_at?: string
+          vin?: string
+          year?: number
+        }
+        Relationships: [
+          {
+            foreignKeyName: "inventory_vehicles_location_id_fkey"
+            columns: ["location_id"]
+            isOneToOne: false
+            referencedRelation: "inventory_locations"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "inventory_vehicles_organization_id_fkey"
+            columns: ["organization_id"]
+            isOneToOne: false
+            referencedRelation: "organizations"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       invoices: {
         Row: {
           created_at: string
@@ -489,6 +620,44 @@ export type Database = {
         }
         Relationships: []
       }
+      vehicle_condition_logs: {
+        Row: {
+          condition: Database["public"]["Enums"]["vehicle_condition"]
+          created_at: string
+          id: string
+          inspector_id: string | null
+          notes: string | null
+          photos: string[] | null
+          vehicle_id: string
+        }
+        Insert: {
+          condition: Database["public"]["Enums"]["vehicle_condition"]
+          created_at?: string
+          id?: string
+          inspector_id?: string | null
+          notes?: string | null
+          photos?: string[] | null
+          vehicle_id: string
+        }
+        Update: {
+          condition?: Database["public"]["Enums"]["vehicle_condition"]
+          created_at?: string
+          id?: string
+          inspector_id?: string | null
+          notes?: string | null
+          photos?: string[] | null
+          vehicle_id?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "vehicle_condition_logs_vehicle_id_fkey"
+            columns: ["vehicle_id"]
+            isOneToOne: false
+            referencedRelation: "inventory_vehicles"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       vehicles_in_transit: {
         Row: {
           created_at: string
@@ -556,6 +725,13 @@ export type Database = {
     }
     Enums: {
       app_role: "admin" | "dispatcher" | "provider" | "consumer"
+      inventory_status:
+        | "available"
+        | "pending_inspection"
+        | "in_transit"
+        | "sold"
+        | "auction_ready"
+        | "maintenance"
       job_status:
         | "pending"
         | "assigned"
@@ -577,6 +753,13 @@ export type Database = {
         | "tire_change"
         | "winch_out"
         | "transport"
+      vehicle_condition:
+        | "excellent"
+        | "good"
+        | "fair"
+        | "poor"
+        | "damaged"
+        | "salvage"
     }
     CompositeTypes: {
       [_ in never]: never
