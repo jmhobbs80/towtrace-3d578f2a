@@ -1,3 +1,4 @@
+
 import { useEffect, useState } from "react";
 import { useNavigate } from "react-router-dom";
 import { supabase } from "@/integrations/supabase/client";
@@ -7,11 +8,20 @@ import { useToast } from "@/hooks/use-toast";
 import { PushNotificationService } from "@/lib/services/push-notifications";
 import { Label } from "@/components/ui/label";
 import { Checkbox } from "@/components/ui/checkbox";
-import { Form, FormControl, FormField, FormItem, FormMessage } from "@/components/ui/form";
+import {
+  Card,
+  CardContent,
+  CardDescription,
+  CardHeader,
+  CardTitle,
+} from "@/components/ui/card";
+import { LockIcon, MailIcon, UserIcon, PhoneIcon } from "lucide-react";
 
 export default function AuthPage() {
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
+  const [firstName, setFirstName] = useState("");
+  const [lastName, setLastName] = useState("");
   const [phoneNumber, setPhoneNumber] = useState("");
   const [loading, setLoading] = useState(false);
   const [isSignUp, setIsSignUp] = useState(false);
@@ -54,40 +64,41 @@ export default function AuthPage() {
     e.preventDefault();
     setLoading(true);
 
-    if (isSignUp && !preferPush && !preferSMS) {
-      toast({
-        variant: "destructive",
-        title: "Notification method required",
-        description: "Please enable either push notifications or SMS to continue",
-      });
-      setLoading(false);
-      return;
-    }
-
-    if (isSignUp && preferSMS && !phoneNumber) {
-      toast({
-        variant: "destructive",
-        title: "Phone number required",
-        description: "Please enter your phone number for SMS notifications",
-      });
-      setLoading(false);
-      return;
-    }
-
     try {
       if (isSignUp) {
-        const { error } = await supabase.auth.signUp({ 
-          email, 
+        // Validation
+        if (!email || !password || !firstName || !lastName) {
+          throw new Error("Please fill in all required fields");
+        }
+
+        if (!preferPush && !preferSMS) {
+          throw new Error("Please enable either push notifications or SMS");
+        }
+
+        if (preferSMS && !phoneNumber) {
+          throw new Error("Phone number is required for SMS notifications");
+        }
+
+        if (password.length < 6) {
+          throw new Error("Password must be at least 6 characters long");
+        }
+
+        // Sign up
+        const { error: signUpError } = await supabase.auth.signUp({
+          email,
           password,
           options: {
             data: {
+              first_name: firstName,
+              last_name: lastName,
               phone_number: preferSMS ? phoneNumber : null,
             }
           }
         });
-        if (error) throw error;
 
-        // Set up notification preferences
+        if (signUpError) throw signUpError;
+
+        // Set up notifications
         const notificationSetupSuccess = await setupNotifications();
         if (!notificationSetupSuccess && !preferSMS) {
           throw new Error("Failed to set up notifications");
@@ -97,6 +108,8 @@ export default function AuthPage() {
         const { error: profileError } = await supabase
           .from('profiles')
           .update({
+            first_name: firstName,
+            last_name: lastName,
             notification_preferences: {
               push_enabled: preferPush,
               sms_enabled: preferSMS
@@ -106,12 +119,16 @@ export default function AuthPage() {
           .eq('id', (await supabase.auth.getUser()).data.user?.id);
 
         if (profileError) throw profileError;
+
+        toast({
+          title: "Account created successfully",
+          description: "Please check your email to verify your account",
+        });
       } else {
         const { error } = await supabase.auth.signInWithPassword({ email, password });
         if (error) throw error;
+        navigate("/");
       }
-
-      navigate("/");
     } catch (error) {
       toast({
         variant: "destructive",
@@ -125,47 +142,82 @@ export default function AuthPage() {
 
   return (
     <div className="min-h-screen flex items-center justify-center bg-gray-50 py-12 px-4 sm:px-6 lg:px-8">
-      <div className="max-w-md w-full space-y-8">
-        <div>
-          <h1 className="text-center text-4xl font-bold text-primary">
-            TowTrace
-          </h1>
-          <h2 className="mt-6 text-center text-3xl font-extrabold text-gray-900">
-            {isSignUp ? "Create your account" : "Sign in to your account"}
-          </h2>
-          <p className="mt-2 text-center text-sm text-gray-600">
-            Professional towing management system
-          </p>
-        </div>
-        <form className="mt-8 space-y-6" onSubmit={handleSubmit}>
-          <div className="rounded-md shadow-sm space-y-4">
-            <div>
-              <Label htmlFor="email">Email address</Label>
-              <Input
-                id="email"
-                name="email"
-                type="email"
-                required
-                value={email}
-                onChange={(e) => setEmail(e.target.value)}
-                className="mt-1"
-              />
+      <Card className="w-full max-w-md">
+        <CardHeader className="space-y-1">
+          <CardTitle className="text-2xl text-center font-bold">
+            {isSignUp ? "Create an account" : "Sign in to your account"}
+          </CardTitle>
+          <CardDescription className="text-center">
+            Enter your details below
+          </CardDescription>
+        </CardHeader>
+        <CardContent>
+          <form onSubmit={handleSubmit} className="space-y-4">
+            {isSignUp && (
+              <div className="grid grid-cols-2 gap-4">
+                <div className="space-y-2">
+                  <Label htmlFor="firstName">First Name</Label>
+                  <div className="relative">
+                    <UserIcon className="absolute left-3 top-2.5 h-5 w-5 text-muted-foreground" />
+                    <Input
+                      id="firstName"
+                      placeholder="John"
+                      value={firstName}
+                      onChange={(e) => setFirstName(e.target.value)}
+                      className="pl-10"
+                    />
+                  </div>
+                </div>
+                <div className="space-y-2">
+                  <Label htmlFor="lastName">Last Name</Label>
+                  <div className="relative">
+                    <UserIcon className="absolute left-3 top-2.5 h-5 w-5 text-muted-foreground" />
+                    <Input
+                      id="lastName"
+                      placeholder="Doe"
+                      value={lastName}
+                      onChange={(e) => setLastName(e.target.value)}
+                      className="pl-10"
+                    />
+                  </div>
+                </div>
+              </div>
+            )}
+
+            <div className="space-y-2">
+              <Label htmlFor="email">Email</Label>
+              <div className="relative">
+                <MailIcon className="absolute left-3 top-2.5 h-5 w-5 text-muted-foreground" />
+                <Input
+                  id="email"
+                  type="email"
+                  placeholder="name@example.com"
+                  value={email}
+                  onChange={(e) => setEmail(e.target.value)}
+                  className="pl-10"
+                  required
+                />
+              </div>
             </div>
-            <div>
+
+            <div className="space-y-2">
               <Label htmlFor="password">Password</Label>
-              <Input
-                id="password"
-                name="password"
-                type="password"
-                required
-                value={password}
-                onChange={(e) => setPassword(e.target.value)}
-                className="mt-1"
-              />
+              <div className="relative">
+                <LockIcon className="absolute left-3 top-2.5 h-5 w-5 text-muted-foreground" />
+                <Input
+                  id="password"
+                  type="password"
+                  placeholder="••••••••"
+                  value={password}
+                  onChange={(e) => setPassword(e.target.value)}
+                  className="pl-10"
+                  required
+                />
+              </div>
             </div>
 
             {isSignUp && (
-              <div className="space-y-4">
+              <>
                 <div className="space-y-2">
                   <Label>Notification Preferences (Required)</Label>
                   <div className="space-y-2">
@@ -189,43 +241,46 @@ export default function AuthPage() {
                 </div>
 
                 {preferSMS && (
-                  <div>
+                  <div className="space-y-2">
                     <Label htmlFor="phone">Phone Number</Label>
-                    <Input
-                      id="phone"
-                      type="tel"
-                      value={phoneNumber}
-                      onChange={(e) => setPhoneNumber(e.target.value)}
-                      placeholder="+1234567890"
-                      className="mt-1"
-                    />
+                    <div className="relative">
+                      <PhoneIcon className="absolute left-3 top-2.5 h-5 w-5 text-muted-foreground" />
+                      <Input
+                        id="phone"
+                        type="tel"
+                        placeholder="+1234567890"
+                        value={phoneNumber}
+                        onChange={(e) => setPhoneNumber(e.target.value)}
+                        className="pl-10"
+                      />
+                    </div>
                   </div>
                 )}
-              </div>
+              </>
             )}
+
+            <Button
+              type="submit"
+              className="w-full"
+              disabled={loading || (isSignUp && !preferPush && !preferSMS)}
+            >
+              {loading ? "Loading..." : (isSignUp ? "Create Account" : "Sign In")}
+            </Button>
+          </form>
+
+          <div className="mt-4 text-center">
+            <Button
+              variant="ghost"
+              className="text-sm"
+              onClick={() => setIsSignUp(!isSignUp)}
+            >
+              {isSignUp
+                ? "Already have an account? Sign in"
+                : "Don't have an account? Sign up"}
+            </Button>
           </div>
-
-          <Button
-            type="submit"
-            className="w-full"
-            disabled={loading || (isSignUp && !preferPush && !preferSMS)}
-          >
-            {loading ? "Loading..." : (isSignUp ? "Sign Up" : "Sign In")}
-          </Button>
-        </form>
-
-        <div className="text-center">
-          <Button
-            variant="ghost"
-            className="text-sm"
-            onClick={() => setIsSignUp(!isSignUp)}
-          >
-            {isSignUp
-              ? "Already have an account? Sign in"
-              : "Don't have an account? Sign up"}
-          </Button>
-        </div>
-      </div>
+        </CardContent>
+      </Card>
     </div>
   );
 }
