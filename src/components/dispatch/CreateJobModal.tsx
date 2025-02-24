@@ -27,12 +27,19 @@ interface CreateJobModalProps {
   onSuccess: () => void;
 }
 
+interface FormData {
+  pickupAddress: string;
+  deliveryAddress: string;
+  description: string;
+  driverId: string;
+}
+
 export const CreateJobModal = ({ open, onClose, onSuccess }: CreateJobModalProps) => {
   const { organization } = useAuth();
   const { toast } = useToast();
   const [isLoading, setIsLoading] = useState(false);
   const [drivers, setDrivers] = useState<Driver[]>([]);
-  const [formData, setFormData] = useState({
+  const [formData, setFormData] = useState<FormData>({
     pickupAddress: "",
     deliveryAddress: "",
     description: "",
