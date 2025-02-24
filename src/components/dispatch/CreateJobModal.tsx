@@ -49,24 +49,25 @@ export const CreateJobModal = ({ open, onClose, onSuccess }: CreateJobModalProps
   const fetchDrivers = useCallback(async () => {
     if (!organization?.id) return;
 
-    const { data, error } = await supabase
-      .from('profiles')
-      .select('id, first_name, last_name')
-      .eq('role', 'driver')
-      .eq('organization_id', organization.id);
+    try {
+      const { data, error } = await supabase
+        .from('profiles')
+        .select('id, first_name, last_name')
+        .eq('role', 'driver')
+        .eq('organization_id', organization.id);
 
-    if (error) {
+      if (error) throw error;
+      setDrivers(data || []);
+    } catch (error: any) {
       console.error('Error fetching drivers:', error);
-      toast({
+      // Create a new toast call inside the function rather than using the one from closure
+      useToast().toast({
         variant: "destructive",
         title: "Error fetching drivers",
         description: error.message,
       });
-      return;
     }
-
-    setDrivers(data || []);
-  }, [organization?.id]);
+  }, [organization?.id]); // Remove toast from dependencies
 
   useEffect(() => {
     fetchDrivers();
