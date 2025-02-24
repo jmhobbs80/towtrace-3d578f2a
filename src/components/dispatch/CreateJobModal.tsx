@@ -1,5 +1,5 @@
 
-import { useState, useEffect } from "react";
+import { useState, useEffect, useCallback } from "react";
 import { Dialog, DialogContent, DialogHeader, DialogTitle } from "@/components/ui/dialog";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
@@ -46,32 +46,31 @@ export const CreateJobModal = ({ open, onClose, onSuccess }: CreateJobModalProps
     driverId: "",
   });
 
-  // Fetch drivers only when organization changes
-  useEffect(() => {
+  const fetchDrivers = useCallback(async () => {
     if (!organization?.id) return;
 
-    const fetchDrivers = async () => {
-      const { data, error } = await supabase
-        .from('profiles')
-        .select('id, first_name, last_name')
-        .eq('role', 'driver')
-        .eq('organization_id', organization.id);
+    const { data, error } = await supabase
+      .from('profiles')
+      .select('id, first_name, last_name')
+      .eq('role', 'driver')
+      .eq('organization_id', organization.id);
 
-      if (error) {
-        console.error('Error fetching drivers:', error);
-        toast({
-          variant: "destructive",
-          title: "Error fetching drivers",
-          description: error.message,
-        });
-        return;
-      }
+    if (error) {
+      console.error('Error fetching drivers:', error);
+      toast({
+        variant: "destructive",
+        title: "Error fetching drivers",
+        description: error.message,
+      });
+      return;
+    }
 
-      setDrivers(data || []);
-    };
-
-    fetchDrivers();
+    setDrivers(data || []);
   }, [organization?.id]);
+
+  useEffect(() => {
+    fetchDrivers();
+  }, [fetchDrivers]);
 
   const handleSubmit = async (e: React.FormEvent<HTMLFormElement>) => {
     e.preventDefault();
