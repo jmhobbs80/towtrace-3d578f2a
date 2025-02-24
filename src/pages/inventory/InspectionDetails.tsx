@@ -1,14 +1,14 @@
 
 import { useParams } from "react-router-dom";
-import { useQuery } from "@tanstack/react-query";
+import { useQuery, useMutation } from "@tanstack/react-query";
 import { format } from "date-fns";
-import { ArrowLeft, Camera } from "lucide-react";
+import { ArrowLeft, Camera, FileText } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
 import { Separator } from "@/components/ui/separator";
 import { useToast } from "@/hooks/use-toast";
-import { getInspectionDetails } from "@/lib/api/inspections";
+import { getInspectionDetails, updateChecklistItem, updateChecklistItemWithPhotos } from "@/lib/api/inspections";
 import type { InspectionChecklistItem } from "@/lib/types/inspection";
 
 export default function InspectionDetails() {
@@ -19,6 +19,36 @@ export default function InspectionDetails() {
     queryKey: ['inspection', id],
     queryFn: () => getInspectionDetails(id!),
     enabled: !!id,
+  });
+
+  const updateItemMutation = useMutation({
+    mutationFn: ({ itemId, updates }: { itemId: string, updates: Partial<InspectionChecklistItem> }) => 
+      updateChecklistItem(itemId, updates),
+    onSuccess: () => {
+      toast({
+        title: "Success",
+        description: "Checklist item updated successfully",
+      });
+    },
+  });
+
+  const generateReportMutation = useMutation({
+    mutationFn: async (inspectionId: string) => {
+      const response = await fetch('/generate-inspection-pdf', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ inspectionId }),
+      });
+      if (!response.ok) throw new Error('Failed to generate report');
+      return response.json();
+    },
+    onSuccess: (data) => {
+      toast({
+        title: "Success",
+        description: "Report generated successfully. Downloading...",
+      });
+      window.open(data.url, '_blank');
+    },
   });
 
   if (isLoading) {
@@ -51,16 +81,34 @@ export default function InspectionDetails() {
     }
   };
 
+  const handleStatusUpdate = (itemId: string, status: InspectionChecklistItem['status']) => {
+    updateItemMutation.mutate({ itemId, updates: { status } });
+  };
+
+  const handleGenerateReport = () => {
+    if (id) {
+      generateReportMutation.mutate(id);
+    }
+  };
+
   return (
     <div className="container mx-auto py-8 space-y-6">
-      <Button
-        variant="outline"
-        className="mb-6"
-        onClick={() => window.history.back()}
-      >
-        <ArrowLeft className="mr-2 h-4 w-4" />
-        Back to Inspections
-      </Button>
+      <div className="flex justify-between items-center mb-6">
+        <Button
+          variant="outline"
+          onClick={() => window.history.back()}
+        >
+          <ArrowLeft className="mr-2 h-4 w-4" />
+          Back to Inspections
+        </Button>
+        <Button
+          onClick={handleGenerateReport}
+          disabled={generateReportMutation.isPending}
+        >
+          <FileText className="mr-2 h-4 w-4" />
+          Generate Report
+        </Button>
+      </div>
 
       <div className="grid gap-6 md:grid-cols-2">
         {/* Vehicle Information */}
@@ -121,9 +169,23 @@ export default function InspectionDetails() {
                     <h4 className="font-medium">{item.item_name}</h4>
                     <p className="text-sm text-gray-500">{item.category}</p>
                   </div>
-                  <Badge variant={getStatusBadgeVariant(item.status)}>
-                    {item.status}
-                  </Badge>
+                  <div className="flex gap-4 items-center">
+                    <div className="flex gap-2">
+                      {(['pass', 'fail', 'needs_repair'] as const).map((status) => (
+                        <Button
+                          key={status}
+                          variant={item.status === status ? 'default' : 'outline'}
+                          size="sm"
+                          onClick={() => handleStatusUpdate(item.id, status)}
+                        >
+                          {status.replace('_', ' ')}
+                        </Button>
+                      ))}
+                    </div>
+                    <Badge variant={getStatusBadgeVariant(item.status)}>
+                      {item.status}
+                    </Badge>
+                  </div>
                 </div>
                 
                 {item.notes && (

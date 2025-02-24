@@ -1,3 +1,4 @@
+
 import { supabase } from "@/integrations/supabase/client";
 import type { VehicleInspection, InspectionChecklistItem, UpdateInspectionStatusParams } from "../types/inspection";
 
