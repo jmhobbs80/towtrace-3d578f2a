@@ -1,4 +1,3 @@
-
 import { useState } from "react";
 import { Dialog, DialogContent, DialogHeader, DialogTitle } from "@/components/ui/dialog";
 import { Button } from "@/components/ui/button";
@@ -6,6 +5,7 @@ import { Input } from "@/components/ui/input";
 import { useToast } from "@/components/ui/use-toast";
 import { bulkAddVehicles } from "@/lib/api/inventory";
 import type { BulkUploadRow } from "@/lib/types/inventory";
+import { useAuth } from "@/lib/auth";
 
 interface BulkUploadModalProps {
   open: boolean;
@@ -22,8 +22,18 @@ export const BulkUploadModal = ({
 }: BulkUploadModalProps) => {
   const [isUploading, setIsUploading] = useState(false);
   const { toast } = useToast();
+  const { user } = useAuth();
 
   const handleFileUpload = async (event: React.ChangeEvent<HTMLInputElement>) => {
+    if (!user?.organization_id) {
+      toast({
+        variant: "destructive",
+        title: "Error",
+        description: "No organization ID found",
+      });
+      return;
+    }
+
     const file = event.target.files?.[0];
     if (!file) return;
 
@@ -52,7 +62,7 @@ export const BulkUploadModal = ({
             };
           });
 
-        await bulkAddVehicles(vehicles, locationId);
+        await bulkAddVehicles(vehicles, locationId, user.organization_id);
         onSuccess();
         onClose();
         toast({

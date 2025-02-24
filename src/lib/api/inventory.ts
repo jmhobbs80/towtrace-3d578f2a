@@ -1,10 +1,10 @@
-
 import { supabase } from "@/integrations/supabase/client";
 import type { 
   InventoryLocation, 
   InventoryVehicle, 
   VehicleConditionLog,
-  BulkUploadRow 
+  BulkUploadRow,
+  SearchFilters 
 } from "../types/inventory";
 import { decodeVIN } from "./vin-decoder";
 import { useAuth } from "@/components/auth/AuthProvider";
@@ -47,7 +47,7 @@ export async function getInventoryVehicles(locationId?: string) {
   return data;
 }
 
-export async function addVehicleToInventory(vehicle: Pick<InventoryVehicle, 'make' | 'model' | 'year' | 'vin'> & Partial<Omit<InventoryVehicle, 'id' | 'created_at' | 'updated_at'>> & { organization_id: string }) {
+export async function addVehicleToInventory(vehicle: Pick<InventoryVehicle, 'make' | 'model' | 'year' | 'vin' | 'organization_id'> & Partial<Omit<InventoryVehicle, 'id' | 'created_at' | 'updated_at'>>) {
   const { data, error } = await supabase
     .from('inventory_vehicles')
     .insert(vehicle)
@@ -58,10 +58,11 @@ export async function addVehicleToInventory(vehicle: Pick<InventoryVehicle, 'mak
   return data;
 }
 
-export async function bulkAddVehicles(vehicles: BulkUploadRow[], locationId?: string) {
-  const { auth: { user } } = useAuth();
-  if (!user?.organization_id) throw new Error("No organization ID found");
-
+export async function bulkAddVehicles(
+  vehicles: BulkUploadRow[], 
+  locationId: string | undefined,
+  organizationId: string
+) {
   const processedVehicles = await Promise.all(
     vehicles.map(async (vehicle) => {
       try {
@@ -73,7 +74,7 @@ export async function bulkAddVehicles(vehicles: BulkUploadRow[], locationId?: st
           model: vinData.model || vehicle.model,
           year: vinData.year || vehicle.year,
           status: 'pending_inspection' as const,
-          organization_id: user.organization_id
+          organization_id: organizationId
         };
       } catch (error) {
         console.error(`Error processing VIN ${vehicle.vin}:`, error);
@@ -81,7 +82,7 @@ export async function bulkAddVehicles(vehicles: BulkUploadRow[], locationId?: st
           ...vehicle,
           location_id: locationId,
           status: 'pending_inspection' as const,
-          organization_id: user.organization_id
+          organization_id: organizationId
         };
       }
     })
@@ -126,8 +127,9 @@ export async function updateVehicleStatus(
   return data;
 }
 
-// Add new endpoints for Advanced filtering and search
-export async function searchInventory(query: string, filters: Partial<InventoryVehicle> = {}) {
+export async function searchInventory(query: string, filters: SearchFilters = {}) {
+  const { minPrice, maxPrice, minYear, maxYear, ...restFilters } = filters;
+  
   let dbQuery = supabase
     .from('inventory_vehicles')
     .select(`
@@ -137,8 +139,14 @@ export async function searchInventory(query: string, filters: Partial<InventoryV
     `)
     .or(`make.ilike.%${query}%,model.ilike.%${query}%,vin.ilike.%${query}%`);
 
-  // Apply additional filters
-  Object.entries(filters).forEach(([key, value]) => {
+  // Apply numeric range filters
+  if (minPrice) dbQuery = dbQuery.gte('listing_price', minPrice);
+  if (maxPrice) dbQuery = dbQuery.lte('listing_price', maxPrice);
+  if (minYear) dbQuery = dbQuery.gte('year', minYear);
+  if (maxYear) dbQuery = dbQuery.lte('year', maxYear);
+
+  // Apply exact match filters
+  Object.entries(restFilters).forEach(([key, value]) => {
     if (value !== undefined && value !== null) {
       dbQuery = dbQuery.eq(key, value);
     }
@@ -149,7 +157,6 @@ export async function searchInventory(query: string, filters: Partial<InventoryV
   return data;
 }
 
-// Get inspection history for a vehicle
 export async function getVehicleInspectionHistory(vehicleId: string) {
   const { data, error } = await supabase
     .from('vehicle_condition_logs')

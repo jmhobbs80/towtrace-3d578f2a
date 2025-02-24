@@ -8,6 +8,7 @@ import { Form, FormControl, FormField, FormItem, FormLabel } from "@/components/
 import { Input } from "@/components/ui/input";
 import { Button } from "@/components/ui/button";
 import { Textarea } from "@/components/ui/textarea";
+import { useAuth } from "@/components/auth/AuthProvider";
 import {
   Select,
   SelectContent,
@@ -46,6 +47,7 @@ export const AddVehicleModal = ({
   locations,
 }: AddVehicleModalProps) => {
   const [isSubmitting, setIsSubmitting] = useState(false);
+  const { user } = useAuth();
 
   const form = useForm<z.infer<typeof formSchema>>({
     resolver: zodResolver(formSchema),
@@ -58,9 +60,17 @@ export const AddVehicleModal = ({
   });
 
   const onSubmit = async (values: z.infer<typeof formSchema>) => {
+    if (!user?.organization_id) {
+      console.error("No organization ID found");
+      return;
+    }
+
     try {
       setIsSubmitting(true);
-      await addVehicleToInventory(values);
+      await addVehicleToInventory({
+        ...values,
+        organization_id: user.organization_id,
+      });
       onSuccess();
       onClose();
     } catch (error) {
