@@ -1,65 +1,74 @@
+import {
+  createBrowserRouter,
+  RouterProvider,
+} from "react-router-dom";
+import Dashboard from "./pages/Dashboard";
+import JobsDashboard from "./pages/jobs/JobsDashboard";
+import JobDetails from "./pages/jobs/JobDetails";
+import FleetManagement from "./pages/fleet/FleetManagement";
+import VehiclesInTransitDashboard from "./pages/transport/VehiclesInTransit";
+import InventoryManagement from "./pages/inventory/InventoryManagement";
+import InspectionsDashboard from "./pages/inspections/InspectionsDashboard";
+import InspectionDetails from "./pages/inspections/InspectionDetails";
+import InvoicesDashboard from "./pages/invoices/InvoicesDashboard";
+import SettingsDashboard from "./pages/settings/SettingsDashboard";
+import VehicleSearch from "./pages/inventory/VehicleSearch";
+import VehicleDetails from "./pages/inventory/VehicleDetails";
 
-import { BrowserRouter, Route, Routes } from "react-router-dom";
-import Index from "@/pages/Index";
-import NotFound from "@/pages/NotFound";
-import AuthPage from "@/pages/auth/AuthPage";
-import { AuthProvider } from "@/components/auth/AuthProvider";
-import ProtectedRoute from "@/components/auth/ProtectedRoute";
-import DispatchDashboard from "@/pages/dispatch/DispatchDashboard";
-import VehiclesInTransitDashboard from "@/pages/transport/VehiclesInTransit";
-import InspectionHistoryDashboard from "@/pages/inventory/InspectionHistoryDashboard";
-import InspectionDetails from "@/pages/inventory/InspectionDetails";
+const router = createBrowserRouter([
+  {
+    path: "/",
+    element: <Dashboard />,
+  },
+  {
+    path: "/jobs",
+    element: <JobsDashboard />,
+  },
+  {
+    path: "/jobs/:jobId",
+    element: <JobDetails />,
+  },
+  {
+    path: "/fleet",
+    element: <FleetManagement />,
+  },
+  {
+    path: "/transport",
+    element: <VehiclesInTransitDashboard />,
+  },
+  {
+    path: "/inventory",
+    element: <InventoryManagement />,
+  },
+  {
+    path: "/inspections",
+    element: <InspectionsDashboard />,
+  },
+  {
+    path: "/inspections/:inspectionId",
+    element: <InspectionDetails />,
+  },
+  {
+    path: "/invoices",
+    element: <InvoicesDashboard />,
+  },
+  {
+    path: "/settings",
+    element: <SettingsDashboard />,
+  },
+  {
+    path: "/inventory/vehicles",
+    element: <VehicleSearch />,
+  },
+  {
+    path: "/inventory/vehicles/:id",
+    element: <VehicleDetails />,
+  },
+]);
 
 function App() {
   return (
-    <BrowserRouter>
-      <AuthProvider>
-        <Routes>
-          <Route path="/auth" element={<AuthPage />} />
-          <Route
-            path="/"
-            element={
-              <ProtectedRoute>
-                <Index />
-              </ProtectedRoute>
-            }
-          />
-          <Route
-            path="/dispatch"
-            element={
-              <ProtectedRoute>
-                <DispatchDashboard />
-              </ProtectedRoute>
-            }
-          />
-          <Route
-            path="/transport"
-            element={
-              <ProtectedRoute>
-                <VehiclesInTransitDashboard />
-              </ProtectedRoute>
-            }
-          />
-          <Route
-            path="/inventory/inspections"
-            element={
-              <ProtectedRoute>
-                <InspectionHistoryDashboard />
-              </ProtectedRoute>
-            }
-          />
-          <Route
-            path="/inventory/inspections/:id"
-            element={
-              <ProtectedRoute>
-                <InspectionDetails />
-              </ProtectedRoute>
-            }
-          />
-          <Route path="*" element={<NotFound />} />
-        </Routes>
-      </AuthProvider>
-    </BrowserRouter>
+    <RouterProvider router={router} />
   );
 }
 
