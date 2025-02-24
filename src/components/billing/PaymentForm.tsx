@@ -1,6 +1,6 @@
 
 import { useState } from "react";
-import { useToast } from "@/components/ui/use-toast";
+import { useForm } from "react-hook-form";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
@@ -11,7 +11,10 @@ import {
   SelectTrigger,
   SelectValue,
 } from "@/components/ui/select";
-import { createPayment } from "@/lib/api/payments";
+import { Textarea } from "@/components/ui/textarea";
+import { useToast } from "@/components/ui/use-toast";
+import { supabase } from "@/integrations/supabase/client";
+import { createInvoiceFromPayment } from "@/lib/api/invoices";
 import type { PaymentMethod } from "@/lib/types/billing";
 
 interface PaymentFormProps {
@@ -20,77 +23,82 @@ interface PaymentFormProps {
   onSuccess?: () => void;
 }
 
+interface FormData {
+  amount: number;
+  method: PaymentMethod;
+  reference_number?: string;
+  notes?: string;
+}
+
 export const PaymentForm = ({ jobId, organizationId, onSuccess }: PaymentFormProps) => {
+  const [isSubmitting, setIsSubmitting] = useState(false);
   const { toast } = useToast();
-  const [isLoading, setIsLoading] = useState(false);
-  const [formData, setFormData] = useState({
-    amount: "",
-    method: "credit_card" as PaymentMethod,
-    reference_number: "",
-    notes: "",
-  });
+  const { register, handleSubmit, reset, formState: { errors } } = useForm<FormData>();
 
-  const handleSubmit = async (e: React.FormEvent) => {
-    e.preventDefault();
-    setIsLoading(true);
-
+  const onSubmit = async (data: FormData) => {
+    setIsSubmitting(true);
     try {
-      await createPayment({
-        job_id: jobId,
-        organization_id: organizationId,
-        amount: Number(formData.amount),
-        method: formData.method,
-        reference_number: formData.reference_number || undefined,
-        notes: formData.notes || undefined,
-      });
+      // Create payment
+      const { data: payment, error: paymentError } = await supabase
+        .from('payments')
+        .insert({
+          ...data,
+          job_id: jobId,
+          organization_id: organizationId,
+          status: 'processed',
+          processed_at: new Date().toISOString(),
+        })
+        .select()
+        .single();
+
+      if (paymentError) throw paymentError;
+
+      // Fetch job details for invoice
+      const { data: job, error: jobError } = await supabase
+        .from('tow_jobs')
+        .select('*')
+        .eq('id', jobId)
+        .single();
+
+      if (jobError) throw jobError;
+
+      // Generate invoice
+      await createInvoiceFromPayment(payment, job);
 
       toast({
-        title: "Payment recorded successfully",
+        title: "Payment recorded",
+        description: "Payment has been recorded and invoice generated.",
       });
 
+      reset();
       onSuccess?.();
-      
-      // Reset form
-      setFormData({
-        amount: "",
-        method: "credit_card",
-        reference_number: "",
-        notes: "",
-      });
-    } catch (error: any) {
+    } catch (error) {
+      console.error('Error recording payment:', error);
       toast({
         variant: "destructive",
         title: "Error recording payment",
-        description: error.message,
+        description: "There was an error recording the payment. Please try again.",
       });
     } finally {
-      setIsLoading(false);
+      setIsSubmitting(false);
     }
   };
 
   return (
-    <form onSubmit={handleSubmit} className="space-y-4">
-      <div className="space-y-2">
+    <form onSubmit={handleSubmit(onSubmit)} className="space-y-4">
+      <div>
         <Label htmlFor="amount">Amount</Label>
         <Input
           id="amount"
           type="number"
           step="0.01"
-          required
-          placeholder="0.00"
-          value={formData.amount}
-          onChange={(e) => setFormData((prev) => ({ ...prev, amount: e.target.value }))}
+          {...register("amount", { required: true, min: 0 })}
         />
       </div>
 
-      <div className="space-y-2">
+      <div>
         <Label htmlFor="method">Payment Method</Label>
-        <Select
-          value={formData.method}
-          onValueChange={(value: PaymentMethod) =>
-            setFormData((prev) => ({ ...prev, method: value }))
-          }
-        >
+        <Select {...register("method", { required: true })}>
           <SelectTrigger>
             <SelectValue placeholder="Select payment method" />
           </SelectTrigger>
@@ -104,30 +112,24 @@ export const PaymentForm = ({ jobId, organizationId, onSuccess }: PaymentFormPro
         </Select>
       </div>
 
-      <div className="space-y-2">
-        <Label htmlFor="reference">Reference Number (Optional)</Label>
+      <div>
+        <Label htmlFor="reference_number">Reference Number (Optional)</Label>
         <Input
-          id="reference"
-          value={formData.reference_number}
-          onChange={(e) =>
-            setFormData((prev) => ({ ...prev, reference_number: e.target.value }))
-          }
-          placeholder="e.g., Check number, Authorization code"
+          id="reference_number"
+          {...register("reference_number")}
         />
       </div>
 
-      <div className="space-y-2">
+      <div>
         <Label htmlFor="notes">Notes (Optional)</Label>
-        <Input
+        <Textarea
           id="notes"
-          value={formData.notes}
-          onChange={(e) => setFormData((prev) => ({ ...prev, notes: e.target.value }))}
-          placeholder="Additional payment details"
+          {...register("notes")}
         />
       </div>
 
-      <Button type="submit" disabled={isLoading}>
-        {isLoading ? "Processing..." : "Record Payment"}
+      <Button type="submit" disabled={isSubmitting}>
+        {isSubmitting ? "Recording Payment..." : "Record Payment"}
       </Button>
     </form>
   );
