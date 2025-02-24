@@ -34,8 +34,8 @@ export const UpdateStatusDialog = ({ vehicle, onUpdate, open, onOpenChange }: Up
   const [scanning, setScanning] = useState(false);
   const [scannedVin, setScannedVin] = useState("");
   const [notes, setNotes] = useState("");
-  const [pickupStatus, setPickupStatus] = useState(vehicle.pickup_status);
-  const [deliveryStatus, setDeliveryStatus] = useState(vehicle.delivery_status);
+  const [pickupStatus, setPickupStatus] = useState<VehicleInTransit['pickup_status']>(vehicle.pickup_status);
+  const [deliveryStatus, setDeliveryStatus] = useState<VehicleInTransit['delivery_status']>(vehicle.delivery_status);
 
   const handleVinScan = async () => {
     setScanning(true);
@@ -44,6 +44,14 @@ export const UpdateStatusDialog = ({ vehicle, onUpdate, open, onOpenChange }: Up
       setScannedVin(vehicle.vin);
       setScanning(false);
     }, 1500);
+  };
+
+  const handlePickupStatusChange = (value: string) => {
+    setPickupStatus(value as VehicleInTransit['pickup_status']);
+  };
+
+  const handleDeliveryStatusChange = (value: string) => {
+    setDeliveryStatus(value as VehicleInTransit['delivery_status']);
   };
 
   const handleSubmit = async () => {
@@ -97,7 +105,7 @@ export const UpdateStatusDialog = ({ vehicle, onUpdate, open, onOpenChange }: Up
         <div className="grid gap-4 py-4">
           <div className="grid gap-2">
             <Label>Pickup Status</Label>
-            <Select value={pickupStatus} onValueChange={setPickupStatus}>
+            <Select value={pickupStatus} onValueChange={handlePickupStatusChange}>
               <SelectTrigger>
                 <SelectValue placeholder="Select status" />
               </SelectTrigger>
@@ -110,7 +118,7 @@ export const UpdateStatusDialog = ({ vehicle, onUpdate, open, onOpenChange }: Up
           </div>
           <div className="grid gap-2">
             <Label>Delivery Status</Label>
-            <Select value={deliveryStatus} onValueChange={setDeliveryStatus}>
+            <Select value={deliveryStatus} onValueChange={handleDeliveryStatusChange}>
               <SelectTrigger>
                 <SelectValue placeholder="Select status" />
               </SelectTrigger>
