@@ -2,6 +2,7 @@
 import type { Database } from "@/integrations/supabase/types";
 
 export type PaymentMethod = Database["public"]["Enums"]["payment_method"];
+export type Json = Database["public"]["Tables"]["payments"]["Row"]["metadata"];
 
 export interface Payment {
   id: string;
@@ -15,7 +16,7 @@ export interface Payment {
   processed_at?: string;
   created_at: string;
   updated_at: string;
-  metadata?: Record<string, any>;
+  metadata?: Json;
 }
 
 export interface Invoice {
