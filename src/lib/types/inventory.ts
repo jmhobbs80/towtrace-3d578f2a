@@ -20,3 +20,29 @@ export interface BulkUploadRow {
   listing_price?: number;
   notes?: string;
 }
+
+export interface SearchFilters extends Partial<InventoryVehicle> {
+  minPrice?: number;
+  maxPrice?: number;
+  minYear?: number;
+  maxYear?: number;
+}
+
+export interface InspectionLogWithInspector extends VehicleConditionLog {
+  inspector?: {
+    first_name: string | null;
+    last_name: string | null;
+  };
+}
+
+export interface VehicleDetails extends InventoryVehicle {
+  location?: Pick<InventoryLocation, 'name' | 'address'>;
+  condition_logs?: VehicleConditionLog[];
+}
+
+export interface LocationStats {
+  total: number;
+  available: number;
+  pending: number;
+  capacity: number;
+}
