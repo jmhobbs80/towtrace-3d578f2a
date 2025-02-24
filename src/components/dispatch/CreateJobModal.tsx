@@ -17,10 +17,8 @@ import {
 
 interface Driver {
   id: string;
-  first_name: string;
-  last_name: string;
-  role: string;
-  organization_id: string;
+  first_name: string | null;
+  last_name: string | null;
 }
 
 interface CreateJobModalProps {
@@ -60,18 +58,22 @@ export const CreateJobModal = ({ open, onClose, onSuccess }: CreateJobModalProps
   const fetchDrivers = useCallback(async () => {
     if (!organization?.id) return;
 
-    const { data, error } = await supabase
-      .from('profiles')
-      .select('id, first_name, last_name, role, organization_id')
-      .eq('role', 'driver')
-      .eq('organization_id', organization.id);
+    try {
+      const { data, error } = await supabase
+        .from('profiles')
+        .select('id, first_name, last_name')
+        .eq('user_id', supabase.auth.getUser())
+        .throwOnError();
 
-    if (error) {
-      handleError(error, 'Error fetching drivers');
-      return;
+      if (error) {
+        handleError(error, 'Error fetching drivers');
+        return;
+      }
+
+      setDrivers(data || []);
+    } catch (error) {
+      handleError(error as Error, 'Error fetching drivers');
     }
-
-    setDrivers((data ?? []) as Driver[]);
   }, [organization?.id, handleError]);
 
   useEffect(() => {
@@ -178,7 +180,7 @@ export const CreateJobModal = ({ open, onClose, onSuccess }: CreateJobModalProps
               <SelectContent>
                 {drivers.map((driver) => (
                   <SelectItem key={driver.id} value={driver.id}>
-                    {`${driver.first_name} ${driver.last_name}`}
+                    {`${driver.first_name || ''} ${driver.last_name || ''}`}
                   </SelectItem>
                 ))}
               </SelectContent>
