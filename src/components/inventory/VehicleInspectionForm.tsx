@@ -1,4 +1,3 @@
-
 import { useState } from "react";
 import { useQuery, useMutation } from "@tanstack/react-query";
 import { Button } from "@/components/ui/button";
@@ -7,6 +6,7 @@ import { Label } from "@/components/ui/label";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { RadioGroup, RadioGroupItem } from "@/components/ui/radio-group";
 import { useToast } from "@/hooks/use-toast";
+import { ImageIcon, Plus, X } from "lucide-react";
 import {
   createInspection,
   updateInspectionStatus,
@@ -42,6 +42,8 @@ export function VehicleInspectionForm({ vehicleId, inspectionId, onComplete }: P
   const { toast } = useToast();
   const [selectedCategory, setSelectedCategory] = useState<typeof CHECKLIST_CATEGORIES[number]>("Exterior");
   const [notes, setNotes] = useState("");
+  const [selectedPhotos, setSelectedPhotos] = useState<{ [key: string]: File[] }>({});
+  const [previewUrls, setPreviewUrls] = useState<{ [key: string]: string[] }>({});
 
   const { data: inspectionData, isLoading } = useQuery({
     queryKey: ['inspection', inspectionId],
@@ -80,6 +82,34 @@ export function VehicleInspectionForm({ vehicleId, inspectionId, onComplete }: P
     },
   });
 
+  const handlePhotoUpload = (itemName: string, event: React.ChangeEvent<HTMLInputElement>) => {
+    const files = event.target.files;
+    if (!files) return;
+
+    const newPhotos = Array.from(files);
+    setSelectedPhotos(prev => ({
+      ...prev,
+      [itemName]: [...(prev[itemName] || []), ...newPhotos]
+    }));
+
+    const newUrls = newPhotos.map(file => URL.createObjectURL(file));
+    setPreviewUrls(prev => ({
+      ...prev,
+      [itemName]: [...(prev[itemName] || []), ...newUrls]
+    }));
+  };
+
+  const removePhoto = (itemName: string, index: number) => {
+    setSelectedPhotos(prev => ({
+      ...prev,
+      [itemName]: prev[itemName].filter((_, i) => i !== index)
+    }));
+    setPreviewUrls(prev => ({
+      ...prev,
+      [itemName]: prev[itemName].filter((_, i) => i !== index)
+    }));
+  };
+
   const handleItemStatus = async (itemName: string, status: InspectionChecklistItem['status']) => {
     if (!inspectionId) {
       const newInspection = await createInspectionMutation.mutateAsync(vehicleId);
@@ -91,7 +121,6 @@ export function VehicleInspectionForm({ vehicleId, inspectionId, onComplete }: P
         notes,
       });
     } else {
-      // Find existing item and update it
       const existingItem = inspectionData?.checklistItems.find(
         item => item.category === selectedCategory && item.item_name === itemName
       );
@@ -106,6 +135,11 @@ export function VehicleInspectionForm({ vehicleId, inspectionId, onComplete }: P
           status,
           notes,
         });
+      }
+
+      if (selectedPhotos[itemName]?.length > 0) {
+        const photoUrls = selectedPhotos[itemName].map((_, index) => `photo-${index}.jpg`);
+        await updateChecklistItem(existingItem?.id || '', { photos: photoUrls });
       }
     }
   };
@@ -170,11 +204,51 @@ export function VehicleInspectionForm({ vehicleId, inspectionId, onComplete }: P
                       <Label htmlFor={`${item}-repair`}>Needs Repair</Label>
                     </div>
                   </RadioGroup>
+                  
                   <Input
                     placeholder="Notes"
                     value={existingItem?.notes || ""}
                     onChange={(e) => setNotes(e.target.value)}
                   />
+
+                  <div className="mt-2">
+                    <div className="flex items-center gap-2">
+                      <Label htmlFor={`photos-${item}`} className="cursor-pointer">
+                        <div className="flex items-center gap-2 p-2 border rounded hover:bg-gray-50">
+                          <ImageIcon className="w-4 h-4" />
+                          <span>Add Photos</span>
+                        </div>
+                      </Label>
+                      <Input
+                        type="file"
+                        id={`photos-${item}`}
+                        accept="image/*"
+                        multiple
+                        className="hidden"
+                        onChange={(e) => handlePhotoUpload(item, e)}
+                      />
+                    </div>
+
+                    {previewUrls[item]?.length > 0 && (
+                      <div className="flex flex-wrap gap-2 mt-2">
+                        {previewUrls[item].map((url, index) => (
+                          <div key={url} className="relative group">
+                            <img
+                              src={url}
+                              alt={`${item} photo ${index + 1}`}
+                              className="w-20 h-20 object-cover rounded"
+                            />
+                            <button
+                              onClick={() => removePhoto(item, index)}
+                              className="absolute -top-2 -right-2 bg-red-500 text-white rounded-full p-1 opacity-0 group-hover:opacity-100 transition-opacity"
+                            >
+                              <X className="w-4 h-4" />
+                            </button>
+                          </div>
+                        ))}
+                      </div>
+                    )}
+                  </div>
                 </div>
               );
             })}
