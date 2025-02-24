@@ -1,11 +1,11 @@
-
 import { supabase } from "@/integrations/supabase/client";
 import type { 
   InventoryLocation, 
   InventoryVehicle, 
   VehicleConditionLog,
   BulkUploadRow,
-  SearchFilters 
+  SearchFilters,
+  VehicleDetails 
 } from "../types/inventory";
 import { decodeVIN } from "./vin-decoder";
 
@@ -127,7 +127,7 @@ export async function updateVehicleStatus(
   return data;
 }
 
-export async function searchInventory(query: string, filters: SearchFilters = {}) {
+export async function searchInventory(query: string, filters: SearchFilters = {}): Promise<VehicleDetails[]> {
   const { minPrice, maxPrice, minYear, maxYear, ...restFilters } = filters;
   
   let dbQuery = supabase
@@ -154,7 +154,7 @@ export async function searchInventory(query: string, filters: SearchFilters = {}
 
   const { data, error } = await dbQuery;
   if (error) throw error;
-  return data;
+  return data as VehicleDetails[];
 }
 
 export async function getVehicleInspectionHistory(vehicleId: string) {
