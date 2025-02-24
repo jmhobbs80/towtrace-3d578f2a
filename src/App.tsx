@@ -6,6 +6,7 @@ import AuthPage from "@/pages/auth/AuthPage";
 import { AuthProvider } from "@/components/auth/AuthProvider";
 import ProtectedRoute from "@/components/auth/ProtectedRoute";
 import DispatchDashboard from "@/pages/dispatch/DispatchDashboard";
+import VehiclesInTransitDashboard from "@/pages/transport/VehiclesInTransit";
 
 function App() {
   return (
@@ -26,6 +27,14 @@ function App() {
             element={
               <ProtectedRoute>
                 <DispatchDashboard />
+              </ProtectedRoute>
+            }
+          />
+          <Route
+            path="/transport"
+            element={
+              <ProtectedRoute>
+                <VehiclesInTransitDashboard />
               </ProtectedRoute>
             }
           />

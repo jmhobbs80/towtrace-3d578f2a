@@ -13,6 +13,7 @@ export const Sidebar = () => {
     { name: "Dashboard", icon: Home, href: "/" },
     { name: "Jobs", icon: Truck, href: "/jobs" },
     { name: "Drivers", icon: Users, href: "/drivers" },
+    { name: "Transport", icon: Truck, href: "/transport" },
     { name: "Reports", icon: FileText, href: "/reports" },
     { name: "Settings", icon: Settings, href: "/settings" },
   ];
