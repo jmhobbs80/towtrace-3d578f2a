@@ -3,7 +3,7 @@ import { Dialog, DialogContent, DialogHeader, DialogTitle } from "@/components/u
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { PaymentForm } from "@/components/billing/PaymentForm";
 import { PaymentHistory } from "@/components/billing/PaymentHistory";
-import type { Job, Location } from "@/lib/types/job";
+import type { Job, Location, isLocation } from "@/lib/types/job";
 
 interface JobDetailsProps {
   job: Job | null;
@@ -15,8 +15,8 @@ export const JobDetails = ({ job, open, onClose }: JobDetailsProps) => {
   if (!job) return null;
 
   const canProcessPayment = job.status === 'completed';
-  const pickupLocation = job.pickup_location as Location;
-  const deliveryLocation = job.delivery_location as Location | null;
+  const pickupLocation = isLocation(job.pickup_location) ? job.pickup_location as Location : null;
+  const deliveryLocation = job.delivery_location && isLocation(job.delivery_location) ? job.delivery_location as Location : null;
 
   return (
     <Dialog open={open} onOpenChange={onClose}>
@@ -33,10 +33,12 @@ export const JobDetails = ({ job, open, onClose }: JobDetailsProps) => {
 
           <TabsContent value="details" className="space-y-4">
             <div className="grid grid-cols-2 gap-4">
-              <div>
-                <h4 className="text-sm font-medium mb-1">Pickup Location</h4>
-                <p className="text-sm">{pickupLocation.address}</p>
-              </div>
+              {pickupLocation && (
+                <div>
+                  <h4 className="text-sm font-medium mb-1">Pickup Location</h4>
+                  <p className="text-sm">{pickupLocation.address}</p>
+                </div>
+              )}
               {deliveryLocation && (
                 <div>
                   <h4 className="text-sm font-medium mb-1">Delivery Location</h4>

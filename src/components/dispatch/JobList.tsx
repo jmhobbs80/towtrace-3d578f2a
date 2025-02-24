@@ -12,7 +12,7 @@ import { Button } from "@/components/ui/button";
 import { JobStatusManager } from "./JobStatusManager";
 import { JobDetails } from "./JobDetails";
 import { useState } from "react";
-import type { Job, Location } from "@/lib/types/job";
+import type { Job, Location, isLocation } from "@/lib/types/job";
 import type { Database } from "@/integrations/supabase/types";
 
 type JobStatus = Database["public"]["Enums"]["job_status"];
@@ -47,13 +47,13 @@ export const JobList = ({ jobs, isLoading, isDriver = false }: JobListProps) => 
           </TableHeader>
           <TableBody>
             {jobs.map((job) => {
-              const pickupLocation = job.pickup_location as Location;
-              const deliveryLocation = job.delivery_location as Location | null;
+              const pickupLocation = isLocation(job.pickup_location) ? job.pickup_location as Location : null;
+              const deliveryLocation = job.delivery_location && isLocation(job.delivery_location) ? job.delivery_location as Location : null;
 
               return (
                 <TableRow key={job.id}>
                   <TableCell className="font-mono">{job.id.slice(0, 8)}</TableCell>
-                  <TableCell>{pickupLocation.address}</TableCell>
+                  <TableCell>{pickupLocation?.address || 'Unknown'}</TableCell>
                   <TableCell>{deliveryLocation?.address || 'N/A'}</TableCell>
                   <TableCell>
                     <JobStatusManager 
