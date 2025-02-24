@@ -42,11 +42,11 @@ export default function InspectionHistoryDashboard() {
   const getStatusColor = (status: VehicleInspection['status']) => {
     switch (status) {
       case 'completed':
-        return 'success';
+        return 'default';
       case 'in_progress':
-        return 'warning';
-      case 'pending':
         return 'secondary';
+      case 'pending':
+        return 'outline';
       case 'failed':
         return 'destructive';
       default:
