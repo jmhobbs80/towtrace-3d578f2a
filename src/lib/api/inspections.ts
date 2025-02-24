@@ -125,3 +125,25 @@ export async function updateChecklistItem(
 
   if (error) throw error;
 }
+
+export async function getInspectionHistory(vehicleId?: string): Promise<VehicleInspection[]> {
+  const { data: userData } = await supabase.auth.getUser();
+  if (!userData.user) throw new Error("Not authenticated");
+
+  let query = supabase
+    .from('vehicle_inspections')
+    .select('*')
+    .order('created_at', { ascending: false });
+
+  if (vehicleId) {
+    query = query.eq('vehicle_id', vehicleId);
+  }
+
+  const { data, error } = await query;
+
+  if (error) throw error;
+  return data.map(inspection => ({
+    ...inspection,
+    inspection_data: inspection.inspection_data as Record<string, any>
+  }));
+}

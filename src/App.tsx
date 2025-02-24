@@ -7,6 +7,7 @@ import { AuthProvider } from "@/components/auth/AuthProvider";
 import ProtectedRoute from "@/components/auth/ProtectedRoute";
 import DispatchDashboard from "@/pages/dispatch/DispatchDashboard";
 import VehiclesInTransitDashboard from "@/pages/transport/VehiclesInTransit";
+import InspectionHistoryDashboard from "@/pages/inventory/InspectionHistoryDashboard";
 
 function App() {
   return (
@@ -35,6 +36,14 @@ function App() {
             element={
               <ProtectedRoute>
                 <VehiclesInTransitDashboard />
+              </ProtectedRoute>
+            }
+          />
+          <Route
+            path="/inventory/inspections"
+            element={
+              <ProtectedRoute>
+                <InspectionHistoryDashboard />
               </ProtectedRoute>
             }
           />
