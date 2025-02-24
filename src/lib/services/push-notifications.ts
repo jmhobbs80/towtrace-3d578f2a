@@ -60,7 +60,7 @@ export class PushNotificationService {
     try {
       const subscription = await this.swRegistration.pushManager.subscribe({
         userVisibleOnly: true,
-        applicationServerKey: 'YOUR_VAPID_PUBLIC_KEY' // We'll need to set this up in Supabase
+        applicationServerKey: 'BBtQCEjaIJb9A3iIyyRiMOfHP9qKR-4SRqu4zT9Bg_sit89-jNQKmYienx8lCzgCmD1z6vKmVswZT5RsVICaOlU'
       });
 
       const userId = (await supabase.auth.getUser()).data.user?.id;
