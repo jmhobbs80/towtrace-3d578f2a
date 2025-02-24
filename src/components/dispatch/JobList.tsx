@@ -12,10 +12,10 @@ import { Button } from "@/components/ui/button";
 import { JobStatusManager } from "./JobStatusManager";
 import { JobDetails } from "./JobDetails";
 import { useState } from "react";
+import type { Job, Location } from "@/lib/types/job";
 import type { Database } from "@/integrations/supabase/types";
 
 type JobStatus = Database["public"]["Enums"]["job_status"];
-type Job = Database["public"]["Tables"]["tow_jobs"]["Row"];
 
 interface JobListProps {
   jobs: Job[];
@@ -46,37 +46,42 @@ export const JobList = ({ jobs, isLoading, isDriver = false }: JobListProps) => 
             </TableRow>
           </TableHeader>
           <TableBody>
-            {jobs.map((job) => (
-              <TableRow key={job.id}>
-                <TableCell className="font-mono">{job.id.slice(0, 8)}</TableCell>
-                <TableCell>{job.pickup_location.address}</TableCell>
-                <TableCell>{job.delivery_location?.address || 'N/A'}</TableCell>
-                <TableCell>
-                  <JobStatusManager 
-                    jobId={job.id}
-                    initialStatus={job.status as JobStatus}
-                    isDriver={isDriver}
-                  />
-                </TableCell>
-                <TableCell>
-                  {job.driver_id
-                    ? `${job.driver?.first_name || ''} ${job.driver?.last_name || ''}`
-                    : 'Unassigned'}
-                </TableCell>
-                <TableCell>
-                  {new Date(job.created_at).toLocaleDateString()}
-                </TableCell>
-                <TableCell>
-                  <Button
-                    variant="outline"
-                    size="sm"
-                    onClick={() => setSelectedJob(job)}
-                  >
-                    View Details
-                  </Button>
-                </TableCell>
-              </TableRow>
-            ))}
+            {jobs.map((job) => {
+              const pickupLocation = job.pickup_location as Location;
+              const deliveryLocation = job.delivery_location as Location | null;
+
+              return (
+                <TableRow key={job.id}>
+                  <TableCell className="font-mono">{job.id.slice(0, 8)}</TableCell>
+                  <TableCell>{pickupLocation.address}</TableCell>
+                  <TableCell>{deliveryLocation?.address || 'N/A'}</TableCell>
+                  <TableCell>
+                    <JobStatusManager 
+                      jobId={job.id}
+                      initialStatus={job.status as JobStatus}
+                      isDriver={isDriver}
+                    />
+                  </TableCell>
+                  <TableCell>
+                    {job.driver_id
+                      ? `${job.driver?.first_name || ''} ${job.driver?.last_name || ''}`
+                      : 'Unassigned'}
+                  </TableCell>
+                  <TableCell>
+                    {new Date(job.created_at).toLocaleDateString()}
+                  </TableCell>
+                  <TableCell>
+                    <Button
+                      variant="outline"
+                      size="sm"
+                      onClick={() => setSelectedJob(job)}
+                    >
+                      View Details
+                    </Button>
+                  </TableCell>
+                </TableRow>
+              );
+            })}
           </TableBody>
         </Table>
       </div>
