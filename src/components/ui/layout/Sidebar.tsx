@@ -1,11 +1,13 @@
 
 import { useState } from "react";
-import { Menu, X, Home, Truck, Users, FileText, Settings } from "lucide-react";
+import { Menu, X, Home, Truck, Users, FileText, Settings, LogOut } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { cn } from "@/lib/utils";
+import { useAuth } from "@/components/auth/AuthProvider";
 
 export const Sidebar = () => {
   const [isOpen, setIsOpen] = useState(true);
+  const { signOut } = useAuth();
 
   const navigationItems = [
     { name: "Dashboard", icon: Home, href: "/" },
@@ -50,6 +52,15 @@ export const Sidebar = () => {
                 </a>
               </li>
             ))}
+            <li>
+              <button
+                onClick={signOut}
+                className="flex w-full items-center space-x-3 rounded-lg px-4 py-2.5 text-sm font-medium text-gray-700 hover:bg-gray-100 hover:text-primary transition-all duration-200"
+              >
+                <LogOut className="h-5 w-5" />
+                <span>Sign Out</span>
+              </button>
+            </li>
           </ul>
         </nav>
       </div>
