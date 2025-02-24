@@ -1,3 +1,4 @@
+
 import { supabase } from "@/integrations/supabase/client";
 import type { 
   InventoryLocation, 
@@ -127,16 +128,23 @@ export async function updateVehicleStatus(
   return data;
 }
 
-export async function searchInventory(query: string, filters: SearchFilters = {}): Promise<VehicleDetails[]> {
+type SearchInventoryResponse = {
+  data: VehicleDetails[] | null;
+  error: Error | null;
+};
+
+export async function searchInventory(query: string, filters: SearchFilters = {}) {
   const { minPrice, maxPrice, minYear, maxYear, ...restFilters } = filters;
   
+  const select = `
+    *,
+    location:inventory_locations!inner(name, address),
+    condition_logs:vehicle_condition_logs(*)
+  `;
+
   let dbQuery = supabase
     .from('inventory_vehicles')
-    .select(`
-      *,
-      location:inventory_locations(name, address),
-      condition_logs:vehicle_condition_logs(*)
-    `)
+    .select(select)
     .or(`make.ilike.%${query}%,model.ilike.%${query}%,vin.ilike.%${query}%`);
 
   // Apply numeric range filters
@@ -154,7 +162,7 @@ export async function searchInventory(query: string, filters: SearchFilters = {}
 
   const { data, error } = await dbQuery;
   if (error) throw error;
-  return data as VehicleDetails[];
+  return data || [];
 }
 
 export async function getVehicleInspectionHistory(vehicleId: string) {
