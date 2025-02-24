@@ -1,12 +1,9 @@
+
 import { useState } from "react";
 import { useQuery, useMutation } from "@tanstack/react-query";
 import { Button } from "@/components/ui/button";
-import { Input } from "@/components/ui/input";
-import { Label } from "@/components/ui/label";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
-import { RadioGroup, RadioGroupItem } from "@/components/ui/radio-group";
 import { useToast } from "@/hooks/use-toast";
-import { ImageIcon, Plus, X } from "lucide-react";
 import {
   createInspection,
   updateInspectionStatus,
@@ -15,6 +12,8 @@ import {
   getInspectionDetails,
 } from "@/lib/api/inspections";
 import type { InspectionChecklistItem, UpdateInspectionStatusParams } from "@/lib/types/inspection";
+import { ChecklistItem } from "./ChecklistItem";
+import { CategorySelector } from "./CategorySelector";
 
 const CHECKLIST_CATEGORIES = [
   "Exterior",
@@ -159,17 +158,11 @@ export function VehicleInspectionForm({ vehicleId, inspectionId, onComplete }: P
 
   return (
     <div className="space-y-6">
-      <div className="flex space-x-4">
-        {CHECKLIST_CATEGORIES.map((category) => (
-          <Button
-            key={category}
-            variant={selectedCategory === category ? "default" : "outline"}
-            onClick={() => setSelectedCategory(category)}
-          >
-            {category}
-          </Button>
-        ))}
-      </div>
+      <CategorySelector
+        categories={CHECKLIST_CATEGORIES}
+        selectedCategory={selectedCategory}
+        onSelect={(category) => setSelectedCategory(category as typeof CHECKLIST_CATEGORIES[number])}
+      />
 
       <Card>
         <CardHeader>
@@ -183,73 +176,16 @@ export function VehicleInspectionForm({ vehicleId, inspectionId, onComplete }: P
               );
 
               return (
-                <div key={item} className="space-y-2">
-                  <Label>{item}</Label>
-                  <RadioGroup
-                    defaultValue={existingItem?.status}
-                    onValueChange={(value) => 
-                      handleItemStatus(item, value as InspectionChecklistItem['status'])
-                    }
-                  >
-                    <div className="flex items-center space-x-2">
-                      <RadioGroupItem value="pass" id={`${item}-pass`} />
-                      <Label htmlFor={`${item}-pass`}>Pass</Label>
-                    </div>
-                    <div className="flex items-center space-x-2">
-                      <RadioGroupItem value="fail" id={`${item}-fail`} />
-                      <Label htmlFor={`${item}-fail`}>Fail</Label>
-                    </div>
-                    <div className="flex items-center space-x-2">
-                      <RadioGroupItem value="needs_repair" id={`${item}-repair`} />
-                      <Label htmlFor={`${item}-repair`}>Needs Repair</Label>
-                    </div>
-                  </RadioGroup>
-                  
-                  <Input
-                    placeholder="Notes"
-                    value={existingItem?.notes || ""}
-                    onChange={(e) => setNotes(e.target.value)}
-                  />
-
-                  <div className="mt-2">
-                    <div className="flex items-center gap-2">
-                      <Label htmlFor={`photos-${item}`} className="cursor-pointer">
-                        <div className="flex items-center gap-2 p-2 border rounded hover:bg-gray-50">
-                          <ImageIcon className="w-4 h-4" />
-                          <span>Add Photos</span>
-                        </div>
-                      </Label>
-                      <Input
-                        type="file"
-                        id={`photos-${item}`}
-                        accept="image/*"
-                        multiple
-                        className="hidden"
-                        onChange={(e) => handlePhotoUpload(item, e)}
-                      />
-                    </div>
-
-                    {previewUrls[item]?.length > 0 && (
-                      <div className="flex flex-wrap gap-2 mt-2">
-                        {previewUrls[item].map((url, index) => (
-                          <div key={url} className="relative group">
-                            <img
-                              src={url}
-                              alt={`${item} photo ${index + 1}`}
-                              className="w-20 h-20 object-cover rounded"
-                            />
-                            <button
-                              onClick={() => removePhoto(item, index)}
-                              className="absolute -top-2 -right-2 bg-red-500 text-white rounded-full p-1 opacity-0 group-hover:opacity-100 transition-opacity"
-                            >
-                              <X className="w-4 h-4" />
-                            </button>
-                          </div>
-                        ))}
-                      </div>
-                    )}
-                  </div>
-                </div>
+                <ChecklistItem
+                  key={item}
+                  item={item}
+                  existingItem={existingItem}
+                  onStatusChange={(status) => handleItemStatus(item, status)}
+                  onNotesChange={setNotes}
+                  onPhotoUpload={(e) => handlePhotoUpload(item, e)}
+                  onPhotoRemove={(index) => removePhoto(item, index)}
+                  previewUrls={previewUrls[item]}
+                />
               );
             })}
           </div>
