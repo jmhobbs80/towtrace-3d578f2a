@@ -5,7 +5,7 @@ export const updateJobStatus = async (jobId: string, status: string) => {
   const { data, error } = await supabase.functions.invoke('jobs', {
     method: 'PATCH',
     body: { status },
-    path: `/${jobId}`
+    urlPath: `/${jobId}`
   });
 
   if (error) throw error;

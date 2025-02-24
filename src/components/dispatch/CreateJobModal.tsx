@@ -62,7 +62,7 @@ export const CreateJobModal = ({ open, onClose, onSuccess }: CreateJobModalProps
     };
 
     fetchDrivers();
-  }, [organization?.id]);
+  }, [organization?.id, toast]);
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
