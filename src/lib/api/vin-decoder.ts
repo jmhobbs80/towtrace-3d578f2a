@@ -1,4 +1,3 @@
-
 interface VehicleDecodedData {
   make: string;
   model: string;
@@ -150,9 +149,13 @@ async function fetchVehicleData(vin: string): Promise<VehicleDecodedData> {
   throw new Error(`Failed to fetch VIN data after ${MAX_RETRIES} attempts: ${lastError?.message}`);
 }
 
+import { VINCacheService } from './services/vin-cache';
+
+const vinCache = VINCacheService.getInstance();
+
 export const decodeVIN = async (vin: string): Promise<VehicleDecodedData> => {
   // Check cache first
-  const cachedData = vinCache.get(vin);
+  const cachedData = await vinCache.get(vin);
   if (cachedData) {
     console.log('VIN data retrieved from cache');
     return cachedData;
@@ -160,10 +163,10 @@ export const decodeVIN = async (vin: string): Promise<VehicleDecodedData> => {
 
   try {
     const vehicleData = await fetchVehicleData(vin);
-    vinCache.set(vin, vehicleData, vinCache.isOffline());
+    vinCache.set(vin, vehicleData);
     return vehicleData;
   } catch (error) {
-    if (vinCache.isOffline()) {
+    if (!navigator.onLine) {
       // Create a placeholder entry when offline
       const placeholderData: VehicleDecodedData = {
         make: "Pending Sync",
@@ -182,7 +185,7 @@ export const decodeVIN = async (vin: string): Promise<VehicleDecodedData> => {
         doors: 0,
         safetyRating: "",
       };
-      vinCache.set(vin, placeholderData, true);
+      vinCache.set(vin, placeholderData);
       return placeholderData;
     }
     throw error;
