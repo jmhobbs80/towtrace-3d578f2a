@@ -2,7 +2,7 @@
 import type { VehicleInspection } from "./inspection";
 import type { VehicleInTransit } from "./fleet";
 
-export type VehicleStatus = 'available' | 'in_transit' | 'delivered' | 'needs_repair';
+export type VehicleStatus = 'available' | 'in_transit' | 'pending_inspection' | 'sold' | 'auction_ready' | 'maintenance';
 
 export interface Vehicle {
   id: string;
@@ -21,15 +21,16 @@ export interface Vehicle {
 export interface VehicleDetails extends Vehicle {
   inspections: VehicleInspection[];
   transitHistory: VehicleInTransit[];
-  damageReports: DamageReport[];
+  damageReports: VehicleConditionReport[];
 }
 
-export interface DamageReport {
+export interface VehicleConditionReport {
   id: string;
   vehicle_id: string;
-  report_date: string;
-  damage_description: string;
+  condition: 'excellent' | 'good' | 'fair' | 'poor' | 'damaged' | 'salvage';
+  notes: string;
   photos: string[];
+  inspector_id: string;
   created_at: string;
 }
 

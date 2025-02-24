@@ -38,10 +38,14 @@ export default function VehicleSearch() {
       case 'available':
         return 'default';
       case 'in_transit':
-        return 'warning';
-      case 'delivered':
-        return 'success';
-      case 'needs_repair':
+        return 'secondary';
+      case 'pending_inspection':
+        return 'outline';
+      case 'sold':
+        return 'default';
+      case 'auction_ready':
+        return 'secondary';
+      case 'maintenance':
         return 'destructive';
       default:
         return 'secondary';

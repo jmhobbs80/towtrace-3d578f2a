@@ -1,8 +1,7 @@
-
 import { useParams } from "react-router-dom";
 import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
 import { format } from "date-fns";
-import { ArrowLeft, Clock, Car, Tool, FileText } from "lucide-react";
+import { ArrowLeft, Clock, Car, AlertTriangle } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
@@ -153,7 +152,7 @@ export default function VehicleDetails() {
                   ) : ('delivery_status' in event) ? (
                     <Car className="w-5 h-5 mt-1" />
                   ) : (
-                    <Tool className="w-5 h-5 mt-1" />
+                    <AlertTriangle className="w-5 h-5 mt-1" />
                   )}
                   <div className="flex-1">
                     <div className="flex justify-between">
