@@ -1,5 +1,5 @@
 
-import { useState, useEffect, useCallback, useRef } from "react";
+import { useState, useEffect, useCallback } from "react";
 import { Dialog, DialogContent, DialogHeader, DialogTitle } from "@/components/ui/dialog";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
@@ -37,7 +37,6 @@ interface FormData {
 export const CreateJobModal = ({ open, onClose, onSuccess }: CreateJobModalProps) => {
   const { organization } = useAuth();
   const { toast } = useToast();
-  const toastFn = useRef(toast);
   const [isLoading, setIsLoading] = useState(false);
   const [drivers, setDrivers] = useState<Driver[]>([]);
   const [formData, setFormData] = useState<FormData>({
@@ -47,26 +46,31 @@ export const CreateJobModal = ({ open, onClose, onSuccess }: CreateJobModalProps
     driverId: "",
   });
 
+  // Separate error handling function
+  const handleError = (error: Error, title: string) => {
+    console.error(title, error);
+    toast({
+      variant: "destructive",
+      title,
+      description: error.message,
+    });
+  };
+
   const fetchDrivers = useCallback(async () => {
     if (!organization?.id) return;
 
-    try {
-      const { data, error } = await supabase
-        .from('profiles')
-        .select('id, first_name, last_name')
-        .eq('role', 'driver')
-        .eq('organization_id', organization.id);
+    const { data, error } = await supabase
+      .from('profiles')
+      .select('id, first_name, last_name')
+      .eq('role', 'driver')
+      .eq('organization_id', organization.id);
 
-      if (error) throw error;
-      setDrivers(data || []);
-    } catch (error: any) {
-      console.error('Error fetching drivers:', error);
-      toastFn.current({
-        variant: "destructive",
-        title: "Error fetching drivers",
-        description: error.message,
-      });
+    if (error) {
+      handleError(error, 'Error fetching drivers');
+      return;
     }
+
+    setDrivers(data || []);
   }, [organization?.id]);
 
   useEffect(() => {
