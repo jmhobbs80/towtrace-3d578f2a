@@ -41,10 +41,27 @@ export interface LocationSummary {
   address: Json;
 }
 
-// Base vehicle search result interface
-export interface VehicleSearchResult extends InventoryVehicle {
-  location: LocationSummary | null;
+// Base vehicle search result interface with explicit typing
+export interface VehicleSearchResult {
+  id: string;
+  organization_id: string;
+  location_id: string | null;
+  make: string;
+  model: string;
+  year: number;
+  vin: string;
+  status: InventoryStatus | null;
+  condition: VehicleCondition | null;
+  location: LocationSummary;
   condition_logs: VehicleConditionLog[];
+  color?: string | null;
+  mileage?: number | null;
+  listing_price?: number | null;
+  purchase_price?: number | null;
+  trim?: string | null;
+  notes?: string | null;
+  created_at: string;
+  updated_at: string;
 }
 
 export interface InspectionLogWithInspector extends VehicleConditionLog {
@@ -52,11 +69,6 @@ export interface InspectionLogWithInspector extends VehicleConditionLog {
     first_name: string | null;
     last_name: string | null;
   };
-}
-
-export interface VehicleDetails extends InventoryVehicle {
-  location?: Pick<InventoryLocation, 'name' | 'address'>;
-  condition_logs?: VehicleConditionLog[];
 }
 
 export interface LocationStats {
