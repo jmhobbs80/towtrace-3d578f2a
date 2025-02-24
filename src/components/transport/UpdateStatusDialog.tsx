@@ -1,5 +1,5 @@
 
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import {
   Dialog,
   DialogContent,
@@ -19,7 +19,7 @@ import { Textarea } from "@/components/ui/textarea";
 import { Input } from "@/components/ui/input";
 import { useToast } from "@/components/ui/use-toast";
 import { updateVehicleTransitStatus } from "@/lib/api/fleet";
-import { decodeVIN } from "@/lib/api/vehicles";
+import { decodeVIN, validateVIN, createVINScanner, type VINScannerHardware } from "@/lib/api/vehicles";
 import type { VehicleInTransit } from "@/lib/types/fleet";
 
 interface UpdateStatusDialogProps {
@@ -36,31 +36,62 @@ export const UpdateStatusDialog = ({ vehicle, onUpdate, open, onOpenChange }: Up
   const [notes, setNotes] = useState("");
   const [pickupStatus, setPickupStatus] = useState<VehicleInTransit['pickup_status']>(vehicle.pickup_status);
   const [deliveryStatus, setDeliveryStatus] = useState<VehicleInTransit['delivery_status']>(vehicle.delivery_status);
-  const [vehicleData, setVehicleData] = useState<{ make: string; model: string; year: number } | null>(null);
+  const [vehicleData, setVehicleData] = useState<any>(null);
+  const [scanner, setScanner] = useState<VINScannerHardware | null>(null);
+
+  // Initialize scanner hardware
+  useEffect(() => {
+    const initScanner = async () => {
+      try {
+        const scannerHardware = await createVINScanner();
+        setScanner(scannerHardware);
+      } catch (error) {
+        console.error('Failed to initialize VIN scanner:', error);
+      }
+    };
+
+    initScanner();
+  }, []);
 
   const handleVinScan = async () => {
+    if (!scanner) {
+      toast({
+        variant: "destructive",
+        title: "Scanner Not Available",
+        description: "No VIN scanner hardware was detected."
+      });
+      return;
+    }
+
     setScanning(true);
     try {
-      // In a real implementation, this would come from a barcode/QR scanner
-      // For demo purposes, we're using the vehicle's VIN
-      const vin = vehicle.vin;
-      const decodedData = await decodeVIN(vin);
+      const scannedVin = await scanner.startScanning();
       
-      setScannedVin(vin);
-      setVehicleData({
-        make: decodedData.make,
-        model: decodedData.model,
-        year: decodedData.year
-      });
-
-      // Verify the scanned data matches our records
-      if (decodedData.make !== vehicle.make || 
-          decodedData.model !== vehicle.model || 
-          decodedData.year !== vehicle.year) {
+      // Validate VIN format
+      if (!validateVIN(scannedVin)) {
         toast({
-          variant: "destructive",  // Changed from "warning" to "destructive"
+          variant: "destructive",
+          title: "Invalid VIN",
+          description: "The scanned VIN appears to be invalid. Please try again."
+        });
+        return;
+      }
+
+      const decodedData = await decodeVIN(scannedVin);
+      setScannedVin(scannedVin);
+      setVehicleData(decodedData);
+
+      // Comprehensive vehicle verification
+      const mismatchFields = [];
+      if (decodedData.make !== vehicle.make) mismatchFields.push('make');
+      if (decodedData.model !== vehicle.model) mismatchFields.push('model');
+      if (decodedData.year !== vehicle.year) mismatchFields.push('year');
+      
+      if (mismatchFields.length > 0) {
+        toast({
+          variant: "destructive",
           title: "Vehicle Data Mismatch",
-          description: "The scanned vehicle details don't match our records. Please verify the correct vehicle."
+          description: `Mismatched fields: ${mismatchFields.join(', ')}. Please verify the correct vehicle.`
         });
       }
     } catch (error) {
@@ -71,6 +102,9 @@ export const UpdateStatusDialog = ({ vehicle, onUpdate, open, onOpenChange }: Up
       });
     } finally {
       setScanning(false);
+      if (scanner) {
+        await scanner.stopScanning();
+      }
     }
   };
 
@@ -165,8 +199,13 @@ export const UpdateStatusDialog = ({ vehicle, onUpdate, open, onOpenChange }: Up
               </Button>
             </div>
             {vehicleData && (
-              <div className="text-sm text-gray-500 mt-2">
-                Decoded: {vehicleData.year} {vehicleData.make} {vehicleData.model}
+              <div className="space-y-2 text-sm text-gray-500 mt-2">
+                <div>Vehicle: {vehicleData.year} {vehicleData.make} {vehicleData.model}</div>
+                <div>Trim: {vehicleData.trim}</div>
+                <div>Body: {vehicleData.bodyClass}</div>
+                <div>Engine: {vehicleData.engineSize}L {vehicleData.engineCylinders}cyl</div>
+                <div>Fuel: {vehicleData.fuelType}</div>
+                <div>Origin: {vehicleData.plantCountry}</div>
               </div>
             )}
           </div>
