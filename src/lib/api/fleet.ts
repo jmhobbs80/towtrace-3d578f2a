@@ -49,7 +49,13 @@ export const getVehiclesInTransit = async (jobId: string): Promise<VehicleInTran
     .order('created_at', { ascending: true });
 
   if (error) throw error;
-  return data;
+  
+  // Type cast the response to ensure it matches our interface
+  return data?.map(vehicle => ({
+    ...vehicle,
+    pickup_status: vehicle.pickup_status as VehicleInTransit['pickup_status'],
+    delivery_status: vehicle.delivery_status as VehicleInTransit['delivery_status'],
+  })) ?? [];
 };
 
 export const updateVehicleTransitStatus = async (

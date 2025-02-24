@@ -44,13 +44,13 @@ const FleetManagement = () => {
   const getStatusColor = (status: string) => {
     switch (status) {
       case 'active':
-        return 'success';
-      case 'maintenance':
-        return 'warning';
-      case 'assigned':
         return 'default';
-      default:
+      case 'maintenance':
+        return 'destructive';
+      case 'assigned':
         return 'secondary';
+      default:
+        return 'outline';
     }
   };
 
