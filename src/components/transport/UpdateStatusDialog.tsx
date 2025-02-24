@@ -5,7 +5,6 @@ import {
   DialogContent,
   DialogHeader,
   DialogTitle,
-  DialogTrigger,
 } from "@/components/ui/dialog";
 import { Button } from "@/components/ui/button";
 import { Label } from "@/components/ui/label";
@@ -20,6 +19,7 @@ import { Textarea } from "@/components/ui/textarea";
 import { Input } from "@/components/ui/input";
 import { useToast } from "@/components/ui/use-toast";
 import { updateVehicleTransitStatus } from "@/lib/api/fleet";
+import { decodeVIN } from "@/lib/api/vehicles";
 import type { VehicleInTransit } from "@/lib/types/fleet";
 
 interface UpdateStatusDialogProps {
@@ -36,14 +36,42 @@ export const UpdateStatusDialog = ({ vehicle, onUpdate, open, onOpenChange }: Up
   const [notes, setNotes] = useState("");
   const [pickupStatus, setPickupStatus] = useState<VehicleInTransit['pickup_status']>(vehicle.pickup_status);
   const [deliveryStatus, setDeliveryStatus] = useState<VehicleInTransit['delivery_status']>(vehicle.delivery_status);
+  const [vehicleData, setVehicleData] = useState<{ make: string; model: string; year: number } | null>(null);
 
   const handleVinScan = async () => {
     setScanning(true);
-    // Simulate VIN scanning - in a real app, this would use a barcode/QR scanner
-    setTimeout(() => {
-      setScannedVin(vehicle.vin);
+    try {
+      // In a real implementation, this would come from a barcode/QR scanner
+      // For demo purposes, we're using the vehicle's VIN
+      const vin = vehicle.vin;
+      const decodedData = await decodeVIN(vin);
+      
+      setScannedVin(vin);
+      setVehicleData({
+        make: decodedData.make,
+        model: decodedData.model,
+        year: decodedData.year
+      });
+
+      // Verify the scanned data matches our records
+      if (decodedData.make !== vehicle.make || 
+          decodedData.model !== vehicle.model || 
+          decodedData.year !== vehicle.year) {
+        toast({
+          variant: "warning",
+          title: "Vehicle Data Mismatch",
+          description: "The scanned vehicle details don't match our records. Please verify the correct vehicle."
+        });
+      }
+    } catch (error) {
+      toast({
+        variant: "destructive",
+        title: "Scanning Failed",
+        description: "Failed to decode VIN. Please try again or enter manually."
+      });
+    } finally {
       setScanning(false);
-    }, 1500);
+    }
   };
 
   const handlePickupStatusChange = (value: string) => {
@@ -70,7 +98,6 @@ export const UpdateStatusDialog = ({ vehicle, onUpdate, open, onOpenChange }: Up
         delivery_status: deliveryStatus,
       };
 
-      // Add confirmation timestamps if status is updated
       if (pickupStatus === 'confirmed' && !vehicle.pickup_confirmation) {
         updates.pickup_confirmation = new Date().toISOString();
       }
@@ -137,6 +164,11 @@ export const UpdateStatusDialog = ({ vehicle, onUpdate, open, onOpenChange }: Up
                 {scanning ? "Scanning..." : "Scan"}
               </Button>
             </div>
+            {vehicleData && (
+              <div className="text-sm text-gray-500 mt-2">
+                Decoded: {vehicleData.year} {vehicleData.make} {vehicleData.model}
+              </div>
+            )}
           </div>
           <div className="grid gap-2">
             <Label>Notes</Label>
