@@ -46,10 +46,11 @@ export const CreateJobModal = ({ open, onClose, onSuccess }: CreateJobModalProps
     driverId: "",
   });
 
+  // Fetch drivers only when organization changes
   useEffect(() => {
+    if (!organization?.id) return;
+
     const fetchDrivers = async () => {
-      if (!organization?.id) return;
-      
       const { data, error } = await supabase
         .from('profiles')
         .select('id, first_name, last_name')
@@ -57,6 +58,7 @@ export const CreateJobModal = ({ open, onClose, onSuccess }: CreateJobModalProps
         .eq('organization_id', organization.id);
 
       if (error) {
+        console.error('Error fetching drivers:', error);
         toast({
           variant: "destructive",
           title: "Error fetching drivers",
@@ -69,9 +71,9 @@ export const CreateJobModal = ({ open, onClose, onSuccess }: CreateJobModalProps
     };
 
     fetchDrivers();
-  }, [organization?.id, toast]);
+  }, [organization?.id]);
 
-  const handleSubmit = async (e: React.FormEvent) => {
+  const handleSubmit = async (e: React.FormEvent<HTMLFormElement>) => {
     e.preventDefault();
     if (!organization?.id) {
       toast({
@@ -90,7 +92,7 @@ export const CreateJobModal = ({ open, onClose, onSuccess }: CreateJobModalProps
           organization_id: organization.id,
           pickup_location: {
             address: formData.pickupAddress,
-            coordinates: [0, 0], // In a real app, you'd use a geocoding service here
+            coordinates: [0, 0],
           },
           delivery_location: formData.deliveryAddress ? {
             address: formData.deliveryAddress,
@@ -107,7 +109,8 @@ export const CreateJobModal = ({ open, onClose, onSuccess }: CreateJobModalProps
         description: `Job created successfully${formData.driverId ? ' and assigned to driver' : ''}`,
       });
       onSuccess();
-    } catch (error) {
+      onClose();
+    } catch (error: any) {
       toast({
         variant: "destructive",
         title: "Error creating job",
