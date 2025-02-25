@@ -21,6 +21,7 @@ import HelpCenter from "@/pages/help/HelpCenter";
 import LegalHub from "@/pages/legal/LegalHub";
 import OrganizationDashboard from "@/pages/organization/OrganizationDashboard";
 import DriverPortal from "@/pages/driver/DriverPortal";
+import DealerTrades from "@/pages/dealer/DealerTrades";
 import { UserRole } from "@/lib/types/auth";
 
 // Define allowed roles for each protected route
@@ -34,6 +35,7 @@ const ROLE_ACCESS = {
   DISPATCH: ["dispatcher", "admin", "super_admin"] as UserRole[],
   DRIVER: ["driver", "admin", "super_admin"] as UserRole[],
   ORGANIZATION: ["admin", "super_admin"] as UserRole[],
+  DEALER: ["dealer", "wholesaler", "admin", "super_admin"] as UserRole[],
 } as const;
 
 interface RouteConfig {
@@ -97,6 +99,12 @@ const protectedRoutes: RouteConfig[] = [
     allowedRoles: ROLE_ACCESS.INVENTORY,
     element: <InventoryManagement />
   },
+  // Dealer section
+  {
+    path: "/dealer/trades",
+    allowedRoles: ROLE_ACCESS.DEALER,
+    element: <DealerTrades />
+  },
   // Analytics section
   {
     path: "/analytics",
@@ -131,7 +139,7 @@ const protectedRoutes: RouteConfig[] = [
     path: "/help",
     element: <HelpCenter />
   },
-  // Legal section with nested routes
+  // Legal section
   {
     path: "/legal",
     element: <LegalHub />
