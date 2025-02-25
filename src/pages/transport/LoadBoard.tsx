@@ -16,7 +16,7 @@ import { Badge } from "@/components/ui/badge";
 import { useToast } from "@/components/ui/use-toast";
 import { format } from "date-fns";
 import { MapPin, Calendar, Package } from "lucide-react";
-import type { Load, Dimensions } from "@/lib/types/load";
+import type { Load, Dimensions, PriceRange } from "@/lib/types/load";
 import { CreateLoadDialog } from "@/components/transport/CreateLoadDialog";
 
 export default function LoadBoard() {
@@ -47,9 +47,9 @@ export default function LoadBoard() {
         delivery_location: load.delivery_location as { address: string },
         requirements: (load.requirements as string[]) || [],
         photos: (load.photos as string[]) || [],
-        dimensions: load.dimensions as Dimensions | undefined,
+        dimensions: (load.dimensions as Dimensions | undefined) || undefined,
         weight: load.weight || undefined,
-        price_range: load.price_range || undefined,
+        price_range: (load.price_range as PriceRange | undefined) || undefined,
         assigned_to: load.assigned_to || undefined,
         description: load.description || undefined
       }));
