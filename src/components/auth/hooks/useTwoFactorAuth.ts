@@ -95,7 +95,7 @@ export function useTwoFactorAuth() {
       
       if (error) throw error;
       
-      if (data && data.id && data.totp) {
+      if (data?.id && data?.totp?.qr_code) {
         setFactorId(data.id);
         setQrCodeUrl(data.totp.qr_code);
         setShowSetup(true);
