@@ -4,6 +4,11 @@ export type PaymentMethod = Database["public"]["Enums"]["payment_method"];
 export type OrganizationType = Database["public"]["Enums"]["organization_type"];
 export type Json = Database["public"]["Tables"]["payments"]["Row"]["metadata"];
 
+export interface VolumeDiscount {
+  threshold: number;
+  discount_percentage: number;
+}
+
 export interface RoleFeature {
   id: string;
   organization_type: OrganizationType;
@@ -68,10 +73,7 @@ export interface SubscriptionPlan {
   limits: Record<string, number>;
   addon_roles: OrganizationType[];
   addon_price: number;
-  volume_discount?: Array<{
-    threshold: number;
-    discount_percentage: number;
-  }>;
+  volume_discount?: VolumeDiscount[];
   is_active: boolean;
 }
 
