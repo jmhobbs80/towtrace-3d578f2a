@@ -1,9 +1,24 @@
-
 import type { Database } from "@/integrations/supabase/types";
 
 export type PaymentMethod = Database["public"]["Enums"]["payment_method"];
 export type OrganizationType = Database["public"]["Enums"]["organization_type"];
 export type Json = Database["public"]["Tables"]["payments"]["Row"]["metadata"];
+
+export interface RoleFeature {
+  id: string;
+  organization_type: OrganizationType;
+  feature_key: string;
+  feature_name: string;
+  description?: string;
+  is_addon: boolean;
+}
+
+export interface OrganizationRole {
+  id: string;
+  organization_id: string;
+  role_type: OrganizationType;
+  is_primary: boolean;
+}
 
 export interface Payment {
   id: string;
@@ -51,6 +66,8 @@ export interface SubscriptionPlan {
   tier: string;
   features: string[];
   limits: Record<string, number>;
+  addon_roles: OrganizationType[];
+  addon_price: number;
   volume_discount?: Array<{
     threshold: number;
     discount_percentage: number;

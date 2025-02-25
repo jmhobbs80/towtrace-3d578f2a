@@ -610,6 +610,38 @@ export type Database = {
           },
         ]
       }
+      organization_roles: {
+        Row: {
+          created_at: string | null
+          id: string
+          is_primary: boolean | null
+          organization_id: string | null
+          role_type: Database["public"]["Enums"]["organization_type"]
+        }
+        Insert: {
+          created_at?: string | null
+          id?: string
+          is_primary?: boolean | null
+          organization_id?: string | null
+          role_type: Database["public"]["Enums"]["organization_type"]
+        }
+        Update: {
+          created_at?: string | null
+          id?: string
+          is_primary?: boolean | null
+          organization_id?: string | null
+          role_type?: Database["public"]["Enums"]["organization_type"]
+        }
+        Relationships: [
+          {
+            foreignKeyName: "organization_roles_organization_id_fkey"
+            columns: ["organization_id"]
+            isOneToOne: false
+            referencedRelation: "organizations"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       organizations: {
         Row: {
           accounting_settings: Json | null
@@ -978,6 +1010,36 @@ export type Database = {
           },
         ]
       }
+      role_features: {
+        Row: {
+          created_at: string | null
+          description: string | null
+          feature_key: string
+          feature_name: string
+          id: string
+          is_addon: boolean | null
+          organization_type: Database["public"]["Enums"]["organization_type"]
+        }
+        Insert: {
+          created_at?: string | null
+          description?: string | null
+          feature_key: string
+          feature_name: string
+          id?: string
+          is_addon?: boolean | null
+          organization_type: Database["public"]["Enums"]["organization_type"]
+        }
+        Update: {
+          created_at?: string | null
+          description?: string | null
+          feature_key?: string
+          feature_name?: string
+          id?: string
+          is_addon?: boolean | null
+          organization_type?: Database["public"]["Enums"]["organization_type"]
+        }
+        Relationships: []
+      }
       subscription_addons: {
         Row: {
           created_at: string | null
@@ -1016,6 +1078,8 @@ export type Database = {
       }
       subscription_plans: {
         Row: {
+          addon_price: number | null
+          addon_roles: Database["public"]["Enums"]["organization_type"][] | null
           base_price: number
           created_at: string | null
           description: string | null
@@ -1036,6 +1100,10 @@ export type Database = {
           volume_discount: Json | null
         }
         Insert: {
+          addon_price?: number | null
+          addon_roles?:
+            | Database["public"]["Enums"]["organization_type"][]
+            | null
           base_price?: number
           created_at?: string | null
           description?: string | null
@@ -1056,6 +1124,10 @@ export type Database = {
           volume_discount?: Json | null
         }
         Update: {
+          addon_price?: number | null
+          addon_roles?:
+            | Database["public"]["Enums"]["organization_type"][]
+            | null
           base_price?: number
           created_at?: string | null
           description?: string | null

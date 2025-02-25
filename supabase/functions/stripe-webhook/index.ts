@@ -36,7 +36,10 @@ const handler = async (req: Request): Promise<Response> => {
       case "customer.subscription.created":
       case "customer.subscription.updated": {
         const subscription = event.data.object;
-        const { error } = await supabase
+        const additionalRoles = JSON.parse(subscription.metadata.additional_roles || '[]');
+        
+        // Update organization subscription details
+        const { error: orgError } = await supabase
           .from("organizations")
           .update({
             stripe_subscription_id: subscription.id,
@@ -48,26 +51,72 @@ const handler = async (req: Request): Promise<Response> => {
           })
           .eq("stripe_customer_id", subscription.customer);
 
-        if (error) {
-          console.error("Error updating organization subscription:", error);
+        if (orgError) {
+          console.error("Error updating organization subscription:", orgError);
           return new Response("Error updating subscription", { status: 500 });
+        }
+
+        // Update organization roles
+        if (additionalRoles.length > 0) {
+          const { data: org } = await supabase
+            .from("organizations")
+            .select("id")
+            .eq("stripe_customer_id", subscription.customer)
+            .single();
+
+          if (org) {
+            // Delete existing non-primary roles
+            await supabase
+              .from("organization_roles")
+              .delete()
+              .eq("organization_id", org.id)
+              .eq("is_primary", false);
+
+            // Insert new roles
+            const rolesToInsert = additionalRoles.map((role: string) => ({
+              organization_id: org.id,
+              role_type: role,
+              is_primary: false,
+            }));
+
+            const { error: rolesError } = await supabase
+              .from("organization_roles")
+              .insert(rolesToInsert);
+
+            if (rolesError) {
+              console.error("Error updating organization roles:", rolesError);
+            }
+          }
         }
         break;
       }
 
       case "customer.subscription.deleted": {
         const subscription = event.data.object;
-        const { error } = await supabase
+        
+        // Get organization ID
+        const { data: org } = await supabase
           .from("organizations")
-          .update({
-            subscription_status: "inactive",
-            subscription_period_end: new Date(),
-          })
-          .eq("stripe_subscription_id", subscription.id);
+          .select("id")
+          .eq("stripe_subscription_id", subscription.id)
+          .single();
 
-        if (error) {
-          console.error("Error updating organization subscription:", error);
-          return new Response("Error updating subscription", { status: 500 });
+        if (org) {
+          // Update organization subscription status
+          await supabase
+            .from("organizations")
+            .update({
+              subscription_status: "inactive",
+              subscription_period_end: new Date(),
+            })
+            .eq("stripe_subscription_id", subscription.id);
+
+          // Remove all non-primary roles
+          await supabase
+            .from("organization_roles")
+            .delete()
+            .eq("organization_id", org.id)
+            .eq("is_primary", false);
         }
         break;
       }

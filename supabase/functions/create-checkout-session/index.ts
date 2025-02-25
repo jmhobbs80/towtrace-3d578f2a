@@ -27,12 +27,12 @@ const handler = async (req: Request): Promise<Response> => {
   }
 
   try {
-    const { organizationId, planId, successUrl, cancelUrl } = await req.json();
+    const { organizationId, planId, additionalRoles = [], successUrl, cancelUrl } = await req.json();
 
     // Get organization details
     const { data: org, error: orgError } = await supabase
       .from("organizations")
-      .select("*")
+      .select("*, organization_members(count)")
       .eq("id", organizationId)
       .single();
 
@@ -61,7 +61,18 @@ const handler = async (req: Request): Promise<Response> => {
         },
       });
       customerId = customer.id;
+
+      // Update organization with Stripe customer ID
+      await supabase
+        .from("organizations")
+        .update({ stripe_customer_id: customerId })
+        .eq("id", organizationId);
     }
+
+    // Calculate total price including additional roles
+    const basePrice = plan.base_price;
+    const addonPrice = plan.addon_price * additionalRoles.length;
+    const totalPrice = basePrice + addonPrice;
 
     // Create Stripe Checkout session
     const session = await stripe.checkout.sessions.create({
@@ -72,9 +83,9 @@ const handler = async (req: Request): Promise<Response> => {
             currency: "usd",
             product_data: {
               name: plan.name,
-              description: plan.description,
+              description: `${plan.description}${additionalRoles.length ? ` + ${additionalRoles.length} additional roles` : ''}`,
             },
-            unit_amount: Math.round(plan.price * 100), // Convert to cents
+            unit_amount: Math.round(totalPrice * 100), // Convert to cents
             recurring: {
               interval: plan.interval,
             },
@@ -89,6 +100,7 @@ const handler = async (req: Request): Promise<Response> => {
         metadata: {
           organization_id: organizationId,
           plan_id: planId,
+          additional_roles: JSON.stringify(additionalRoles),
         },
       },
     });

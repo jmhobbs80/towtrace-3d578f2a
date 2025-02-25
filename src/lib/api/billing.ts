@@ -1,7 +1,5 @@
-
 import { supabase } from "@/integrations/supabase/client";
-import type { Payment, PaymentMethod, SubscriptionPlan } from "../types/billing";
-import type { OrganizationType } from "../types/billing";
+import type { Payment, PaymentMethod, SubscriptionPlan, OrganizationType, RoleFeature, OrganizationRole } from "../types/billing";
 
 export const createPayment = async (data: {
   job_id: string;
@@ -21,24 +19,40 @@ export const createPayment = async (data: {
   return payment;
 };
 
-export const getJobPayments = async (jobId: string): Promise<Payment[]> => {
+export const fetchOrganizationRoles = async (organizationId: string): Promise<OrganizationRole[]> => {
   const { data, error } = await supabase
-    .from('payments')
+    .from('organization_roles')
     .select('*')
-    .eq('job_id', jobId)
-    .order('created_at', { ascending: false });
+    .eq('organization_id', organizationId);
 
   if (error) throw error;
-  return data || [];
+  return data;
 };
 
-export const updatePaymentStatus = async (paymentId: string, status: string): Promise<Payment> => {
+export const addOrganizationRole = async (
+  organizationId: string, 
+  roleType: OrganizationType, 
+  isPrimary: boolean = false
+): Promise<OrganizationRole> => {
   const { data, error } = await supabase
-    .from('payments')
-    .update({ status })
-    .eq('id', paymentId)
-    .select('*')
+    .from('organization_roles')
+    .insert({
+      organization_id: organizationId,
+      role_type: roleType,
+      is_primary: isPrimary
+    })
+    .select()
     .single();
+
+  if (error) throw error;
+  return data;
+};
+
+export const fetchRoleFeatures = async (organizationType: OrganizationType): Promise<RoleFeature[]> => {
+  const { data, error } = await supabase
+    .from('role_features')
+    .select('*')
+    .eq('organization_type', organizationType);
 
   if (error) throw error;
   return data;
@@ -66,14 +80,13 @@ export const fetchSubscriptionPlans = async (organizationType: OrganizationType)
     tier: plan.tier || 'standard',
     features: Array.isArray(plan.features) ? plan.features.map(String) : [],
     limits: plan.limits as Record<string, number>,
+    addon_roles: plan.addon_roles || [],
+    addon_price: plan.addon_price || 0,
     volume_discount: Array.isArray(plan.volume_discount) 
-      ? plan.volume_discount.map(discount => {
-          const discountObj = discount as { threshold?: number; discount_percentage?: number };
-          return {
-            threshold: discountObj.threshold || 0,
-            discount_percentage: discountObj.discount_percentage || 0
-          };
-        })
+      ? plan.volume_discount.map(discount => ({
+          threshold: discount.threshold || 0,
+          discount_percentage: discount.discount_percentage || 0
+        }))
       : undefined,
     is_active: Boolean(plan.is_active)
   }));
@@ -81,20 +94,76 @@ export const fetchSubscriptionPlans = async (organizationType: OrganizationType)
   return plans;
 };
 
+export const calculateSubscriptionCost = async (
+  plan: SubscriptionPlan,
+  userCount: number,
+  vehicleCount: number,
+  additionalRoles: OrganizationType[] = []
+): Promise<number> => {
+  let total = plan.base_price;
+  
+  // Add per-user and per-vehicle costs
+  total += (plan.per_user_price * userCount);
+  total += (plan.per_vehicle_price * vehicleCount);
+  
+  // Add costs for additional roles
+  const validAdditionalRoles = additionalRoles.filter(role => 
+    plan.addon_roles.includes(role)
+  );
+  total += (validAdditionalRoles.length * plan.addon_price);
+  
+  // Apply volume discounts if any
+  if (plan.volume_discount) {
+    for (const discount of plan.volume_discount) {
+      if (userCount >= discount.threshold) {
+        total = total * (1 - (discount.discount_percentage / 100));
+        break;
+      }
+    }
+  }
+  
+  return Number(total.toFixed(2));
+};
+
 export const createCheckoutSession = async ({
   organizationId,
   planId,
+  additionalRoles = [],
   successUrl,
   cancelUrl
 }: {
   organizationId: string;
   planId: string;
+  additionalRoles?: OrganizationType[];
   successUrl: string;
   cancelUrl: string;
 }) => {
   const { data, error } = await supabase.functions.invoke('create-checkout-session', {
-    body: { organizationId, planId, successUrl, cancelUrl }
+    body: { organizationId, planId, additionalRoles, successUrl, cancelUrl }
   });
+
+  if (error) throw error;
+  return data;
+};
+
+export const getJobPayments = async (jobId: string): Promise<Payment[]> => {
+  const { data, error } = await supabase
+    .from('payments')
+    .select('*')
+    .eq('job_id', jobId)
+    .order('created_at', { ascending: false });
+
+  if (error) throw error;
+  return data || [];
+};
+
+export const updatePaymentStatus = async (paymentId: string, status: string): Promise<Payment> => {
+  const { data, error } = await supabase
+    .from('payments')
+    .update({ status })
+    .eq('id', paymentId)
+    .select('*')
+    .single();
 
   if (error) throw error;
   return data;
