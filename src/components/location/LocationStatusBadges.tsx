@@ -11,6 +11,24 @@ interface LocationStatusBadgesProps {
   queuedUpdates: number;
 }
 
+const formatSpeed = (speed: number): string => {
+  const kmh = speed * 3.6;
+  return `${Math.round(kmh).toLocaleString()} km/h`;
+};
+
+const formatAccuracy = (accuracy: number): string => {
+  return `±${Math.round(accuracy).toLocaleString()}m`;
+};
+
+const formatLastUpdate = (date: Date): string => {
+  try {
+    return date.toLocaleTimeString();
+  } catch (error) {
+    console.error("Error formatting date:", error);
+    return "Invalid time";
+  }
+};
+
 export const LocationStatusBadges = ({
   isOnline,
   lastUpdate,
@@ -20,45 +38,45 @@ export const LocationStatusBadges = ({
   queuedUpdates
 }: LocationStatusBadgesProps) => {
   return (
-    <div className="flex flex-col gap-2">
+    <div className="flex flex-col gap-2" data-testid="location-status-badges">
       <Badge variant="outline" className="w-fit">
         {isOnline ? (
-          <Wifi className="mr-2 h-4 w-4" />
+          <Wifi className="mr-2 h-4 w-4" aria-hidden="true" />
         ) : (
-          <WifiOff className="mr-2 h-4 w-4" />
+          <WifiOff className="mr-2 h-4 w-4" aria-hidden="true" />
         )}
-        {isOnline ? "Online" : "Offline Mode"}
+        <span>{isOnline ? "Online" : "Offline Mode"}</span>
       </Badge>
       
-      {lastUpdate && (
+      {lastUpdate instanceof Date && (
         <Badge variant="outline" className="w-fit">
-          <Timer className="mr-2 h-4 w-4" />
-          Last Update: {lastUpdate.toLocaleTimeString()}
+          <Timer className="mr-2 h-4 w-4" aria-hidden="true" />
+          <span>Last Update: {formatLastUpdate(lastUpdate)}</span>
         </Badge>
       )}
       
-      {accuracy && (
+      {typeof accuracy === 'number' && !isNaN(accuracy) && (
         <Badge variant="outline" className="w-fit">
-          <Navigation className="mr-2 h-4 w-4" />
-          Accuracy: ±{Math.round(accuracy)}m
+          <Navigation className="mr-2 h-4 w-4" aria-hidden="true" />
+          <span>Accuracy: {formatAccuracy(accuracy)}</span>
         </Badge>
       )}
 
-      {speed !== null && (
+      {typeof speed === 'number' && !isNaN(speed) && speed > 0 && (
         <Badge variant="outline" className="w-fit">
-          Speed: {Math.round(speed * 3.6)} km/h
+          <span>Speed: {formatSpeed(speed)}</span>
         </Badge>
       )}
 
-      {eta !== null && (
+      {typeof eta === 'number' && !isNaN(eta) && eta >= 0 && (
         <Badge variant="secondary" className="w-fit">
-          ETA: {eta} minutes
+          <span>ETA: {eta.toLocaleString()} minutes</span>
         </Badge>
       )}
       
-      {queuedUpdates > 0 && (
+      {typeof queuedUpdates === 'number' && queuedUpdates > 0 && (
         <Badge variant="secondary" className="w-fit">
-          Pending Updates: {queuedUpdates}
+          <span>Pending Updates: {queuedUpdates.toLocaleString()}</span>
         </Badge>
       )}
     </div>
