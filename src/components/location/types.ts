@@ -1,5 +1,5 @@
 
-import type { Position } from '@capacitor/geolocation';
+import { Position } from "@capacitor/geolocation";
 
 export interface LocationTrackerProps {
   jobId?: string;
@@ -12,7 +12,7 @@ export interface LocationUpdate {
   coords: {
     latitude: number;
     longitude: number;
-    accuracy: number;
+    accuracy: number | null;
     speed: number | null;
     heading: number | null;
   };
