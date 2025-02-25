@@ -19,20 +19,19 @@ export default function AuctionsPage() {
   const navigate = useNavigate();
   const { toast } = useToast();
 
-  const { data: auctions, isLoading } = useQuery({
+  const { data: auctions, isLoading, error } = useQuery({
     queryKey: ['auctions'],
-    queryFn: getAuctions,
-    meta: {
-      errorMessage: "Failed to load auctions",
-    },
-    onError: (error) => {
-      toast({
-        variant: "destructive",
-        title: "Error loading auctions",
-        description: error instanceof Error ? error.message : "An error occurred",
-      });
-    },
+    queryFn: getAuctions
   });
+
+  // Handle error outside of useQuery
+  if (error) {
+    toast({
+      variant: "destructive",
+      title: "Error loading auctions",
+      description: error instanceof Error ? error.message : "An error occurred",
+    });
+  }
 
   if (isLoading) {
     return <div>Loading...</div>;
