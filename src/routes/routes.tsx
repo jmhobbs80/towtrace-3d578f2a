@@ -19,6 +19,8 @@ import OverwatchDashboard from "@/pages/admin/OverwatchDashboard";
 import CustomerPortal from "@/pages/customer/CustomerPortal";
 import HelpCenter from "@/pages/help/HelpCenter";
 import LegalHub from "@/pages/legal/LegalHub";
+import OrganizationDashboard from "@/pages/organization/OrganizationDashboard";
+import DriverPortal from "@/pages/driver/DriverPortal";
 import { UserRole } from "@/lib/types/auth";
 
 // Define allowed roles for each protected route
@@ -31,6 +33,7 @@ const ROLE_ACCESS = {
   CUSTOMER: ["customer", "admin", "super_admin"] as UserRole[],
   DISPATCH: ["dispatcher", "admin", "super_admin"] as UserRole[],
   DRIVER: ["driver", "admin", "super_admin"] as UserRole[],
+  ORGANIZATION: ["admin", "super_admin"] as UserRole[],
 } as const;
 
 interface RouteConfig {
@@ -75,6 +78,18 @@ const protectedRoutes: RouteConfig[] = [
     path: "/dispatch",
     allowedRoles: ROLE_ACCESS.DISPATCH,
     element: <DispatchDashboard />
+  },
+  // Driver section
+  {
+    path: "/driver",
+    allowedRoles: ROLE_ACCESS.DRIVER,
+    element: <DriverPortal />
+  },
+  // Organization section
+  {
+    path: "/organization",
+    allowedRoles: ROLE_ACCESS.ORGANIZATION,
+    element: <OrganizationDashboard />
   },
   // Inventory section
   {
