@@ -98,56 +98,48 @@ export const AuthProvider = ({ children }: { children: React.ReactNode }) => {
   }, []);
 
   const fetchUserOrganization = async (userId: string) => {
-    const { data: organizationMember, error: memberError } = await supabase
-      .from('organization_members')
-      .select('organization_id')
-      .eq('user_id', userId)
-      .single();
-
-    if (memberError) {
-      console.error('Error fetching organization member:', memberError);
-      return;
-    }
-
-    if (organizationMember?.organization_id) {
-      const { data: org, error: orgError } = await supabase
-        .from('organizations')
-        .select(`
-          id,
-          name,
-          subscription_tier,
-          subscription_status,
-          subscription_period_end,
-          stripe_customer_id,
-          subscription_plan_id,
-          member_count,
-          vehicle_count,
-          billing_details
-        `)
-        .eq('id', organizationMember.organization_id)
+    try {
+      const { data: organizationMember, error: memberError } = await supabase
+        .from('organization_members')
+        .select('organization_id')
+        .eq('user_id', userId)
         .single();
 
-      if (orgError) {
-        console.error('Error fetching organization:', orgError);
+      if (memberError) {
+        console.error('Error fetching organization member:', memberError);
         return;
       }
 
-      if (org) {
-        // Cast the organization data to match our interface
-        const formattedOrg: Organization = {
-          id: org.id,
-          name: org.name,
-          subscription_tier: org.subscription_tier,
-          subscription_status: org.subscription_status,
-          subscription_period_end: org.subscription_period_end,
-          stripe_customer_id: org.stripe_customer_id,
-          subscription_plan_id: org.subscription_plan_id,
-          member_count: org.member_count,
-          vehicle_count: org.vehicle_count,
-          billing_details: org.billing_details as Organization['billing_details']
-        };
-        setOrganization(formattedOrg);
+      if (organizationMember?.organization_id) {
+        const { data: org, error: orgError } = await supabase
+          .from('organizations')
+          .select('*')
+          .eq('id', organizationMember.organization_id)
+          .single();
+
+        if (orgError) {
+          console.error('Error fetching organization:', orgError);
+          return;
+        }
+
+        if (org) {
+          const formattedOrg: Organization = {
+            id: org.id,
+            name: org.name,
+            subscription_tier: org.subscription_tier,
+            subscription_status: org.subscription_status,
+            subscription_period_end: org.subscription_period_end,
+            stripe_customer_id: org.stripe_customer_id,
+            subscription_plan_id: org.subscription_plan_id,
+            member_count: org.member_count || 0,
+            vehicle_count: org.vehicle_count || 0,
+            billing_details: org.billing_details
+          };
+          setOrganization(formattedOrg);
+        }
       }
+    } catch (error) {
+      console.error('Error in fetchUserOrganization:', error);
     }
   };
 

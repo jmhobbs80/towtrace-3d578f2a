@@ -491,6 +491,7 @@ export type Database = {
           billing_settings: Json | null
           created_at: string
           id: string
+          member_count: number | null
           name: string
           settings: Json | null
           stripe_customer_id: string | null
@@ -503,6 +504,7 @@ export type Database = {
           trial_end: string | null
           type: Database["public"]["Enums"]["organization_type"] | null
           updated_at: string
+          vehicle_count: number | null
         }
         Insert: {
           accounting_settings?: Json | null
@@ -510,6 +512,7 @@ export type Database = {
           billing_settings?: Json | null
           created_at?: string
           id?: string
+          member_count?: number | null
           name: string
           settings?: Json | null
           stripe_customer_id?: string | null
@@ -522,6 +525,7 @@ export type Database = {
           trial_end?: string | null
           type?: Database["public"]["Enums"]["organization_type"] | null
           updated_at?: string
+          vehicle_count?: number | null
         }
         Update: {
           accounting_settings?: Json | null
@@ -529,6 +533,7 @@ export type Database = {
           billing_settings?: Json | null
           created_at?: string
           id?: string
+          member_count?: number | null
           name?: string
           settings?: Json | null
           stripe_customer_id?: string | null
@@ -541,6 +546,7 @@ export type Database = {
           trial_end?: string | null
           type?: Database["public"]["Enums"]["organization_type"] | null
           updated_at?: string
+          vehicle_count?: number | null
         }
         Relationships: []
       }
