@@ -17,10 +17,60 @@ export function SignInForm() {
   const [showPassword, setShowPassword] = useState(false);
   const [loading, setLoading] = useState(false);
   const [isDialogOpen, setIsDialogOpen] = useState(false);
+  const [resetEmail, setResetEmail] = useState("");
+  const [resetStep, setResetStep] = useState(1);
+  const [isResetting, setIsResetting] = useState(false);
   const navigate = useNavigate();
   const { toast } = useToast();
 
   const isValidEmail = (email: string) => EMAIL_REGEX.test(email);
+
+  const handleResetSubmit = async (e: React.FormEvent) => {
+    e.preventDefault();
+    if (!isValidEmail(resetEmail)) {
+      toast({
+        variant: "destructive",
+        title: "Invalid email",
+        description: "Please enter a valid email address",
+      });
+      return;
+    }
+
+    setIsResetting(true);
+    setResetStep(2);
+
+    try {
+      const { error } = await supabase.auth.resetPasswordForEmail(resetEmail, {
+        redirectTo: `${window.location.origin}/auth?type=recovery`,
+      });
+
+      if (error) throw error;
+
+      setResetStep(3);
+      toast({
+        title: "Reset link sent",
+        description: "Check your email for the password reset link",
+      });
+      
+      // Close dialog after successful reset
+      setTimeout(() => {
+        setIsDialogOpen(false);
+        setResetStep(1);
+        setResetEmail("");
+      }, 3000);
+
+    } catch (error) {
+      console.error('Reset password error:', error);
+      toast({
+        variant: "destructive",
+        title: "Reset failed",
+        description: "Failed to send reset link. Please try again.",
+      });
+      setResetStep(1);
+    } finally {
+      setIsResetting(false);
+    }
+  };
 
   async function handleSubmit(e: React.FormEvent) {
     e.preventDefault();
@@ -171,6 +221,11 @@ export function SignInForm() {
         <PasswordResetDialog
           isOpen={isDialogOpen}
           onOpenChange={setIsDialogOpen}
+          resetEmail={resetEmail}
+          onResetEmailChange={setResetEmail}
+          resetStep={resetStep}
+          isResetting={isResetting}
+          onSubmit={handleResetSubmit}
         />
       </div>
     </div>
