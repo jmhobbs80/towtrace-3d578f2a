@@ -1,18 +1,17 @@
 
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
-import { TowRequestForm } from "@/components/public/TowRequestForm";
 
-export default function CustomerPortal() {
+export default function AIReports() {
   return (
     <div className="container mx-auto p-6 space-y-6">
-      <h1 className="text-3xl font-bold">Customer Portal</h1>
+      <h1 className="text-3xl font-bold">AI Analytics & Reports</h1>
       
       <Card>
         <CardHeader>
-          <CardTitle>Request a Tow</CardTitle>
+          <CardTitle>Performance Metrics</CardTitle>
         </CardHeader>
         <CardContent>
-          <TowRequestForm />
+          {/* AI reports content will be implemented here */}
         </CardContent>
       </Card>
     </div>
