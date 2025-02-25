@@ -1,4 +1,5 @@
-import { useState, useCallback, useEffect } from "react";
+
+import { useState, useCallback } from "react";
 import { useQuery, useMutation } from "@tanstack/react-query";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
@@ -23,8 +24,31 @@ export default function AIDispatch() {
       const { data: rawJobs, error } = await supabase
         .from('tow_jobs')
         .select(`
-          *,
-          profiles(first_name, last_name)
+          id,
+          pickup_location,
+          delivery_location,
+          status,
+          description,
+          charge_amount,
+          completed_at,
+          created_at,
+          updated_at,
+          customer_id,
+          dispatcher_id,
+          driver_id,
+          driver_notes,
+          eta,
+          mileage,
+          organization_id,
+          payment_status,
+          photos,
+          scheduled_time,
+          signature_url,
+          vehicle_id,
+          notes,
+          service_type,
+          priority,
+          driver:profiles(first_name, last_name)
         `)
         .in('status', ['pending', 'assigned', 'en_route'])
         .order('priority', { ascending: false });
@@ -36,9 +60,9 @@ export default function AIDispatch() {
         ...job,
         pickup_location: toLocation(job.pickup_location) || { address: 'Unknown' },
         delivery_location: job.delivery_location ? toLocation(job.delivery_location) : undefined,
-        driver: job.profiles ? {
-          first_name: job.profiles.first_name,
-          last_name: job.profiles.last_name
+        driver: job.driver ? {
+          first_name: job.driver.first_name,
+          last_name: job.driver.last_name
         } : undefined
       })) as Job[];
     }
