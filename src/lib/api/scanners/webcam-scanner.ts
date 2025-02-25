@@ -1,3 +1,4 @@
+
 import type { VINScannerHardware } from '../scanner-types';
 import type { ScanMethod } from '../scanner-types';
 

@@ -1,3 +1,4 @@
+
 import type { BluetoothDeviceWithGATT, BluetoothRemoteGATTCharacteristic } from '../bluetooth-types';
 import type { VINScannerHardware } from '../scanner-types';
 import type { ScanMethod } from '../scanner-types';
