@@ -22,7 +22,7 @@ import {
 } from "@/components/ui/form";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import { useForm } from "react-hook-form";
-import { Loader2 } from "lucide-react";
+import { ImageIcon, Loader2 } from "lucide-react";
 
 interface ProfileFormData {
   first_name: string;
@@ -48,6 +48,7 @@ export default function ProfileSettings() {
   const { user } = useAuth();
   const { toast } = useToast();
   const [isLoading, setIsLoading] = useState(false);
+  const [isUploading, setIsUploading] = useState(false);
   
   const form = useForm<ProfileFormData>({
     defaultValues: async () => {
@@ -97,6 +98,54 @@ export default function ProfileSettings() {
     }
   }
 
+  async function uploadAvatar(event: React.ChangeEvent<HTMLInputElement>) {
+    try {
+      setIsUploading(true);
+      
+      const file = event.target.files?.[0];
+      if (!file || !user) return;
+
+      const fileExt = file.name.split('.').pop();
+      const filePath = `${user.id}/avatar.${fileExt}`;
+
+      // Upload the file to Supabase storage
+      const { error: uploadError, data } = await supabase.storage
+        .from('avatars')
+        .upload(filePath, file, { upsert: true });
+
+      if (uploadError) throw uploadError;
+
+      // Get the public URL
+      const { data: { publicUrl } } = supabase.storage
+        .from('avatars')
+        .getPublicUrl(filePath);
+
+      // Update the profile with the new avatar URL
+      const { error: updateError } = await supabase
+        .from('profiles')
+        .update({ avatar_url: publicUrl })
+        .eq('id', user.id);
+
+      if (updateError) throw updateError;
+
+      // Update the form
+      form.setValue('avatar_url', publicUrl);
+
+      toast({
+        title: "Avatar updated",
+        description: "Your profile picture has been successfully updated.",
+      });
+    } catch (error) {
+      toast({
+        title: "Error",
+        description: "Failed to upload avatar. Please try again.",
+        variant: "destructive",
+      });
+    } finally {
+      setIsUploading(false);
+    }
+  }
+
   if (!user) return null;
 
   return (
@@ -109,7 +158,7 @@ export default function ProfileSettings() {
           </CardDescription>
         </CardHeader>
         <CardContent>
-          <div className="mb-6 flex items-center space-x-4">
+          <div className="mb-6 flex flex-col items-center space-y-4">
             <Avatar className="h-20 w-20">
               <AvatarImage src={form.watch("avatar_url")} />
               <AvatarFallback>
@@ -117,6 +166,30 @@ export default function ProfileSettings() {
                 {form.watch("last_name")?.[0]}
               </AvatarFallback>
             </Avatar>
+            
+            <div className="flex items-center space-x-2">
+              <Input
+                type="file"
+                accept="image/*"
+                className="hidden"
+                id="avatar-upload"
+                onChange={uploadAvatar}
+                disabled={isUploading}
+              />
+              <Button
+                type="button"
+                variant="outline"
+                onClick={() => document.getElementById('avatar-upload')?.click()}
+                disabled={isUploading}
+              >
+                {isUploading ? (
+                  <Loader2 className="mr-2 h-4 w-4 animate-spin" />
+                ) : (
+                  <ImageIcon className="mr-2 h-4 w-4" />
+                )}
+                Change Avatar
+              </Button>
+            </div>
           </div>
 
           <Form {...form}>
