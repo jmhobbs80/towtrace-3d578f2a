@@ -10,7 +10,7 @@ export function SubmitButton({ loading }: SubmitButtonProps) {
   return (
     <Button
       type="submit"
-      className="w-full h-12 text-base font-medium bg-[#9b87f5] hover:bg-[#7E69AB] text-white transition-colors rounded-xl shadow-md disabled:opacity-50 disabled:cursor-not-allowed"
+      className="w-full h-12 text-base font-medium bg-primary hover:bg-primary/90 text-white transition-colors rounded-xl shadow-md disabled:opacity-50 disabled:cursor-not-allowed"
       disabled={loading}
     >
       {loading ? (
