@@ -12,7 +12,6 @@ export function useTwoFactorAuth() {
   const [totpCode, setTotpCode] = useState("");
   const [factorId, setFactorId] = useState("");
   const [isOverwatchAdmin, setIsOverwatchAdmin] = useState(false);
-  const [backupCodes, setBackupCodes] = useState<string[]>([]);
   const [failedAttempts, setFailedAttempts] = useState(0);
   const { user } = useAuth();
   const { toast } = useToast();
@@ -73,17 +72,18 @@ export function useTwoFactorAuth() {
         .update({ two_factor_backup_codes: codes })
         .eq('id', user?.id);
 
-      setBackupCodes(codes);
       toast({
         title: "Success",
         description: "New backup codes have been generated. Save them in a secure location."
       });
+      return codes;
     } catch (error) {
       toast({
         variant: "destructive",
         title: "Error",
         description: "Failed to generate backup codes"
       });
+      throw error;
     }
   };
 
