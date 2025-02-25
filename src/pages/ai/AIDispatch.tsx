@@ -24,10 +24,7 @@ export default function AIDispatch() {
         .from('tow_jobs')
         .select(`
           *,
-          driver:profiles!tow_jobs_driver_id_fkey(
-            first_name,
-            last_name
-          )
+          profiles(first_name, last_name)
         `)
         .in('status', ['pending', 'assigned', 'en_route'])
         .order('priority', { ascending: false });
@@ -39,9 +36,9 @@ export default function AIDispatch() {
         ...job,
         pickup_location: toLocation(job.pickup_location) || { address: 'Unknown' },
         delivery_location: job.delivery_location ? toLocation(job.delivery_location) : undefined,
-        driver: job.driver ? {
-          first_name: job.driver.first_name,
-          last_name: job.driver.last_name
+        driver: job.profiles ? {
+          first_name: job.profiles.first_name,
+          last_name: job.profiles.last_name
         } : undefined
       })) as Job[];
     }
