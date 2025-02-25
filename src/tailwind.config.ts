@@ -27,38 +27,36 @@ export default {
         border: "hsl(var(--border))",
         input: "hsl(var(--input))",
         ring: "hsl(var(--ring))",
-        background: "hsl(var(--background))",
-        foreground: "hsl(var(--foreground))",
+        background: "#F9F9F9",
+        foreground: "#2D2D2D",
         primary: {
           DEFAULT: "#C8102E", // TowTrace Red
-          dark: "#A50D25", // Darker red for dark mode
-          light: "#E31837", // Lighter red for light mode
           foreground: "#ffffff",
         },
         secondary: {
-          DEFAULT: "hsl(var(--secondary))",
-          foreground: "hsl(var(--secondary-foreground))",
+          DEFAULT: "#333333", // Dark Gray
+          foreground: "#ffffff",
         },
         destructive: {
-          DEFAULT: "#C8102E",
-          dark: "#A50D25",
+          DEFAULT: "#C8102E", // Using brand red for destructive actions
           foreground: "#ffffff",
         },
         muted: {
-          DEFAULT: "hsl(var(--muted))",
-          foreground: "hsl(var(--muted-foreground))",
+          DEFAULT: "#666666",
+          foreground: "#F9F9F9",
         },
         accent: {
-          DEFAULT: "hsl(var(--accent))",
-          foreground: "hsl(var(--accent-foreground))",
+          DEFAULT: "#C8102E",
+          hover: "#A50D25",
+          foreground: "#ffffff",
         },
         popover: {
-          DEFAULT: "hsl(var(--popover))",
-          foreground: "hsl(var(--popover-foreground))",
+          DEFAULT: "#F9F9F9",
+          foreground: "#333333",
         },
         card: {
-          DEFAULT: "hsl(var(--card))",
-          foreground: "hsl(var(--card-foreground))",
+          DEFAULT: "#FFFFFF",
+          foreground: "#333333",
         }
       },
       keyframes: {
