@@ -12,15 +12,18 @@ export interface AuthState {
   loading: boolean;
 }
 
+// Update to handle JSON type properly
+export type JsonValue = string | number | boolean | null | JsonValue[] | { [key: string]: JsonValue };
+
 export interface AdminAuditLog {
   id: string;
   user_id: string;
   action_type: string;
   entity_type: string;
   entity_id?: string | null;
-  previous_state?: Record<string, any> | null;
-  new_state?: Record<string, any> | null;
-  metadata?: Record<string, any> | null;
+  previous_state?: JsonValue | null;
+  new_state?: JsonValue | null;
+  metadata?: JsonValue | null;
   ip_address?: string | null;
   created_at: string;
 }

@@ -1,4 +1,3 @@
-
 import { useEffect, useState } from "react";
 import { useAuth } from "@/lib/auth";
 import { supabase } from "@/integrations/supabase/client";
@@ -36,16 +35,24 @@ export default function OverwatchDashboard() {
         .limit(50);
 
       if (error) throw error;
-      
-      // Transform the data to match AdminAuditLog type
-      const transformedData: AdminAuditLog[] = data.map(log => ({
-        ...log,
-        previous_state: log.previous_state as Record<string, any> | null,
-        new_state: log.new_state as Record<string, any> | null,
-        metadata: log.metadata as Record<string, any> | null
-      }));
-      
-      setAuditLogs(transformedData);
+
+      if (data) {
+        // Ensure proper type conversion
+        const transformedData: AdminAuditLog[] = data.map(log => ({
+          id: log.id,
+          user_id: log.user_id,
+          action_type: log.action_type,
+          entity_type: log.entity_type,
+          entity_id: log.entity_id,
+          previous_state: log.previous_state,
+          new_state: log.new_state,
+          metadata: log.metadata,
+          ip_address: log.ip_address,
+          created_at: log.created_at || new Date().toISOString()
+        }));
+
+        setAuditLogs(transformedData);
+      }
     } catch (error) {
       toast({
         variant: "destructive",
