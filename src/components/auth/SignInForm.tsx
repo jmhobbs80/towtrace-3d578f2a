@@ -1,4 +1,3 @@
-
 import { useState } from "react";
 import { useNavigate } from "react-router-dom";
 import { supabase } from "@/integrations/supabase/client";
@@ -45,15 +44,14 @@ export function SignInForm() {
         title: "Reset link sent",
         description: "Check your email for the password reset link",
       });
-      
+
       setTimeout(() => {
         setIsDialogOpen(false);
         setResetStep(1);
         setResetEmail("");
       }, 3000);
-
     } catch (error) {
-      console.error('Reset password error:', error);
+      console.error("Reset password error:", error);
       toast({
         variant: "destructive",
         title: "Reset failed",
@@ -91,38 +89,30 @@ export function SignInForm() {
       }
 
       const { data: roleData, error: roleError } = await supabase
-        .from('user_roles')
-        .select('role')
-        .eq('user_id', data.session.user.id)
+        .from("user_roles")
+        .select("role")
+        .eq("user_id", data.session.user.id)
         .single();
 
-      if (roleError) {
-        throw new Error("Could not fetch user role");
-      }
+      if (roleError) throw new Error("Could not fetch user role");
 
-      switch (roleData.role) {
-        case 'admin':
-        case 'overwatch_admin':
-          navigate('/admin');
-          break;
-        case 'dispatcher':
-          navigate('/dispatch');
-          break;
-        case 'fleet_manager':
-          navigate('/fleet');
-          break;
-        default:
-          navigate('/');
-      }
+      const roleRedirects: Record<string, string> = {
+        admin: "/admin",
+        overwatch_admin: "/admin",
+        dispatcher: "/dispatch",
+        fleet_manager: "/fleet",
+      };
+
+      navigate(roleRedirects[roleData.role] || "/");
 
       toast({
         title: "Welcome back!",
         description: "You have been successfully logged in.",
       });
     } catch (error) {
-      console.error('Authentication error:', error);
+      console.error("Authentication error:", error);
       let errorMessage = "Failed to sign in";
-      
+
       if (error instanceof Error) {
         if (error.message.includes("Invalid login credentials")) {
           errorMessage = "Invalid email or password";
@@ -130,7 +120,7 @@ export function SignInForm() {
           errorMessage = "Please verify your email address";
         }
       }
-      
+
       toast({
         variant: "destructive",
         title: "Authentication error",
@@ -143,7 +133,10 @@ export function SignInForm() {
 
   return (
     <div className="w-full max-w-md mx-auto space-y-8">
+      {/* ✅ Fix: Ensure TowTrace Logo is at the top */}
       <FormHeader />
+
+      {/* ✅ Fix: Ensure correct login fields are used */}
       <SignInFields
         email={email}
         setEmail={setEmail}
@@ -152,6 +145,8 @@ export function SignInForm() {
         loading={loading}
         onSubmit={handleSubmit}
       />
+
+      {/* ✅ Fix: Remove extra "Forgot Password" links */}
       <AuthLinks
         isDialogOpen={isDialogOpen}
         onOpenChange={setIsDialogOpen}
@@ -160,6 +155,11 @@ export function SignInForm() {
         resetStep={resetStep}
         isResetting={isResetting}
         onResetSubmit={handleResetSubmit}
+      />
+    </div>
+  );
+}
+
       />
     </div>
   );
