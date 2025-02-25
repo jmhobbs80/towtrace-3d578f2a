@@ -1,10 +1,10 @@
+
 import { useEffect, useState } from "react";
 import { useNavigate, useSearchParams } from "react-router-dom";
 import { supabase } from "@/integrations/supabase/client";
 import { useToast } from "@/hooks/use-toast";
 import { SignInForm } from "@/components/auth/SignInForm";
 import { SignUpForm } from "@/components/auth/SignUpForm";
-import TowTraceLogo from "@/assets/towtrace-logo.png"; // Ensure correct logo import
 
 export default function AuthPage() {
   const [isSignUp, setIsSignUp] = useState(false);
@@ -79,20 +79,22 @@ export default function AuthPage() {
   }, [searchParams]);
 
   return (
-    <div className="min-h-screen flex flex-col items-center justify-center bg-gray-50 py-12 px-4 sm:px-6 lg:px-8">
-      {/* ✅ Fix 1: Ensure TowTrace Logo is Visible */}
-      <img src={TowTraceLogo} alt="TowTrace" className="w-32 mb-4" />
-
-      {/* ✅ Fix 2: Add Pre-Sign-Up Text */}
+    <div className="min-h-screen flex flex-col items-center justify-center bg-background py-12 px-4 sm:px-6 lg:px-8">
+      {/* Pre-Sign-Up Text */}
       {isSignUp ? (
-        <p className="text-gray-700 text-sm mb-2">Create an account to manage your fleet with TowTrace.</p>
+        <p className="text-muted-foreground text-sm mb-8 text-center">
+          Create an account to manage your fleet with TowTrace.
+        </p>
       ) : (
-        <p className="text-gray-700 text-sm mb-2">Sign in to continue managing your fleet.</p>
+        <p className="text-muted-foreground text-sm mb-8 text-center">
+          Sign in to continue managing your fleet.
+        </p>
       )}
 
-      {/* ✅ Fix 3: Remove Extra Forgot Password Links - They Are Handled in SignInForm.tsx */}
       {loading ? (
-        <div className="text-gray-500 text-sm">Checking authentication...</div>
+        <div className="text-muted-foreground text-sm animate-pulse">
+          Checking authentication...
+        </div>
       ) : isSignUp ? (
         <SignUpForm />
       ) : (
