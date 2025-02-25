@@ -4,11 +4,26 @@ import { supabase } from "@/integrations/supabase/client";
 import { User } from "@supabase/supabase-js";
 import { useNavigate } from "react-router-dom";
 import type { UserRole } from "@/lib/types/auth";
+import type { Database } from "@/integrations/supabase/types";
+
+type OrganizationType = Database['public']['Enums']['organization_type'];
+
+interface BillingDetails {
+  name?: string;
+  email?: string;
+  address?: {
+    line1?: string;
+    city?: string;
+    state?: string;
+    postal_code?: string;
+    country?: string;
+  };
+}
 
 interface Organization {
   id: string;
   name: string;
-  type: 'dealer' | 'wholesaler' | 'transporter' | null;
+  type: OrganizationType;
   subscription_tier: string;
   subscription_status: string;
   subscription_period_end?: string;
@@ -16,17 +31,7 @@ interface Organization {
   subscription_plan_id?: string;
   member_count?: number;
   vehicle_count?: number;
-  billing_details?: {
-    name?: string;
-    email?: string;
-    address?: {
-      line1?: string;
-      city?: string;
-      state?: string;
-      postal_code?: string;
-      country?: string;
-    };
-  };
+  billing_details?: BillingDetails;
 }
 
 interface AuthContextType {
@@ -93,7 +98,7 @@ export const AuthProvider = ({ children }: { children: React.ReactNode }) => {
           subscription_plan_id: org.subscription_plan_id,
           member_count: org.member_count || 0,
           vehicle_count: org.vehicle_count || 0,
-          billing_details: typeof org.billing_details === 'object' ? org.billing_details : undefined
+          billing_details: org.billing_details as BillingDetails
         };
         setOrganization(formattedOrg);
         
