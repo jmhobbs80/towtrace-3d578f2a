@@ -14,6 +14,9 @@ import InventoryManagement from "@/pages/inventory/InventoryManagement";
 import BillingDashboard from "@/pages/billing/BillingDashboard";
 import ProfileSettings from "@/pages/profile/ProfileSettings";
 import OverwatchDashboard from "@/pages/admin/OverwatchDashboard";
+import CustomerPortal from "@/pages/customer/CustomerPortal";
+import HelpCenter from "@/pages/help/HelpCenter";
+import LegalHub from "@/pages/legal/LegalHub";
 import { UserRole } from "@/lib/types/auth";
 
 // Define allowed roles for each protected route
@@ -23,6 +26,7 @@ const ROLE_ACCESS = {
   ANALYTICS: ["admin", "dealer", "wholesaler", "dispatcher", "super_admin"] as UserRole[],
   ADMIN: ["overwatch_admin", "super_admin"] as UserRole[],
   BILLING: ["billing_manager", "admin", "super_admin"] as UserRole[],
+  CUSTOMER: ["customer", "admin", "super_admin"] as UserRole[],
 } as const;
 
 interface RouteConfig {
@@ -77,6 +81,19 @@ const protectedRoutes: RouteConfig[] = [
     path: "/admin",
     allowedRoles: ROLE_ACCESS.ADMIN,
     element: <OverwatchDashboard />
+  },
+  {
+    path: "/customer",
+    allowedRoles: ROLE_ACCESS.CUSTOMER,
+    element: <CustomerPortal />
+  },
+  {
+    path: "/help",
+    element: <HelpCenter />
+  },
+  {
+    path: "/legal",
+    element: <LegalHub />
   }
 ];
 
