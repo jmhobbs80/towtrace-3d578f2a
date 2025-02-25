@@ -1,11 +1,18 @@
-
 import type { Database } from "@/integrations/supabase/types";
 
 // Basic types from database
 export type InventoryLocation = Database["public"]["Tables"]["inventory_locations"]["Row"];
 export type InventoryVehicle = Database["public"]["Tables"]["inventory_vehicles"]["Row"];
 export type VehicleConditionLog = Database["public"]["Tables"]["vehicle_condition_logs"]["Row"];
-export type InventoryStatus = Database["public"]["Enums"]["inventory_status"];
+export type InventoryStatus = 
+  | 'available'
+  | 'pending_inspection'
+  | 'in_transit'
+  | 'sold'
+  | 'auction_ready'
+  | 'maintenance'
+  | 'pending_repair'
+  | 'in_repair';
 export type VehicleCondition = Database["public"]["Enums"]["vehicle_condition"];
 
 // Simple JSON type definition

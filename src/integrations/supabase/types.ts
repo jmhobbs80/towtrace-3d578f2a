@@ -691,6 +691,167 @@ export type Database = {
         }
         Relationships: []
       }
+      repair_facilities: {
+        Row: {
+          address: Json
+          capacity: number | null
+          contact_info: Json | null
+          created_at: string
+          id: string
+          name: string
+          organization_id: string
+          updated_at: string
+        }
+        Insert: {
+          address: Json
+          capacity?: number | null
+          contact_info?: Json | null
+          created_at?: string
+          id?: string
+          name: string
+          organization_id: string
+          updated_at?: string
+        }
+        Update: {
+          address?: Json
+          capacity?: number | null
+          contact_info?: Json | null
+          created_at?: string
+          id?: string
+          name?: string
+          organization_id?: string
+          updated_at?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "repair_facilities_organization_id_fkey"
+            columns: ["organization_id"]
+            isOneToOne: false
+            referencedRelation: "organizations"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      repair_items: {
+        Row: {
+          actual_cost: number | null
+          created_at: string
+          description: string | null
+          estimated_cost: number | null
+          id: string
+          labor_hours: number | null
+          notes: string | null
+          parts_used: Json | null
+          photos: string[] | null
+          repair_order_id: string
+          status: Database["public"]["Enums"]["repair_item_status"]
+          type: string
+          updated_at: string
+        }
+        Insert: {
+          actual_cost?: number | null
+          created_at?: string
+          description?: string | null
+          estimated_cost?: number | null
+          id?: string
+          labor_hours?: number | null
+          notes?: string | null
+          parts_used?: Json | null
+          photos?: string[] | null
+          repair_order_id: string
+          status?: Database["public"]["Enums"]["repair_item_status"]
+          type: string
+          updated_at?: string
+        }
+        Update: {
+          actual_cost?: number | null
+          created_at?: string
+          description?: string | null
+          estimated_cost?: number | null
+          id?: string
+          labor_hours?: number | null
+          notes?: string | null
+          parts_used?: Json | null
+          photos?: string[] | null
+          repair_order_id?: string
+          status?: Database["public"]["Enums"]["repair_item_status"]
+          type?: string
+          updated_at?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "repair_items_repair_order_id_fkey"
+            columns: ["repair_order_id"]
+            isOneToOne: false
+            referencedRelation: "repair_orders"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      repair_orders: {
+        Row: {
+          actual_completion_date: string | null
+          created_at: string
+          estimated_completion_date: string | null
+          facility_id: string
+          id: string
+          notes: string | null
+          organization_id: string
+          status: Database["public"]["Enums"]["repair_item_status"]
+          total_cost: number | null
+          updated_at: string
+          vehicle_id: string
+        }
+        Insert: {
+          actual_completion_date?: string | null
+          created_at?: string
+          estimated_completion_date?: string | null
+          facility_id: string
+          id?: string
+          notes?: string | null
+          organization_id: string
+          status?: Database["public"]["Enums"]["repair_item_status"]
+          total_cost?: number | null
+          updated_at?: string
+          vehicle_id: string
+        }
+        Update: {
+          actual_completion_date?: string | null
+          created_at?: string
+          estimated_completion_date?: string | null
+          facility_id?: string
+          id?: string
+          notes?: string | null
+          organization_id?: string
+          status?: Database["public"]["Enums"]["repair_item_status"]
+          total_cost?: number | null
+          updated_at?: string
+          vehicle_id?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "repair_orders_facility_id_fkey"
+            columns: ["facility_id"]
+            isOneToOne: false
+            referencedRelation: "repair_facilities"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "repair_orders_organization_id_fkey"
+            columns: ["organization_id"]
+            isOneToOne: false
+            referencedRelation: "organizations"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "repair_orders_vehicle_id_fkey"
+            columns: ["vehicle_id"]
+            isOneToOne: false
+            referencedRelation: "inventory_vehicles"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       subscription_addons: {
         Row: {
           created_at: string | null
@@ -1196,6 +1357,12 @@ export type Database = {
       [_ in never]: never
     }
     Functions: {
+      calculate_repair_order_total: {
+        Args: {
+          repair_order_id: string
+        }
+        Returns: number
+      }
       check_subscription_limit: {
         Args: {
           org_id: string
@@ -1306,6 +1473,8 @@ export type Database = {
         | "sold"
         | "auction_ready"
         | "maintenance"
+        | "pending_repair"
+        | "in_repair"
       job_status:
         | "pending"
         | "assigned"
@@ -1320,6 +1489,7 @@ export type Database = {
         | "check"
         | "insurance"
         | "motor_club"
+      repair_item_status: "pending" | "in_progress" | "completed" | "cancelled"
       service_type:
         | "tow"
         | "jumpstart"
