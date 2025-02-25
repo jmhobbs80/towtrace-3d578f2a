@@ -133,7 +133,7 @@ export const AuthProvider = ({ children }: { children: React.ReactNode }) => {
             subscription_plan_id: org.subscription_plan_id,
             member_count: org.member_count || 0,
             vehicle_count: org.vehicle_count || 0,
-            billing_details: org.billing_details
+            billing_details: typeof org.billing_details === 'object' ? org.billing_details as Organization['billing_details'] : undefined
           };
           setOrganization(formattedOrg);
         }
