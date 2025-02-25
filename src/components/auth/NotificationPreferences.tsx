@@ -8,17 +8,10 @@ import { PhoneIcon, Bell, Mail, MessageSquare } from "lucide-react";
 import { PushNotificationService } from "@/lib/services/push-notifications";
 import { useToast } from "@/hooks/use-toast";
 import { supabase } from "@/integrations/supabase/client";
-
-interface NotificationPreferences {
-  push_enabled: boolean;
-  sms_enabled: boolean;
-  email_enabled: boolean;
-  notification_types: string[];
-  phone_number: string | null;
-}
+import type { NotificationPreferences as NotificationPreferencesType } from "@/lib/types/notifications";
 
 export function NotificationPreferences() {
-  const [preferences, setPreferences] = useState<NotificationPreferences>({
+  const [preferences, setPreferences] = useState<Omit<NotificationPreferencesType, 'id' | 'user_id' | 'created_at' | 'updated_at'>>({
     push_enabled: false,
     sms_enabled: false,
     email_enabled: false,
@@ -35,14 +28,21 @@ export function NotificationPreferences() {
 
   const loadPreferences = async () => {
     try {
-      const { data, error } = await supabase
+      const { data: userPrefs, error } = await supabase
         .from('notification_preferences')
-        .select('*')
-        .single();
+        .select('push_enabled, sms_enabled, email_enabled, notification_types, phone_number')
+        .maybeSingle();
 
       if (error) throw error;
-      if (data) {
-        setPreferences(data);
+
+      if (userPrefs) {
+        setPreferences({
+          push_enabled: userPrefs.push_enabled,
+          sms_enabled: userPrefs.sms_enabled,
+          email_enabled: userPrefs.email_enabled,
+          notification_types: userPrefs.notification_types,
+          phone_number: userPrefs.phone_number
+        });
       }
     } catch (error) {
       console.error('Error loading preferences:', error);
@@ -51,7 +51,7 @@ export function NotificationPreferences() {
     }
   };
 
-  const handlePreferenceChange = async (updates: Partial<NotificationPreferences>) => {
+  const handlePreferenceChange = async (updates: Partial<typeof preferences>) => {
     try {
       const newPreferences = { ...preferences, ...updates };
       setPreferences(newPreferences);

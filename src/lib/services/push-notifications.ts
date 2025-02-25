@@ -180,7 +180,7 @@ export class PushNotificationService {
     if (!userId) return;
 
     try {
-      await supabase
+      const { error } = await supabase
         .from('notification_preferences')
         .upsert({
           user_id: userId,
@@ -190,7 +190,10 @@ export class PushNotificationService {
           notification_types: preferences.types,
           phone_number: preferences.phone,
           updated_at: new Date().toISOString()
-        });
+        })
+        .select();
+
+      if (error) throw error;
 
       if (preferences.push) {
         await this.subscribe(preferences.types);
