@@ -60,19 +60,23 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
   const navigate = useNavigate();
 
   const fetchUserRole = async (userId: string) => {
-    const { data, error } = await supabase
-      .from('user_roles')
-      .select('role')
-      .eq('user_id', userId)
-      .single();
+    try {
+      const { data, error } = await supabase
+        .from('user_roles')
+        .select('role')
+        .eq('user_id', userId)
+        .single();
 
-    if (error) {
-      console.error('Error fetching user role:', error);
-      return;
-    }
+      if (error) {
+        console.error('Error fetching user role:', error);
+        return;
+      }
 
-    if (data) {
-      setUserRole(data.role as UserRole);
+      if (data) {
+        setUserRole(data.role as UserRole);
+      }
+    } catch (error) {
+      console.error('Failed to fetch user role:', error);
     }
   };
 
@@ -84,7 +88,10 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
         .eq('id', orgId)
         .single();
 
-      if (orgError) throw orgError;
+      if (orgError) {
+        console.error('Error fetching organization:', orgError);
+        return;
+      }
 
       if (org) {
         const formattedOrg: Organization = {
@@ -102,7 +109,6 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
         };
         setOrganization(formattedOrg);
         
-        // Update user metadata
         await supabase.auth.updateUser({
           data: { current_organization_id: orgId }
         });
@@ -113,29 +119,36 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
   };
 
   useEffect(() => {
-    // Check active sessions
-    supabase.auth.getSession().then(({ data: { session } }) => {
-      setUser(session?.user ?? null);
-      if (session?.user) {
-        fetchUserRole(session.user.id);
-        const currentOrgId = session.user.user_metadata.current_organization_id;
-        if (currentOrgId) {
-          switchOrganization(currentOrgId);
+    const setupAuth = async () => {
+      try {
+        const { data: { session } } = await supabase.auth.getSession();
+        setUser(session?.user ?? null);
+        
+        if (session?.user) {
+          await fetchUserRole(session.user.id);
+          const currentOrgId = session.user.user_metadata.current_organization_id;
+          if (currentOrgId) {
+            await switchOrganization(currentOrgId);
+          }
         }
+      } catch (error) {
+        console.error('Auth setup error:', error);
+      } finally {
+        setLoading(false);
       }
-      setLoading(false);
-    });
+    };
 
-    // Listen for auth changes
+    setupAuth();
+
     const {
       data: { subscription },
-    } = supabase.auth.onAuthStateChange((_event, session) => {
+    } = supabase.auth.onAuthStateChange(async (_event, session) => {
       setUser(session?.user ?? null);
       if (session?.user) {
-        fetchUserRole(session.user.id);
+        await fetchUserRole(session.user.id);
         const currentOrgId = session.user.user_metadata.current_organization_id;
         if (currentOrgId) {
-          switchOrganization(currentOrgId);
+          await switchOrganization(currentOrgId);
         }
       } else {
         setOrganization(null);
@@ -148,8 +161,12 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
   }, []);
 
   const signOut = async () => {
-    await supabase.auth.signOut();
-    navigate("/auth");
+    try {
+      await supabase.auth.signOut();
+      navigate("/auth");
+    } catch (error) {
+      console.error('Sign out error:', error);
+    }
   };
 
   return (
