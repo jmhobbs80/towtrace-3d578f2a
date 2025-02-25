@@ -17,7 +17,7 @@ export default function JobDetails() {
         .from('tow_jobs')
         .select(`
           *,
-          profiles:driver_id(
+          driver:profiles!tow_jobs_driver_id_fkey(
             first_name,
             last_name
           )
@@ -53,9 +53,9 @@ export default function JobDetails() {
         service_type: data.service_type,
         priority: data.priority,
         notes: data.notes,
-        driver: data.profiles ? {
-          first_name: data.profiles.first_name,
-          last_name: data.profiles.last_name
+        driver: data.driver ? {
+          first_name: data.driver.first_name,
+          last_name: data.driver.last_name
         } : undefined
       };
 

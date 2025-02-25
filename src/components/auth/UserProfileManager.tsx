@@ -19,8 +19,13 @@ export const useUserProfileManager = () => {
         return;
       }
 
-      if (data) {
-        setUserRole(data.role as UserRole);
+      if (data?.role) {
+        const role = data.role as UserRole;
+        if (['admin', 'dispatcher', 'driver', 'dealer', 'wholesaler', 
+             'overwatch_admin', 'super_admin', 'support_agent', 
+             'billing_manager'].includes(role)) {
+          setUserRole(role);
+        }
       }
     } catch (error) {
       console.error('Failed to fetch user role:', error);
@@ -37,7 +42,7 @@ export const useUserProfileManager = () => {
       .select('role')
       .eq('user_id', currentUser.user.id)
       .eq('role', newRole)
-      .single();
+      .maybeSingle();
 
     if (!roleCheck) throw new Error("User does not have permission for this role");
 
