@@ -2,7 +2,7 @@
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
 import { Signal, Timer, Wifi, Navigation, Clock } from "lucide-react";
-import { useLocationTracking } from "./useLocationTracking";
+import { useLocationTracking } from "@/hooks/use-location-tracking";
 import type { LocationTrackerProps } from "./types";
 
 export const LocationTracker = ({ 
@@ -13,7 +13,7 @@ export const LocationTracker = ({
 }: LocationTrackerProps) => {
   const {
     isTracking,
-    lastUpdate,
+    lastPosition,
     accuracy,
     speed,
     eta,
@@ -45,13 +45,13 @@ export const LocationTracker = ({
             {isOnline ? "Online" : "Offline"}
           </Badge>
 
-          {lastUpdate && (
+          {lastPosition && (
             <Badge 
               variant="outline" 
               className="flex items-center justify-center gap-2 py-2 text-sm font-medium rounded-xl"
             >
               <Clock className="w-4 h-4" />
-              {new Date(lastUpdate).toLocaleTimeString()}
+              {new Date(lastPosition.timestamp).toLocaleTimeString()}
             </Badge>
           )}
 
