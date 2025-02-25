@@ -33,11 +33,10 @@ const formSchema = z.object({
 
 interface DamageReportFormProps {
   vehicleId: string;
-  inspectorId: string;
   onSuccess: () => void;
 }
 
-export function DamageReportForm({ vehicleId, inspectorId, onSuccess }: DamageReportFormProps) {
+export function DamageReportForm({ vehicleId, onSuccess }: DamageReportFormProps) {
   const [photos, setPhotos] = useState<File[]>([]);
   const [isSubmitting, setIsSubmitting] = useState(false);
 
@@ -60,9 +59,7 @@ export function DamageReportForm({ vehicleId, inspectorId, onSuccess }: DamageRe
         : [];
 
       // Create damage report
-      await createDamageReport({
-        vehicle_id: vehicleId,
-        inspector_id: inspectorId,
+      await createDamageReport(vehicleId, {
         severity: values.severity as VehicleDamageSeverity,
         description: values.description,
         repair_estimate: values.repair_estimate,

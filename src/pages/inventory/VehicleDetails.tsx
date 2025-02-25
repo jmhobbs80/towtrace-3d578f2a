@@ -1,185 +1,198 @@
+import { useEffect, useState } from "react";
 import { useParams } from "react-router-dom";
-import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
-import { format } from "date-fns";
-import { ArrowLeft, Clock, Car, AlertTriangle } from "lucide-react";
-import { Button } from "@/components/ui/button";
+import { getVehicleDetails } from "@/lib/api/vehicles";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
-import { Badge } from "@/components/ui/badge";
-import { Separator } from "@/components/ui/separator";
-import {
-  Select,
-  SelectContent,
-  SelectItem,
-  SelectTrigger,
-  SelectValue,
-} from "@/components/ui/select";
-import { useToast } from "@/hooks/use-toast";
-import { getVehicleDetails, updateVehicleStatus } from "@/lib/api/vehicles";
-import type { VehicleStatus } from "@/lib/types/vehicles";
+import { Button } from "@/components/ui/button";
+import { useNavigate } from 'react-router-dom';
+import { DamageReportForm } from "@/components/inventory/DamageReportForm";
+import { RepairOrderForm } from "@/components/repair/RepairOrderForm";
+import { useToast } from "@/components/ui/use-toast";
+
+interface VehicleDetailsData {
+  id: string;
+  vin: string;
+  make: string;
+  model: string;
+  year: number;
+  status: string;
+  condition: string;
+  location: {
+    name: string;
+    address: any;
+  } | null;
+  condition_logs: any[];
+  damage_reports: any[];
+  inspections: any[];
+  transit_history: any[];
+}
 
 export default function VehicleDetails() {
-  const { id } = useParams<{ id: string }>();
+  const { vehicleId } = useParams<{ vehicleId: string }>();
+  const [vehicle, setVehicle] = useState<VehicleDetailsData | null>(null);
+  const [isDamageReportOpen, setIsDamageReportOpen] = useState(false);
+  const [isRepairOrderOpen, setIsRepairOrderOpen] = useState(false);
+  const navigate = useNavigate();
   const { toast } = useToast();
-  const queryClient = useQueryClient();
 
-  const { data: vehicle, isLoading } = useQuery({
-    queryKey: ['vehicle', id],
-    queryFn: () => getVehicleDetails(id!),
-    enabled: !!id,
-  });
-
-  const updateStatusMutation = useMutation({
-    mutationFn: ({ vehicleId, status }: { vehicleId: string, status: VehicleStatus }) =>
-      updateVehicleStatus(vehicleId, status),
-    onSuccess: () => {
-      queryClient.invalidateQueries({ queryKey: ['vehicle', id] });
-      toast({
-        title: "Success",
-        description: "Vehicle status updated successfully",
-      });
-    },
-  });
-
-  if (isLoading) {
-    return <div className="container mx-auto py-8">Loading vehicle details...</div>;
-  }
-
-  if (!vehicle) return null;
-
-  const handleStatusChange = (status: VehicleStatus) => {
-    if (id) {
-      updateStatusMutation.mutate({ vehicleId: id, status });
+  useEffect(() => {
+    if (!vehicleId) {
+      console.error("Vehicle ID is missing");
+      return;
     }
+
+    const fetchVehicle = async () => {
+      try {
+        const vehicleData = await getVehicleDetails(vehicleId);
+        setVehicle(vehicleData);
+      } catch (error) {
+        console.error("Error fetching vehicle details:", error);
+      }
+    };
+
+    fetchVehicle();
+  }, [vehicleId]);
+
+  const handleDamageReportSuccess = () => {
+    setIsDamageReportOpen(false);
   };
 
+  const handleRepairOrderSubmit = async (data: any) => {
+    console.log('Repair order data:', data);
+    setIsRepairOrderOpen(false);
+    toast({
+      title: "Repair Order Created",
+      description: "Your repair order has been successfully created.",
+    });
+  };
+
+  if (!vehicleId) {
+    return <div>Vehicle ID is required</div>;
+  }
+
   return (
-    <div className="container mx-auto py-8 space-y-6">
+    <div className="container mx-auto p-6 space-y-6">
       <div className="flex justify-between items-center">
-        <Button
-          variant="outline"
-          onClick={() => window.history.back()}
-        >
-          <ArrowLeft className="mr-2 h-4 w-4" />
-          Back to Search
-        </Button>
-        
-        <div className="flex items-center gap-4">
-          <Select
-            value={vehicle.status}
-            onValueChange={(value: VehicleStatus) => handleStatusChange(value)}
-          >
-            <SelectTrigger className="w-[180px]">
-              <SelectValue placeholder="Update Status" />
-            </SelectTrigger>
-            <SelectContent>
-              <SelectItem value="available">Available</SelectItem>
-              <SelectItem value="in_transit">In Transit</SelectItem>
-              <SelectItem value="delivered">Delivered</SelectItem>
-              <SelectItem value="needs_repair">Needs Repair</SelectItem>
-            </SelectContent>
-          </Select>
-        </div>
+        <h1 className="text-3xl font-bold">Vehicle Details</h1>
+        <Button onClick={() => navigate('/inventory')}>Back to Inventory</Button>
       </div>
-
-      <div className="grid gap-6 md:grid-cols-2">
-        <Card>
-          <CardHeader>
-            <CardTitle>Vehicle Information</CardTitle>
-          </CardHeader>
-          <CardContent>
-            <dl className="space-y-2">
-              <div>
-                <dt className="text-sm font-medium text-gray-500">VIN</dt>
-                <dd className="mt-1 font-mono">{vehicle.vin}</dd>
-              </div>
-              <div>
-                <dt className="text-sm font-medium text-gray-500">Make/Model</dt>
-                <dd className="mt-1">{vehicle.make} {vehicle.model}</dd>
-              </div>
-              <div>
-                <dt className="text-sm font-medium text-gray-500">Year</dt>
-                <dd className="mt-1">{vehicle.year}</dd>
-              </div>
-              <div>
-                <dt className="text-sm font-medium text-gray-500">Status</dt>
-                <dd className="mt-1">
-                  <Badge>{vehicle.status}</Badge>
-                </dd>
-              </div>
-            </dl>
-          </CardContent>
-        </Card>
-
-        <Card>
-          <CardHeader>
-            <CardTitle>Latest Inspection</CardTitle>
-          </CardHeader>
-          <CardContent>
-            {vehicle.inspections[0] ? (
-              <dl className="space-y-2">
-                <div>
-                  <dt className="text-sm font-medium text-gray-500">Date</dt>
-                  <dd className="mt-1">
-                    {format(new Date(vehicle.inspections[0].inspection_date), 'PPP')}
-                  </dd>
-                </div>
-                <div>
-                  <dt className="text-sm font-medium text-gray-500">Status</dt>
-                  <dd className="mt-1">
-                    <Badge>{vehicle.inspections[0].status}</Badge>
-                  </dd>
-                </div>
-              </dl>
-            ) : (
-              <p className="text-gray-500">No inspections recorded</p>
-            )}
-          </CardContent>
-        </Card>
-      </div>
-
-      <Card>
-        <CardHeader>
-          <CardTitle>Vehicle History</CardTitle>
-        </CardHeader>
-        <CardContent>
-          <div className="space-y-6">
-            {[...vehicle.inspections, ...vehicle.transitHistory, ...vehicle.damageReports]
-              .sort((a, b) => new Date(b.created_at).getTime() - new Date(a.created_at).getTime())
-              .map((event, index) => (
-                <div key={index} className="flex items-start gap-4">
-                  {('status' in event && 'inspection_date' in event) ? (
-                    <Clock className="w-5 h-5 mt-1" />
-                  ) : ('delivery_status' in event) ? (
-                    <Car className="w-5 h-5 mt-1" />
-                  ) : (
-                    <AlertTriangle className="w-5 h-5 mt-1" />
-                  )}
-                  <div className="flex-1">
-                    <div className="flex justify-between">
-                      <h4 className="font-medium">
-                        {'status' in event && 'inspection_date' in event
-                          ? 'Inspection'
-                          : 'delivery_status' in event
-                          ? 'Transport'
-                          : 'Damage Report'}
-                      </h4>
-                      <time className="text-sm text-gray-500">
-                        {format(new Date(event.created_at), 'PPP')}
-                      </time>
-                    </div>
-                    <p className="text-sm text-gray-600 mt-1">
-                      {'status' in event && 'inspection_date' in event
-                        ? `Inspection status: ${event.status}`
-                        : 'delivery_status' in event
-                        ? `Transport status: ${event.delivery_status}`
-                        : `Damage reported: ${(event as any).damage_description}`}
-                    </p>
+      
+      {vehicle && (
+        <>
+          <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+            <Card>
+              <CardHeader>
+                <CardTitle>Transit History</CardTitle>
+              </CardHeader>
+              <CardContent>
+                {vehicle.transit_history?.length > 0 ? (
+                  <div className="space-y-4">
+                    {vehicle.transit_history.map((transit: any) => (
+                      <div key={transit.id} className="border p-4 rounded">
+                        <p>Status: {transit.status}</p>
+                        <p>Pickup Date: {new Date(transit.created_at).toLocaleDateString()}</p>
+                        <p>Delivery Date: {transit.updated_at ? new Date(transit.updated_at).toLocaleDateString() : 'Pending'}</p>
+                      </div>
+                    ))}
                   </div>
-                </div>
-              ))}
+                ) : (
+                  <p className="text-muted-foreground">No transit history available</p>
+                )}
+              </CardContent>
+            </Card>
+
+            <Card>
+              <CardHeader>
+                <CardTitle>Damage Reports</CardTitle>
+              </CardHeader>
+              <CardContent>
+                {vehicle.damage_reports?.length > 0 ? (
+                  <div className="space-y-4">
+                    {vehicle.damage_reports.map((report: any) => (
+                      <div key={report.id} className="border p-4 rounded">
+                        <p>Severity: {report.severity}</p>
+                        <p>Date: {new Date(report.created_at).toLocaleDateString()}</p>
+                        {report.description && <p>Description: {report.description}</p>}
+                      </div>
+                    ))}
+                  </div>
+                ) : (
+                  <p className="text-muted-foreground">No damage reports available</p>
+                )}
+              </CardContent>
+            </Card>
           </div>
-        </CardContent>
-      </Card>
+
+          <Card>
+            <CardHeader>
+              <CardTitle>Vehicle Information</CardTitle>
+            </CardHeader>
+            <CardContent>
+              <div className="space-y-2">
+                <p><strong>VIN:</strong> {vehicle.vin}</p>
+                <p><strong>Make:</strong> {vehicle.make}</p>
+                <p><strong>Model:</strong> {vehicle.model}</p>
+                <p><strong>Year:</strong> {vehicle.year}</p>
+                <p><strong>Status:</strong> {vehicle.status}</p>
+                <p><strong>Condition:</strong> {vehicle.condition}</p>
+                {vehicle.location && (
+                  <p><strong>Location:</strong> {vehicle.location.name}, {vehicle.location.address}</p>
+                )}
+              </div>
+            </CardContent>
+          </Card>
+
+          <div className="flex justify-end space-x-4">
+            <Button onClick={() => setIsDamageReportOpen(true)}>
+              Add Damage Report
+            </Button>
+            <Button onClick={() => setIsRepairOrderOpen(true)}>
+              Create Repair Order
+            </Button>
+          </div>
+
+          {isDamageReportOpen && (
+            <div className="fixed inset-0 bg-gray-600 bg-opacity-50 overflow-y-auto h-full w-full">
+              <div className="relative top-20 mx-auto p-5 border w-96 shadow-lg rounded-md bg-white">
+                <h3 className="text-lg font-medium leading-6 text-gray-900">
+                  Add Damage Report
+                </h3>
+                <div className="mt-2">
+                  <DamageReportForm
+                    vehicleId={vehicleId}
+                    onSuccess={handleDamageReportSuccess}
+                  />
+                </div>
+                <div className="mt-4 flex justify-end">
+                  <Button onClick={() => setIsDamageReportOpen(false)}>
+                    Close
+                  </Button>
+                </div>
+              </div>
+            </div>
+          )}
+
+          {isRepairOrderOpen && (
+            <div className="fixed inset-0 bg-gray-600 bg-opacity-50 overflow-y-auto h-full w-full">
+              <div className="relative top-20 mx-auto p-5 border w-96 shadow-lg rounded-md bg-white">
+                <h3 className="text-lg font-medium leading-6 text-gray-900">
+                  Create Repair Order
+                </h3>
+                <div className="mt-2">
+                  <RepairOrderForm
+                    vehicleId={vehicleId}
+                    onSubmit={handleRepairOrderSubmit}
+                  />
+                </div>
+                <div className="mt-4 flex justify-end">
+                  <Button onClick={() => setIsRepairOrderOpen(false)}>
+                    Close
+                  </Button>
+                </div>
+              </div>
+            </div>
+          )}
+        </>
+      )}
     </div>
   );
 }
