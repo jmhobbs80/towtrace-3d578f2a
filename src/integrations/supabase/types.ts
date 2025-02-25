@@ -947,6 +947,50 @@ export type Database = {
         }
         Relationships: []
       }
+      vehicle_assignments: {
+        Row: {
+          assigned_by: string | null
+          created_at: string
+          driver_id: string
+          ended_at: string | null
+          id: string
+          started_at: string | null
+          status: string
+          updated_at: string
+          vehicle_id: string
+        }
+        Insert: {
+          assigned_by?: string | null
+          created_at?: string
+          driver_id: string
+          ended_at?: string | null
+          id?: string
+          started_at?: string | null
+          status?: string
+          updated_at?: string
+          vehicle_id: string
+        }
+        Update: {
+          assigned_by?: string | null
+          created_at?: string
+          driver_id?: string
+          ended_at?: string | null
+          id?: string
+          started_at?: string | null
+          status?: string
+          updated_at?: string
+          vehicle_id?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "vehicle_assignments_vehicle_id_fkey"
+            columns: ["vehicle_id"]
+            isOneToOne: false
+            referencedRelation: "fleet_vehicles"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       vehicle_condition_logs: {
         Row: {
           condition: Database["public"]["Enums"]["vehicle_condition"]
@@ -1026,11 +1070,13 @@ export type Database = {
       }
       vehicle_inspections: {
         Row: {
+          assignment_id: string | null
           completed_at: string | null
           created_at: string | null
           id: string
           inspection_data: Json | null
           inspection_date: string | null
+          inspection_type: Database["public"]["Enums"]["inspection_type"]
           inspector_id: string
           notes: string | null
           photos: string[] | null
@@ -1039,11 +1085,13 @@ export type Database = {
           vehicle_id: string
         }
         Insert: {
+          assignment_id?: string | null
           completed_at?: string | null
           created_at?: string | null
           id?: string
           inspection_data?: Json | null
           inspection_date?: string | null
+          inspection_type: Database["public"]["Enums"]["inspection_type"]
           inspector_id: string
           notes?: string | null
           photos?: string[] | null
@@ -1052,11 +1100,13 @@ export type Database = {
           vehicle_id: string
         }
         Update: {
+          assignment_id?: string | null
           completed_at?: string | null
           created_at?: string | null
           id?: string
           inspection_data?: Json | null
           inspection_date?: string | null
+          inspection_type?: Database["public"]["Enums"]["inspection_type"]
           inspector_id?: string
           notes?: string | null
           photos?: string[] | null
@@ -1065,6 +1115,13 @@ export type Database = {
           vehicle_id?: string
         }
         Relationships: [
+          {
+            foreignKeyName: "vehicle_inspections_assignment_id_fkey"
+            columns: ["assignment_id"]
+            isOneToOne: false
+            referencedRelation: "vehicle_assignments"
+            referencedColumns: ["id"]
+          },
           {
             foreignKeyName: "vehicle_inspections_inspector_id_fkey"
             columns: ["inspector_id"]
@@ -1146,6 +1203,22 @@ export type Database = {
         }
         Returns: boolean
       }
+      complete_vehicle_assignment: {
+        Args: {
+          assignment_id: string
+        }
+        Returns: {
+          assigned_by: string | null
+          created_at: string
+          driver_id: string
+          ended_at: string | null
+          id: string
+          started_at: string | null
+          status: string
+          updated_at: string
+          vehicle_id: string
+        }
+      }
       create_damage_report: {
         Args: {
           vehicle_id_param: string
@@ -1225,6 +1298,7 @@ export type Database = {
         | "dealer"
         | "wholesaler"
       inspection_status: "pending" | "in_progress" | "completed" | "failed"
+      inspection_type: "pre_trip" | "post_trip"
       inventory_status:
         | "available"
         | "pending_inspection"

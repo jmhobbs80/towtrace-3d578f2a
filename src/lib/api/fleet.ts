@@ -1,79 +1,126 @@
-
 import { supabase } from "@/integrations/supabase/client";
-import type { FleetVehicle, VehicleInTransit } from "@/lib/types/fleet";
+import type { VehicleInTransit, FleetVehicle, Dealership } from "../types/fleet";
 
-export const createFleetVehicle = async (vehicleData: Omit<FleetVehicle, 'id' | 'created_at' | 'updated_at'>) => {
-  const { data, error } = await supabase
-    .from('fleet_vehicles')
-    .insert(vehicleData)
-    .select()
-    .single();
-
-  if (error) throw error;
-  return data;
-};
-
-export const updateFleetVehicle = async (vehicleId: string, updates: Partial<FleetVehicle>) => {
-  const { data, error } = await supabase
-    .from('fleet_vehicles')
-    .update(updates)
-    .eq('id', vehicleId)
-    .select()
-    .single();
-
-  if (error) throw error;
-  return data;
-};
-
-export const assignVehicleToJob = async (jobId: string, vehicleId: string) => {
-  const { error: vehicleError } = await supabase
-    .from('fleet_vehicles')
-    .update({ status: 'assigned' })
-    .eq('id', vehicleId);
-
-  if (vehicleError) throw vehicleError;
-
-  const { error: jobError } = await supabase
-    .from('tow_jobs')
-    .update({ vehicle_id: vehicleId })
-    .eq('id', jobId);
-
-  if (jobError) throw jobError;
-};
-
-export const getVehiclesInTransit = async (jobId: string): Promise<VehicleInTransit[]> => {
+export async function getVehiclesInTransit(jobId: string): Promise<VehicleInTransit[]> {
   const { data, error } = await supabase
     .from('vehicles_in_transit')
     .select('*')
-    .eq('job_id', jobId)
-    .order('created_at', { ascending: true });
+    .eq('job_id', jobId);
 
-  if (error) throw error;
-  
-  // Type cast the response to ensure it matches our interface
-  return data?.map(vehicle => ({
-    ...vehicle,
-    pickup_status: vehicle.pickup_status as VehicleInTransit['pickup_status'],
-    delivery_status: vehicle.delivery_status as VehicleInTransit['delivery_status'],
-  })) ?? [];
-};
-
-export const updateVehicleTransitStatus = async (
-  transitId: string,
-  updates: {
-    pickup_status?: 'pending' | 'confirmed' | 'rejected';
-    delivery_status?: 'pending' | 'in_transit' | 'delivered';
-    pickup_confirmation?: string;
-    delivery_confirmation?: string;
+  if (error) {
+    console.error("Error fetching vehicles in transit:", error);
+    return [];
   }
-) => {
+
+  return data as VehicleInTransit[];
+}
+
+export async function getFleetVehicles(): Promise<FleetVehicle[]> {
   const { data, error } = await supabase
-    .from('vehicles_in_transit')
-    .update(updates)
-    .eq('id', transitId)
+    .from('fleet_vehicles')
+    .select('*');
+
+  if (error) {
+    console.error("Error fetching fleet vehicles:", error);
+    return [];
+  }
+
+  return data as FleetVehicle[];
+}
+
+export async function getDealerships(): Promise<Dealership[]> {
+  const { data, error } = await supabase
+    .from('dealerships')
+    .select('*');
+
+  if (error) {
+    console.error("Error fetching dealerships:", error);
+    return [];
+  }
+
+  return data as Dealership[];
+}
+
+export interface VehicleAssignment {
+  id: string;
+  vehicle_id: string;
+  driver_id: string;
+  assigned_by: string | null;
+  status: 'pending' | 'active' | 'completed';
+  started_at: string | null;
+  ended_at: string | null;
+  created_at: string;
+  updated_at: string;
+}
+
+export async function assignVehicleToDriver(
+  vehicleId: string,
+  driverId: string
+): Promise<VehicleAssignment> {
+  const { data: assignment, error } = await supabase
+    .from('vehicle_assignments')
+    .insert({
+      vehicle_id: vehicleId,
+      driver_id: driverId,
+      assigned_by: (await supabase.auth.getUser()).data.user?.id,
+      status: 'pending'
+    })
     .select()
     .single();
 
   if (error) throw error;
+  return assignment;
+}
+
+export async function startVehicleAssignment(
+  assignmentId: string
+): Promise<VehicleAssignment> {
+  const { data: assignment, error } = await supabase
+    .from('vehicle_assignments')
+    .update({
+      status: 'active',
+      started_at: new Date().toISOString()
+    })
+    .eq('id', assignmentId)
+    .select()
+    .single();
+
+  if (error) throw error;
+  return assignment;
+}
+
+export async function completeVehicleAssignment(
+  assignmentId: string
+): Promise<void> {
+  const { error } = await supabase
+    .rpc('complete_vehicle_assignment', { assignment_id: assignmentId });
+
+  if (error) throw error;
+}
+
+export async function getActiveAssignment(
+  vehicleId: string
+): Promise<VehicleAssignment | null> {
+  const { data, error } = await supabase
+    .from('vehicle_assignments')
+    .select('*')
+    .eq('vehicle_id', vehicleId)
+    .eq('status', 'active')
+    .maybeSingle();
+
+  if (error) throw error;
   return data;
-};
+}
+
+export async function getDriverAssignments(
+  driverId: string
+): Promise<VehicleAssignment[]> {
+  const { data, error } = await supabase
+    .from('vehicle_assignments')
+    .select('*')
+    .eq('driver_id', driverId)
+    .order('created_at', { ascending: false });
+
+  if (error) throw error;
+  return data || [];
+}

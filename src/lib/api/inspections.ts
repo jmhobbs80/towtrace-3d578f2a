@@ -1,8 +1,11 @@
-
 import { supabase } from "@/integrations/supabase/client";
-import type { VehicleInspection, InspectionChecklistItem, UpdateInspectionStatusParams } from "../types/inspection";
+import type { VehicleInspection, InspectionChecklistItem, UpdateInspectionStatusParams, InspectionType } from "../types/inspection";
 
-export async function createInspection(vehicleId: string): Promise<VehicleInspection> {
+export async function createInspection(
+  vehicleId: string,
+  inspectionType: InspectionType,
+  assignmentId?: string
+): Promise<VehicleInspection> {
   const { data: userData } = await supabase.auth.getUser();
   if (!userData.user) throw new Error("Not authenticated");
 
@@ -12,6 +15,8 @@ export async function createInspection(vehicleId: string): Promise<VehicleInspec
       vehicle_id: vehicleId,
       inspector_id: userData.user.id,
       status: 'pending',
+      inspection_type: inspectionType,
+      assignment_id: assignmentId,
       inspection_data: {}
     })
     .select()

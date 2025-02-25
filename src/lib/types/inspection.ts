@@ -1,5 +1,7 @@
 export type InspectionStatus = 'pending' | 'in_progress' | 'completed' | 'failed';
 
+export type InspectionType = 'pre_trip' | 'post_trip';
+
 export interface InspectionChecklistItem {
   id: string;
   inspection_id: string;
@@ -17,6 +19,8 @@ export interface VehicleInspection {
   vehicle_id: string;
   inspector_id: string;
   status: InspectionStatus;
+  inspection_type: InspectionType;
+  assignment_id: string | null;
   inspection_date: string;
   completed_at?: string;
   inspection_data: Record<string, any>;

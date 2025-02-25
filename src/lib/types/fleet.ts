@@ -1,4 +1,3 @@
-
 export interface FleetVehicle {
   id: string;
   organization_id: string;
@@ -46,6 +45,18 @@ export interface Dealership {
     email: string;
     phone: string;
   };
+  created_at: string;
+  updated_at: string;
+}
+
+export interface VehicleAssignment {
+  id: string;
+  vehicle_id: string;
+  driver_id: string;
+  assigned_by: string | null;
+  status: 'pending' | 'active' | 'completed';
+  started_at: string | null;
+  ended_at: string | null;
   created_at: string;
   updated_at: string;
 }
