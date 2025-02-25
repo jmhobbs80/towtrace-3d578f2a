@@ -5,19 +5,52 @@ import type { LocationUpdate, LocationQueue } from '@/components/location/types'
 
 const QUEUE_KEY = 'location_queue';
 const MAX_QUEUE_SIZE = 100;
+const MAX_QUEUE_AGE = 24 * 60 * 60 * 1000; // 24 hours
+
+interface QueueStatus {
+  pendingItems: number;
+  lastSyncAttempt: number | null;
+}
 
 export const useOfflineQueue = () => {
   const [queuedUpdates, setQueuedUpdates] = useState<LocationUpdate[]>([]);
   const [isOnline, setIsOnline] = useState(navigator.onLine);
+  const [queueStatus, setQueueStatus] = useState<QueueStatus>({
+    pendingItems: 0,
+    lastSyncAttempt: null
+  });
   const { toast } = useToast();
 
   const addToQueue = useCallback((update: LocationUpdate) => {
-    setQueuedUpdates(prev => [...prev.slice(-MAX_QUEUE_SIZE), update]);
+    setQueuedUpdates(prev => {
+      const filtered = prev.filter(
+        item => Date.now() - item.timestamp < MAX_QUEUE_AGE
+      );
+      return [...filtered.slice(-MAX_QUEUE_SIZE), update];
+    });
   }, []);
 
   const clearQueue = useCallback(() => {
     setQueuedUpdates([]);
     localStorage.removeItem(QUEUE_KEY);
+    setQueueStatus(prev => ({ ...prev, pendingItems: 0 }));
+  }, []);
+
+  // Handle service worker messages
+  useEffect(() => {
+    const handleMessage = (event: MessageEvent) => {
+      if (event.data?.type === 'OFFLINE_DATA_STATUS') {
+        setQueueStatus(prev => ({
+          ...prev,
+          pendingItems: event.data.pendingItems
+        }));
+      }
+    };
+
+    navigator.serviceWorker?.addEventListener('message', handleMessage);
+    return () => {
+      navigator.serviceWorker?.removeEventListener('message', handleMessage);
+    };
   }, []);
 
   // Load queued updates from localStorage
@@ -27,9 +60,10 @@ export const useOfflineQueue = () => {
       if (savedQueue) {
         const parsed: LocationQueue = JSON.parse(savedQueue);
         const validUpdates = parsed.updates.filter(
-          update => Date.now() - update.timestamp < 24 * 60 * 60 * 1000
+          update => Date.now() - update.timestamp < MAX_QUEUE_AGE
         );
         setQueuedUpdates(validUpdates);
+        setQueueStatus(prev => ({ ...prev, pendingItems: validUpdates.length }));
       }
     } catch (error) {
       console.error('Error loading queued updates:', error);
@@ -41,7 +75,7 @@ export const useOfflineQueue = () => {
     if (queuedUpdates.length > 0) {
       try {
         const queue: LocationQueue = {
-          updates: queuedUpdates.slice(-MAX_QUEUE_SIZE),
+          updates: queuedUpdates,
           lastSync: Date.now()
         };
         localStorage.setItem(QUEUE_KEY, JSON.stringify(queue));
@@ -55,6 +89,10 @@ export const useOfflineQueue = () => {
   useEffect(() => {
     const handleOnline = () => {
       setIsOnline(true);
+      // Request sync when coming back online
+      navigator.serviceWorker?.ready.then(registration => {
+        registration.sync.register('sync-updates');
+      });
       toast({
         title: "Back Online",
         description: "Syncing updates...",
@@ -72,15 +110,22 @@ export const useOfflineQueue = () => {
     window.addEventListener('online', handleOnline);
     window.addEventListener('offline', handleOffline);
 
+    // Check for pending offline data periodically
+    const checkInterval = setInterval(() => {
+      navigator.serviceWorker?.controller?.postMessage('CHECK_OFFLINE_DATA');
+    }, 30000);
+
     return () => {
       window.removeEventListener('online', handleOnline);
       window.removeEventListener('offline', handleOffline);
+      clearInterval(checkInterval);
     };
   }, [toast]);
 
   return {
     queuedUpdates,
     isOnline,
+    queueStatus,
     addToQueue,
     clearQueue
   };
