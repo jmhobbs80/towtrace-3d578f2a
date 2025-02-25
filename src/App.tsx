@@ -8,8 +8,13 @@ import VehicleDetails from "./pages/inventory/VehicleDetails";
 import InventoryManagement from "./pages/inventory/InventoryManagement";
 import FleetManagement from "./pages/fleet/FleetManagement";
 import VehiclesInTransitDashboard from "./pages/transport/VehiclesInTransit";
+import AuthPage from "./pages/auth/AuthPage";
 
 const router = createBrowserRouter([
+  {
+    path: "/auth",
+    element: <AuthPage />,
+  },
   {
     path: "/",
     element: <InventoryManagement />,
