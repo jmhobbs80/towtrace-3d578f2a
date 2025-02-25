@@ -41,7 +41,7 @@ export function DealerDashboard() {
           .from('tow_jobs')
           .select('id', { count: 'exact' })
           .eq('organization_id', organization?.id)
-          .in('status', ['pending', 'in_progress'])
+          .in('status', ['pending', 'assigned', 'en_route', 'on_site']) // Fixed: Using correct status values
       ]);
 
       return {
