@@ -133,4 +133,4 @@ export const PaymentForm = ({ jobId, organizationId, onSuccess }: PaymentFormPro
       </Button>
     </form>
   );
-};
+}
