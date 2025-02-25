@@ -174,7 +174,7 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
       });
 
       toast.success(`Switched to ${role} role`);
-      navigate("/");
+      navigate("/"); // Reset to home page for new role context
     } catch (error) {
       console.error('Error switching role:', error);
       toast.error('Failed to switch role');
