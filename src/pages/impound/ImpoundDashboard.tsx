@@ -1,12 +1,11 @@
-
 import { useQuery } from "@tanstack/react-query";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table";
 import { supabase } from "@/integrations/supabase/client";
 import { useAuth } from "@/components/auth/AuthProvider";
 import { Car, Warehouse, DollarSign } from "lucide-react";
+import { AddImpoundLotDialog } from "./AddImpoundLotDialog";
 
-// Define the database types that match Supabase schema
 interface ImpoundLotDB {
   id: string;
   name: string;
@@ -15,7 +14,7 @@ interface ImpoundLotDB {
     city: string;
     state: string;
     zip: string;
-  } | string; // Allow both structured object and string JSON
+  } | string;
   capacity: number;
   daily_rate: number;
   organization_id: string;
@@ -24,7 +23,6 @@ interface ImpoundLotDB {
   late_fee_rate: number;
 }
 
-// Frontend type for processed data
 interface ImpoundLot {
   id: string;
   name: string;
@@ -61,7 +59,6 @@ export default function ImpoundDashboard() {
       
       if (error) throw error;
       
-      // Process the data to ensure address is properly structured
       return (data as ImpoundLotDB[]).map(lot => ({
         id: lot.id,
         name: lot.name,
@@ -92,7 +89,10 @@ export default function ImpoundDashboard() {
 
   return (
     <div className="p-6">
-      <h1 className="text-2xl font-bold mb-6">Impound Management</h1>
+      <div className="flex justify-between items-center mb-6">
+        <h1 className="text-2xl font-bold">Impound Management</h1>
+        <AddImpoundLotDialog />
+      </div>
       
       <div className="grid gap-4 md:grid-cols-2 lg:grid-cols-3 mb-6">
         <Card>
