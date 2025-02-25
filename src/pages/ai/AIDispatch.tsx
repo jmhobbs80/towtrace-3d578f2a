@@ -1,4 +1,3 @@
-
 import { useState, useCallback, useEffect } from "react";
 import { useQuery, useMutation } from "@tanstack/react-query";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
@@ -10,6 +9,7 @@ import { JobList } from "@/components/dispatch/JobList";
 import { supabase } from "@/integrations/supabase/client";
 import { Brain, AlertTriangle, Truck } from "lucide-react";
 import type { Job } from "@/lib/types/job";
+import { toLocation } from "@/lib/types/job";
 
 export default function AIDispatch() {
   const [isOptimizing, setIsOptimizing] = useState(false);
@@ -20,11 +20,11 @@ export default function AIDispatch() {
   const { data: jobs, isLoading: isLoadingJobs, refetch: refetchJobs } = useQuery({
     queryKey: ['ai-dispatch-jobs'],
     queryFn: async () => {
-      const { data, error } = await supabase
+      const { data: rawJobs, error } = await supabase
         .from('tow_jobs')
         .select(`
           *,
-          driver:driver_id (
+          driver:profiles!tow_jobs_driver_id_fkey(
             first_name,
             last_name
           )
@@ -33,7 +33,17 @@ export default function AIDispatch() {
         .order('priority', { ascending: false });
 
       if (error) throw error;
-      return data as Job[];
+      if (!rawJobs) return [];
+
+      return rawJobs.map(job => ({
+        ...job,
+        pickup_location: toLocation(job.pickup_location) || { address: 'Unknown' },
+        delivery_location: job.delivery_location ? toLocation(job.delivery_location) : undefined,
+        driver: job.driver ? {
+          first_name: job.driver.first_name,
+          last_name: job.driver.last_name
+        } : undefined
+      })) as Job[];
     }
   });
 
@@ -43,7 +53,7 @@ export default function AIDispatch() {
     queryFn: async () => {
       const { data, error } = await supabase
         .from('profiles')
-        .select('*')
+        .select('id, first_name, last_name, status')
         .eq('role', 'driver')
         .eq('status', 'available');
         
@@ -89,10 +99,15 @@ export default function AIDispatch() {
       }
     } catch (error) {
       console.error('Error optimizing routes:', error);
+      toast({
+        variant: "destructive",
+        title: "Optimization Failed",
+        description: error instanceof Error ? error.message : "An error occurred",
+      });
     } finally {
       setIsOptimizing(false);
     }
-  }, [jobs, optimizeRoutesMutation]);
+  }, [jobs, optimizeRoutesMutation, toast]);
 
   return (
     <div className="container mx-auto p-6 space-y-6">
