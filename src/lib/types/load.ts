@@ -1,6 +1,5 @@
 
 import type { Database } from "@/integrations/supabase/types";
-import type { Json } from "@/integrations/supabase/types";
 
 export type LoadType = Database["public"]["Enums"]["load_type"];
 export type BidStatus = Database["public"]["Enums"]["bid_status"];
@@ -45,14 +44,13 @@ export interface Load {
   updated_at: string;
 }
 
-// Type guard functions
-export function isPriceRange(value: Json | null): value is PriceRange {
+export function isPriceRange(value: unknown): value is PriceRange {
   if (!value || typeof value !== 'object') return false;
   const range = value as Partial<PriceRange>;
   return typeof range.min === 'number' && typeof range.max === 'number';
 }
 
-export function isDimensions(value: Json | null): value is Dimensions {
+export function isDimensions(value: unknown): value is Dimensions {
   if (!value || typeof value !== 'object') return false;
   const dims = value as Partial<Dimensions>;
   return typeof dims.length === 'number' 
@@ -61,8 +59,7 @@ export function isDimensions(value: Json | null): value is Dimensions {
     && (dims.unit === 'ft' || dims.unit === 'm');
 }
 
-// Helper to convert database JSON to Location type
-export function parseLocation(locationJson: Json | null): Location {
+export function parseLocation(locationJson: unknown): Location {
   if (!locationJson || typeof locationJson !== 'object') {
     return { address: '', coordinates: [0, 0] };
   }
