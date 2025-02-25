@@ -1,12 +1,11 @@
-
 import { useState } from "react";
 import { Switch } from "@/components/ui/switch";
 import { Card, CardHeader, CardTitle, CardContent } from "@/components/ui/card";
-import { Button } from "@/components/ui/button";
 import { useToast } from "@/components/ui/use-toast";
 import { Shield, AlertTriangle } from "lucide-react";
 import { supabase } from "@/integrations/supabase/client";
 import { useAuth } from "@/components/auth/AuthProvider";
+import type { OrganizationRow } from "@/lib/types/billing";
 
 interface BillingExemptionManagerProps {
   organizationId: string;
@@ -31,15 +30,13 @@ export function BillingExemptionManager({
     try {
       const newStatus = !isExempt;
       
-      // Update organization billing exempt status
       const { error: updateError } = await supabase
         .from('organizations')
-        .update({ billing_exempt: newStatus })
+        .update({ billing_exempt: newStatus } as Partial<OrganizationRow>)
         .eq('id', organizationId);
       
       if (updateError) throw updateError;
 
-      // Log the action in admin audit logs
       const { error: logError } = await supabase
         .from('admin_audit_logs')
         .insert({

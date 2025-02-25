@@ -1,5 +1,5 @@
 import { supabase } from "@/integrations/supabase/client";
-import type { SubscriptionPlan, OrganizationType, VolumeDiscount } from "../../types/billing";
+import type { SubscriptionPlan, OrganizationType, OrganizationRow, VolumeDiscount } from "../../types/billing";
 
 export const fetchSubscriptionPlans = async (organizationType: OrganizationType): Promise<SubscriptionPlan[]> => {
   const { data: rawData, error } = await supabase
@@ -93,7 +93,7 @@ export const createCheckoutSession = async ({
     .from('organizations')
     .select('billing_exempt')
     .eq('id', organizationId)
-    .single();
+    .single() as { data: Pick<OrganizationRow, 'billing_exempt'> | null };
 
   // If organization is billing exempt, update their subscription directly
   if (org?.billing_exempt) {
@@ -104,11 +104,10 @@ export const createCheckoutSession = async ({
         subscription_status: 'active',
         subscription_tier: 'enterprise',
         trial_end: null
-      })
+      } as Partial<OrganizationRow>)
       .eq('id', organizationId);
 
     if (updateError) throw updateError;
-
     return { url: successUrl };
   }
 

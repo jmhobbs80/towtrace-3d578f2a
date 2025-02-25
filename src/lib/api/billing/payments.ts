@@ -1,5 +1,5 @@
 import { supabase } from "@/integrations/supabase/client";
-import type { Payment, PaymentMethod } from "../../types/billing";
+import type { Payment, PaymentMethod, OrganizationRow } from "../../types/billing";
 import type { Job } from "@/lib/types/job";
 
 export const createPayment = async (data: {
@@ -15,7 +15,7 @@ export const createPayment = async (data: {
     .from('organizations')
     .select('billing_exempt')
     .eq('id', data.organization_id)
-    .single();
+    .single() as { data: Pick<OrganizationRow, 'billing_exempt'> | null };
 
   // If organization is billing exempt, create a $0 processed payment
   if (org?.billing_exempt) {

@@ -4,6 +4,23 @@ export type PaymentMethod = Database["public"]["Enums"]["payment_method"];
 export type OrganizationType = Database["public"]["Enums"]["organization_type"];
 export type Json = Database["public"]["Tables"]["payments"]["Row"]["metadata"];
 
+export interface OrganizationRow {
+  id: string;
+  name: string;
+  billing_exempt?: boolean;
+  subscription_status?: string;
+  subscription_tier?: string;
+  billing_settings?: Json;
+  accounting_settings?: Json;
+  billing_details?: Json;
+  public_pricing_settings?: Json;
+  created_at?: string;
+  updated_at?: string;
+  member_count?: number;
+  vehicle_count?: number;
+  average_rating?: number;
+}
+
 export interface VolumeDiscount {
   threshold: number;
   discount_percentage: number;
