@@ -1,3 +1,4 @@
+
 import { useState } from "react";
 import { 
   Menu, X, Home, Truck, Users, FileText, Settings, LogOut, 
@@ -9,6 +10,7 @@ import { cn } from "@/lib/utils";
 import { useAuth } from "@/components/auth/AuthProvider";
 import { Logo } from "@/components/branding/Logo";
 import { OrganizationSwitcher } from "@/components/organization/OrganizationSwitcher";
+import { RoleSwitcher } from "@/components/auth/RoleSwitcher";
 import type { Database } from "@/integrations/supabase/types";
 
 type OrganizationType = Database['public']['Enums']['organization_type'];
@@ -127,8 +129,9 @@ export const Sidebar = () => {
           <Logo variant={isOpen ? "default" : "mobile"} size="md" />
         </div>
 
-        <div className="p-4">
+        <div className="p-4 space-y-4">
           <OrganizationSwitcher />
+          <RoleSwitcher />
         </div>
 
         <nav className="mt-4">

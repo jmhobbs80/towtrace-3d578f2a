@@ -6,17 +6,33 @@ export interface Location {
   coordinates?: [number, number];
 }
 
-type TowJobRow = Database["public"]["Tables"]["tow_jobs"]["Row"];
-
-export type Job = Omit<TowJobRow, 'pickup_location' | 'delivery_location'> & {
+export interface Job {
+  id: string;
+  pickup_location: Location;
+  delivery_location?: Location;
+  assigned_to?: string;
+  status: 'pending' | 'assigned' | 'en_route' | 'on_site' | 'completed' | 'cancelled';
+  description?: string;
   driver?: {
     first_name: string | null;
     last_name: string | null;
   };
-  assigned_to?: string;
-  pickup_location: Location;
-  delivery_location?: Location;
-};
+  charge_amount?: number;
+  completed_at?: string;
+  created_at: string;
+  customer_id?: string;
+  dispatcher_id?: string;
+  driver_id?: string;
+  driver_notes?: string;
+  eta?: number;
+  mileage?: number;
+  organization_id: string;
+  payment_status?: string;
+  photos?: string[];
+  scheduled_time?: string;
+  signature_url?: string;
+  vehicle_id?: string;
+}
 
 // Type guard to check if a value is a Location
 export function isLocation(value: unknown): value is Location {
