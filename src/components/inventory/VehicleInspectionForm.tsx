@@ -51,7 +51,8 @@ export function VehicleInspectionForm({ vehicleId, inspectionId, onComplete }: P
   });
 
   const createInspectionMutation = useMutation({
-    mutationFn: createInspection,
+    mutationFn: ({ vehicleId, type, assignmentId }: { vehicleId: string; type: 'pre_trip' | 'post_trip'; assignmentId?: string }) => 
+      createInspection(vehicleId, type, assignmentId),
     onSuccess: () => {
       toast({
         title: "Inspection Created",
@@ -61,7 +62,7 @@ export function VehicleInspectionForm({ vehicleId, inspectionId, onComplete }: P
   });
 
   const updateStatusMutation = useMutation({
-    mutationFn: updateInspectionStatus,
+    mutationFn: (params: UpdateInspectionStatusParams) => updateInspectionStatus(params),
     onSuccess: () => {
       toast({
         title: "Status Updated",

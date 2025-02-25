@@ -1,4 +1,3 @@
-
 import { supabase } from "@/integrations/supabase/client";
 import type { VehicleInTransit, FleetVehicle, Dealership, VehicleAssignment } from "../types/fleet";
 
@@ -28,7 +27,7 @@ export async function updateVehicleTransitStatus(
     .single();
 
   if (error) throw error;
-  return data;
+  return data as VehicleInTransit;
 }
 
 export async function getFleetVehicles(): Promise<FleetVehicle[]> {

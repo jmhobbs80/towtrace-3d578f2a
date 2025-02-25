@@ -1,3 +1,4 @@
+
 export interface FleetVehicle {
   id: string;
   organization_id: string;
@@ -60,3 +61,4 @@ export interface VehicleAssignment {
   created_at: string;
   updated_at: string;
 }
+
