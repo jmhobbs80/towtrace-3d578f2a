@@ -28,7 +28,7 @@ const getActionIcon = (actionType: string) => {
   return <UserCog className="w-4 h-4 text-muted-foreground" />;
 };
 
-export function AuditLog({ logs }: AuditLogProps) {
+export function AuditLog({ logs }: Readonly<AuditLogProps>) {
   const [expandedLogs, setExpandedLogs] = useState<Set<string>>(new Set());
 
   const toggleLog = (logId: string) => {
