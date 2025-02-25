@@ -4,9 +4,13 @@ import type { Vehicle, VehicleDetails, VehicleSearchFilters, VehicleStatus, Vehi
 import type { VehicleInspection } from "../types/inspection";
 import type { VehicleInTransit } from "../types/fleet";
 import type { VINScannerHardware } from "./scanner-types";
+import type { Database } from "@/integrations/supabase/types";
 
 // Re-export the VINScannerHardware type
 export type { VINScannerHardware };
+
+type Tables = Database['public']['Tables']
+type DamageReportRow = Tables['vehicle_damage_reports']['Row']
 
 export async function searchVehicles(filters: VehicleSearchFilters): Promise<Vehicle[]> {
   let query = supabase
@@ -60,7 +64,7 @@ export async function getVehicleDetails(vehicleId: string): Promise<VehicleDetai
   if (transitError) throw transitError;
 
   // Fetch damage reports
-  const { data: damageReports, error: damageError } = await supabase
+  const { data: damageReportsRaw, error: damageError } = await supabase
     .from('vehicle_damage_reports')
     .select('*')
     .eq('vehicle_id', vehicleId)
@@ -68,11 +72,25 @@ export async function getVehicleDetails(vehicleId: string): Promise<VehicleDetai
 
   if (damageError) throw damageError;
 
+  // Transform damage reports to match our interface
+  const damageReports = (damageReportsRaw || []).map((report: DamageReportRow): VehicleDamageReport => ({
+    id: report.id,
+    vehicle_id: report.vehicle_id,
+    inspector_id: report.inspector_id,
+    damage_locations: report.damage_locations,
+    severity: report.severity,
+    description: report.description || undefined,
+    repair_estimate: report.repair_estimate || undefined,
+    photos: report.photos || [],
+    created_at: report.created_at,
+    updated_at: report.updated_at
+  }));
+
   return {
     ...vehicle,
     inspections: inspections as VehicleInspection[],
     transitHistory: transitHistory as VehicleInTransit[],
-    damageReports: damageReports as VehicleDamageReport[]
+    damageReports
   };
 }
 
@@ -89,15 +107,37 @@ export async function updateVehicleStatus(
   if (error) throw error;
 }
 
-export async function createDamageReport(report: Omit<VehicleDamageReport, 'id' | 'created_at' | 'updated_at'>): Promise<VehicleDamageReport> {
-  const { data, error } = await supabase
+export async function createDamageReport(
+  report: Omit<VehicleDamageReport, 'id' | 'created_at' | 'updated_at'>
+): Promise<VehicleDamageReport> {
+  const { data: newReport, error } = await supabase
     .from('vehicle_damage_reports')
-    .insert(report)
+    .insert([{
+      vehicle_id: report.vehicle_id,
+      inspector_id: report.inspector_id,
+      damage_locations: report.damage_locations,
+      severity: report.severity,
+      description: report.description,
+      repair_estimate: report.repair_estimate,
+      photos: report.photos
+    }])
     .select()
     .single();
 
   if (error) throw error;
-  return data;
+
+  return {
+    id: newReport.id,
+    vehicle_id: newReport.vehicle_id,
+    inspector_id: newReport.inspector_id,
+    damage_locations: newReport.damage_locations,
+    severity: newReport.severity,
+    description: newReport.description || undefined,
+    repair_estimate: newReport.repair_estimate || undefined,
+    photos: newReport.photos || [],
+    created_at: newReport.created_at,
+    updated_at: newReport.updated_at
+  };
 }
 
 // VIN validation and scanning functionality
