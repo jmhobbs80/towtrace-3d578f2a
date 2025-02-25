@@ -16,6 +16,7 @@ import { useToast } from "@/components/ui/use-toast";
 import { supabase } from "@/integrations/supabase/client";
 import { createInvoiceFromPayment } from "@/lib/api/invoices";
 import type { PaymentMethod } from "@/lib/types/billing";
+import { toLocation } from "@/lib/types/job";
 
 interface PaymentFormProps {
   jobId: string;
@@ -54,13 +55,20 @@ export const PaymentForm = ({ jobId, organizationId, onSuccess }: PaymentFormPro
       if (paymentError) throw paymentError;
 
       // Fetch job details for invoice
-      const { data: job, error: jobError } = await supabase
+      const { data: jobData, error: jobError } = await supabase
         .from('tow_jobs')
         .select('*')
         .eq('id', jobId)
         .single();
 
       if (jobError) throw jobError;
+
+      // Convert the job data to match the Job type
+      const job = {
+        ...jobData,
+        pickup_location: toLocation(jobData.pickup_location),
+        delivery_location: toLocation(jobData.delivery_location),
+      };
 
       // Generate invoice
       await createInvoiceFromPayment(payment, job);
