@@ -1,4 +1,3 @@
-
 import { useEffect, useState } from "react";
 import { useQuery } from "@tanstack/react-query";
 import { supabase } from "@/integrations/supabase/client";
@@ -15,11 +14,11 @@ import {
 import { Badge } from "@/components/ui/badge";
 import { useToast } from "@/components/ui/use-toast";
 import { format } from "date-fns";
-import { MapPin, Calendar, Package } from "lucide-react";
+import { MapPin, Calendar, Package, Route } from "lucide-react";
 import type { Load, Dimensions, PriceRange } from "@/lib/types/load";
 import { CreateLoadDialog } from "@/components/transport/CreateLoadDialog";
+import { Map } from "@/components/map/Map";
 
-// Type guard functions
 function isDimensions(value: unknown): value is Dimensions {
   if (!value || typeof value !== 'object') return false;
   const dims = value as Partial<Dimensions>;
@@ -42,6 +41,8 @@ function isStringArray(value: unknown): value is string[] {
 export default function LoadBoard() {
   const { toast } = useToast();
   const [isCreateDialogOpen, setIsCreateDialogOpen] = useState(false);
+  const [selectedLoad, setSelectedLoad] = useState<Load | null>(null);
+  const [isOptimizing, setIsOptimizing] = useState(false);
 
   const { data: loads, isLoading } = useQuery({
     queryKey: ["loads"],
@@ -60,7 +61,6 @@ export default function LoadBoard() {
         throw error;
       }
 
-      // Transform the data to match our Load type
       const transformedData: Load[] = data.map((load) => ({
         ...load,
         pickup_location: load.pickup_location as { address: string },
@@ -78,7 +78,6 @@ export default function LoadBoard() {
     },
   });
 
-  // Set up real-time updates
   useEffect(() => {
     const channel = supabase
       .channel("loads-updates")
@@ -100,6 +99,39 @@ export default function LoadBoard() {
     };
   }, []);
 
+  const handleOptimizeRoute = async (load: Load) => {
+    setIsOptimizing(true);
+    try {
+      const { data, error } = await supabase.functions.invoke('optimize-route', {
+        body: {
+          pickupLocation: load.pickup_location,
+          deliveryLocation: load.delivery_location,
+          constraints: {
+            maxDrivingHours: 11, // DOT regulations
+            avoidHighways: false,
+          }
+        }
+      });
+
+      if (error) throw error;
+
+      toast({
+        title: "Route Optimized",
+        description: `Estimated delivery time: ${format(new Date(data.route.stops[1].estimatedArrival), "PPp")}`,
+      });
+
+      setSelectedLoad(load);
+    } catch (error) {
+      toast({
+        variant: "destructive",
+        title: "Route optimization failed",
+        description: error.message,
+      });
+    } finally {
+      setIsOptimizing(false);
+    }
+  };
+
   if (isLoading) {
     return <div className="text-center py-4">Loading loads...</div>;
   }
@@ -108,11 +140,24 @@ export default function LoadBoard() {
     <div className="flex h-screen bg-gray-100">
       <Sidebar />
       <main className="flex-1 p-8 ml-64">
-        <div className="max-w-7xl mx-auto">
-          <div className="flex justify-between items-center mb-6">
+        <div className="max-w-7xl mx-auto space-y-6">
+          <div className="flex justify-between items-center">
             <h1 className="text-2xl font-semibold text-gray-900">Load Board</h1>
             <Button onClick={() => setIsCreateDialogOpen(true)}>Post Load</Button>
           </div>
+
+          {selectedLoad && (
+            <div className="bg-white rounded-lg shadow p-4">
+              <h2 className="text-lg font-medium mb-4">Route Visualization</h2>
+              <Map
+                initialCenter={[
+                  selectedLoad.pickup_location.coordinates?.[0] || -95.7129,
+                  selectedLoad.pickup_location.coordinates?.[1] || 37.0902
+                ]}
+                initialZoom={6}
+              />
+            </div>
+          )}
 
           <div className="bg-white rounded-lg shadow overflow-hidden">
             <Table>
@@ -191,9 +236,20 @@ export default function LoadBoard() {
                       </Badge>
                     </TableCell>
                     <TableCell>
-                      <Button variant="outline" size="sm">
-                        View Details
-                      </Button>
+                      <div className="flex gap-2">
+                        <Button variant="outline" size="sm">
+                          View Details
+                        </Button>
+                        <Button
+                          variant="secondary"
+                          size="sm"
+                          onClick={() => handleOptimizeRoute(load)}
+                          disabled={isOptimizing}
+                        >
+                          <Route className="w-4 h-4 mr-1" />
+                          Optimize Route
+                        </Button>
+                      </div>
                     </TableCell>
                   </TableRow>
                 ))}
