@@ -1,3 +1,4 @@
+
 import { useState } from "react";
 import { Switch } from "@/components/ui/switch";
 import { Card, CardHeader, CardTitle, CardContent } from "@/components/ui/card";
@@ -8,9 +9,9 @@ import { useAuth } from "@/components/auth/AuthProvider";
 import type { OrganizationRow } from "@/lib/types/billing";
 
 interface BillingExemptionManagerProps {
-  organizationId: string;
-  initialExemptStatus: boolean;
-  organizationName: string;
+  readonly organizationId: string;
+  readonly initialExemptStatus: boolean;
+  readonly organizationName: string;
 }
 
 export function BillingExemptionManager({ 
