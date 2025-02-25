@@ -407,6 +407,48 @@ export type Database = {
           },
         ]
       }
+      organization_addons: {
+        Row: {
+          addon_id: string | null
+          created_at: string | null
+          id: string
+          organization_id: string | null
+          status: string | null
+          updated_at: string | null
+        }
+        Insert: {
+          addon_id?: string | null
+          created_at?: string | null
+          id?: string
+          organization_id?: string | null
+          status?: string | null
+          updated_at?: string | null
+        }
+        Update: {
+          addon_id?: string | null
+          created_at?: string | null
+          id?: string
+          organization_id?: string | null
+          status?: string | null
+          updated_at?: string | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "organization_addons_addon_id_fkey"
+            columns: ["addon_id"]
+            isOneToOne: false
+            referencedRelation: "subscription_addons"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "organization_addons_organization_id_fkey"
+            columns: ["organization_id"]
+            isOneToOne: false
+            referencedRelation: "organizations"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       organization_members: {
         Row: {
           created_at: string
@@ -459,6 +501,7 @@ export type Database = {
           subscription_status: string
           subscription_tier: string
           trial_end: string | null
+          type: Database["public"]["Enums"]["organization_type"] | null
           updated_at: string
         }
         Insert: {
@@ -477,6 +520,7 @@ export type Database = {
           subscription_status?: string
           subscription_tier?: string
           trial_end?: string | null
+          type?: Database["public"]["Enums"]["organization_type"] | null
           updated_at?: string
         }
         Update: {
@@ -495,6 +539,7 @@ export type Database = {
           subscription_status?: string
           subscription_tier?: string
           trial_end?: string | null
+          type?: Database["public"]["Enums"]["organization_type"] | null
           updated_at?: string
         }
         Relationships: []
@@ -640,13 +685,12 @@ export type Database = {
         }
         Relationships: []
       }
-      subscription_plans: {
+      subscription_addons: {
         Row: {
           created_at: string | null
           description: string | null
           features: Json | null
           id: string
-          interval: string
           is_active: boolean | null
           limits: Json | null
           name: string
@@ -657,8 +701,7 @@ export type Database = {
           created_at?: string | null
           description?: string | null
           features?: Json | null
-          id: string
-          interval: string
+          id?: string
           is_active?: boolean | null
           limits?: Json | null
           name: string
@@ -670,12 +713,74 @@ export type Database = {
           description?: string | null
           features?: Json | null
           id?: string
-          interval?: string
           is_active?: boolean | null
           limits?: Json | null
           name?: string
           price?: number
           updated_at?: string | null
+        }
+        Relationships: []
+      }
+      subscription_plans: {
+        Row: {
+          base_price: number
+          created_at: string | null
+          description: string | null
+          features: Json | null
+          id: string
+          interval: string
+          is_active: boolean | null
+          limits: Json | null
+          name: string
+          organization_type:
+            | Database["public"]["Enums"]["organization_type"]
+            | null
+          per_user_price: number | null
+          per_vehicle_price: number | null
+          price: number
+          tier: string | null
+          updated_at: string | null
+          volume_discount: Json | null
+        }
+        Insert: {
+          base_price?: number
+          created_at?: string | null
+          description?: string | null
+          features?: Json | null
+          id: string
+          interval: string
+          is_active?: boolean | null
+          limits?: Json | null
+          name: string
+          organization_type?:
+            | Database["public"]["Enums"]["organization_type"]
+            | null
+          per_user_price?: number | null
+          per_vehicle_price?: number | null
+          price: number
+          tier?: string | null
+          updated_at?: string | null
+          volume_discount?: Json | null
+        }
+        Update: {
+          base_price?: number
+          created_at?: string | null
+          description?: string | null
+          features?: Json | null
+          id?: string
+          interval?: string
+          is_active?: boolean | null
+          limits?: Json | null
+          name?: string
+          organization_type?:
+            | Database["public"]["Enums"]["organization_type"]
+            | null
+          per_user_price?: number | null
+          per_vehicle_price?: number | null
+          price?: number
+          tier?: string | null
+          updated_at?: string | null
+          volume_discount?: Json | null
         }
         Relationships: []
       }
@@ -687,8 +792,10 @@ export type Database = {
           organization_id: string | null
           period_end: string
           period_start: string
+          pricing_tier: string | null
           updated_at: string | null
           usage_count: number | null
+          usage_type: string
         }
         Insert: {
           created_at?: string | null
@@ -697,8 +804,10 @@ export type Database = {
           organization_id?: string | null
           period_end: string
           period_start: string
+          pricing_tier?: string | null
           updated_at?: string | null
           usage_count?: number | null
+          usage_type?: string
         }
         Update: {
           created_at?: string | null
@@ -707,8 +816,10 @@ export type Database = {
           organization_id?: string | null
           period_end?: string
           period_start?: string
+          pricing_tier?: string | null
           updated_at?: string | null
           usage_count?: number | null
+          usage_type?: string
         }
         Relationships: [
           {
@@ -1122,6 +1233,7 @@ export type Database = {
         | "on_site"
         | "completed"
         | "cancelled"
+      organization_type: "dealer" | "wholesaler" | "transporter" | "hybrid"
       payment_method:
         | "cash"
         | "credit_card"

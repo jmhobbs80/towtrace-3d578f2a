@@ -8,15 +8,18 @@ import { useState } from "react";
 import { useQuery } from "@tanstack/react-query";
 import { fetchSubscriptionPlans } from "@/lib/api/billing";
 import { format } from "date-fns";
+import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
+import type { OrganizationType } from "@/lib/types/billing";
 
 export default function BillingDashboard() {
   const { organization } = useAuth();
   const navigate = useNavigate();
   const [isLoading, setIsLoading] = useState(false);
+  const [selectedType, setSelectedType] = useState<OrganizationType>('dealer');
 
   const { data: plans } = useQuery({
-    queryKey: ['subscription-plans'],
-    queryFn: fetchSubscriptionPlans
+    queryKey: ['subscription-plans', selectedType],
+    queryFn: () => fetchSubscriptionPlans(selectedType)
   });
 
   const handleUpgrade = async (planId: string) => {
@@ -39,6 +42,16 @@ export default function BillingDashboard() {
     } finally {
       setIsLoading(false);
     }
+  };
+
+  const calculatePrice = (plan: typeof plans[0]) => {
+    if (!plan) return 0;
+    const userCount = organization?.member_count || 1;
+    const vehicleCount = organization?.vehicle_count || 0;
+    
+    return plan.base_price + 
+           (plan.per_user_price * userCount) + 
+           (plan.per_vehicle_price * vehicleCount);
   };
 
   return (
@@ -64,13 +77,38 @@ export default function BillingDashboard() {
         </CardContent>
       </Card>
 
+      {/* Plan Type Selector */}
+      <Tabs defaultValue={selectedType} className="mb-8" onValueChange={(value) => setSelectedType(value as OrganizationType)}>
+        <TabsList>
+          <TabsTrigger value="dealer">Dealer</TabsTrigger>
+          <TabsTrigger value="wholesaler">Wholesaler</TabsTrigger>
+          <TabsTrigger value="transporter">Transporter</TabsTrigger>
+          <TabsTrigger value="hybrid">Hybrid</TabsTrigger>
+        </TabsList>
+      </Tabs>
+
       {/* Available Plans */}
       <div className="grid gap-6 md:grid-cols-3">
         {plans?.map((plan) => (
-          <Card key={plan.id}>
+          <Card key={plan.id} className="relative">
+            {plan.tier === 'pro' && (
+              <div className="absolute top-0 right-0 bg-primary text-primary-foreground px-3 py-1 rounded-bl text-sm">
+                Popular
+              </div>
+            )}
             <CardHeader>
               <CardTitle>{plan.name}</CardTitle>
-              <CardDescription>${plan.price}/{plan.interval}</CardDescription>
+              <CardDescription>
+                <div className="flex items-baseline gap-1">
+                  <span className="text-2xl font-bold">${calculatePrice(plan)}</span>
+                  <span className="text-sm">/{plan.interval}</span>
+                </div>
+                <p className="text-sm mt-2">
+                  Base price: ${plan.base_price}/{plan.interval}
+                  {plan.per_user_price > 0 && <> + ${plan.per_user_price}/user</>}
+                  {plan.per_vehicle_price > 0 && <> + ${plan.per_vehicle_price}/vehicle</>}
+                </p>
+              </CardDescription>
             </CardHeader>
             <CardContent>
               <ul className="space-y-2 mb-6">
