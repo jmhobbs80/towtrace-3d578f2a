@@ -9,6 +9,44 @@ export type Json =
 export type Database = {
   public: {
     Tables: {
+      customer_access_tokens: {
+        Row: {
+          created_at: string | null
+          email: string
+          expires_at: string
+          id: string
+          impound_id: string | null
+          last_accessed_at: string | null
+          token: string
+        }
+        Insert: {
+          created_at?: string | null
+          email: string
+          expires_at: string
+          id?: string
+          impound_id?: string | null
+          last_accessed_at?: string | null
+          token: string
+        }
+        Update: {
+          created_at?: string | null
+          email?: string
+          expires_at?: string
+          id?: string
+          impound_id?: string | null
+          last_accessed_at?: string | null
+          token?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "customer_access_tokens_impound_id_fkey"
+            columns: ["impound_id"]
+            isOneToOne: false
+            referencedRelation: "impounded_vehicles"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       dealerships: {
         Row: {
           address: Json
@@ -235,6 +273,44 @@ export type Database = {
           },
           {
             foreignKeyName: "impound_notifications_organization_id_fkey"
+            columns: ["organization_id"]
+            isOneToOne: false
+            referencedRelation: "organizations"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      impound_reports: {
+        Row: {
+          created_at: string | null
+          created_by: string | null
+          date_range: unknown
+          id: string
+          metrics: Json
+          organization_id: string | null
+          report_type: string
+        }
+        Insert: {
+          created_at?: string | null
+          created_by?: string | null
+          date_range: unknown
+          id?: string
+          metrics?: Json
+          organization_id?: string | null
+          report_type: string
+        }
+        Update: {
+          created_at?: string | null
+          created_by?: string | null
+          date_range?: unknown
+          id?: string
+          metrics?: Json
+          organization_id?: string | null
+          report_type?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "impound_reports_organization_id_fkey"
             columns: ["organization_id"]
             isOneToOne: false
             referencedRelation: "organizations"
@@ -908,6 +984,50 @@ export type Database = {
           user_id?: string
         }
         Relationships: []
+      }
+      release_checklist_items: {
+        Row: {
+          completed_at: string | null
+          completed_by: string | null
+          created_at: string | null
+          id: string
+          impound_id: string | null
+          item_type: string
+          notes: string | null
+          required: boolean | null
+          status: string
+        }
+        Insert: {
+          completed_at?: string | null
+          completed_by?: string | null
+          created_at?: string | null
+          id?: string
+          impound_id?: string | null
+          item_type: string
+          notes?: string | null
+          required?: boolean | null
+          status?: string
+        }
+        Update: {
+          completed_at?: string | null
+          completed_by?: string | null
+          created_at?: string | null
+          id?: string
+          impound_id?: string | null
+          item_type?: string
+          notes?: string | null
+          required?: boolean | null
+          status?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "release_checklist_items_impound_id_fkey"
+            columns: ["impound_id"]
+            isOneToOne: false
+            referencedRelation: "impounded_vehicles"
+            referencedColumns: ["id"]
+          },
+        ]
       }
       repair_facilities: {
         Row: {
@@ -1673,6 +1793,22 @@ export type Database = {
           vehicle_id: string
         }
       }
+      generate_customer_access_token: {
+        Args: {
+          _impound_id: string
+          _email: string
+          _expires_in?: unknown
+        }
+        Returns: string
+      }
+      generate_impound_metrics: {
+        Args: {
+          _organization_id: string
+          _start_date: string
+          _end_date: string
+        }
+        Returns: Json
+      }
       get_user_organizations: {
         Args: Record<PropertyKey, never>
         Returns: string[]
@@ -1718,6 +1854,15 @@ export type Database = {
           org_id: string
         }
         Returns: boolean
+      }
+      validate_customer_access_token: {
+        Args: {
+          _token: string
+        }
+        Returns: {
+          is_valid: boolean
+          impound_id: string
+        }[]
       }
     }
     Enums: {

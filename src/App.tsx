@@ -19,6 +19,7 @@ import ProfileSettings from './pages/profile/ProfileSettings';
 import RepairDashboard from './pages/repairs/RepairDashboard';
 import RepairFacilityManagement from './pages/repairs/RepairFacilityManagement';
 import CreateRepairOrder from './pages/repairs/CreateRepairOrder';
+import CustomerPortal from './pages/impound/customer/CustomerPortal';
 
 function App() {
   return (
@@ -26,6 +27,7 @@ function App() {
       <AuthProvider>
         <Routes>
           <Route path="/auth" element={<AuthPage />} />
+          <Route path="/impound/customer" element={<CustomerPortal />} />
           <Route
             path="/"
             element={
