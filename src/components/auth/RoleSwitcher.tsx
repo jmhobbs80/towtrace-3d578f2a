@@ -41,7 +41,10 @@ export function RoleSwitcher() {
         if (roles) {
           const validRoles = roles
             .map(r => r.role)
-            .filter((role): role is UserRole => VALID_ROLES.includes(role as UserRole));
+            .filter((role): role is UserRole => {
+              const validRole = VALID_ROLES.includes(role as UserRole);
+              return validRole;
+            });
           setAvailableRoles(validRoles);
         }
       } catch (error) {
