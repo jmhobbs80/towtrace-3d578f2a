@@ -318,12 +318,12 @@ export function SignInForm() {
                 onChange={(e) => setTotpCode(e.target.value)}
                 placeholder="Enter 6-digit code"
                 maxLength={6}
-                className="text-center tracking-widest text-lg"
+                className="text-center tracking-widest text-lg border-[#E5DEFF] focus:border-[#9b87f5] hover:border-[#9b87f5]"
               />
             </div>
             <Button
               onClick={verifyTwoFactor}
-              className="w-full bg-[#9b87f5] hover:bg-[#7E69AB] transition-colors"
+              className="w-full bg-[#9b87f5] hover:bg-[#7E69AB] text-white transition-colors"
             >
               Verify and Enable 2FA
             </Button>
@@ -368,6 +368,7 @@ export function SignInForm() {
                   type="button"
                   onClick={() => setShowPassword(!showPassword)}
                   className="absolute right-3 top-2.5 text-[#7E69AB] hover:text-[#9b87f5] focus:outline-none"
+                  aria-label={showPassword ? "Hide password" : "Show password"}
                 >
                   {showPassword ? (
                     <EyeOffIcon className="h-5 w-5" />
@@ -395,7 +396,7 @@ export function SignInForm() {
 
             <Button
               type="submit"
-              className="w-full h-12 text-base font-medium bg-[#9b87f5] hover:bg-[#7E69AB] transition-colors rounded-lg shadow-md"
+              className="w-full h-12 text-base font-medium bg-[#9b87f5] hover:bg-[#7E69AB] text-white transition-colors rounded-lg shadow-md disabled:opacity-50 disabled:cursor-not-allowed"
               disabled={loading}
             >
               {loading ? "Signing in..." : "Sign In"}
@@ -412,7 +413,7 @@ export function SignInForm() {
                   Forgot password?
                 </Button>
               </AlertDialogTrigger>
-              <AlertDialogContent className="sm:max-w-md w-[95vw] mx-auto rounded-xl border-[#E5DEFF] p-6">
+              <AlertDialogContent className="sm:max-w-md w-[95vw] mx-auto rounded-xl border-[#E5DEFF] p-6 bg-white shadow-xl">
                 <AlertDialogHeader>
                   <AlertDialogTitle className="text-[#1A1F2C] text-xl">Reset Password</AlertDialogTitle>
                   <AlertDialogDescription className="text-[#7E69AB]">
@@ -459,7 +460,7 @@ export function SignInForm() {
                       <Button 
                         type="submit" 
                         disabled={isResetting} 
-                        className="sm:ml-2 w-full sm:w-auto bg-[#9b87f5] hover:bg-[#7E69AB] transition-colors"
+                        className="sm:ml-2 w-full sm:w-auto bg-[#9b87f5] hover:bg-[#7E69AB] text-white transition-colors"
                       >
                         {isResetting ? "Sending..." : "Send Reset Link"}
                       </Button>
