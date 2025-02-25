@@ -1,4 +1,3 @@
-
 import { useState, useEffect } from "react";
 import { useQuery } from "@tanstack/react-query";
 import { useAuth } from "@/components/auth/AuthProvider";
@@ -42,7 +41,6 @@ export default function DealerTrades() {
   const { toast } = useToast();
   const [selectedVehicle, setSelectedVehicle] = useState<string | null>(null);
 
-  // Move auth check to a query to prevent race conditions
   const { data: dealerRole } = useQuery({
     queryKey: ['dealer-role', organization?.id, user?.id],
     queryFn: async () => {
@@ -58,13 +56,8 @@ export default function DealerTrades() {
       if (error) throw error;
       return data;
     },
-    onError: () => {
-      toast({
-        variant: "destructive",
-        title: "Access Denied",
-        description: "You must be a dealer to access this page."
-      });
-      navigate("/");
+    meta: {
+      errorMessage: "Access Denied. You must be a dealer to access this page."
     }
   });
 
@@ -74,7 +67,7 @@ export default function DealerTrades() {
     }
   }, [user, navigate]);
 
-  const { data: trades, isLoading } = useQuery({
+  const { data: trades = [], isLoading } = useQuery({
     queryKey: ['dealer-trades', organization?.id],
     queryFn: async () => {
       if (!organization?.id) return [];
@@ -101,16 +94,12 @@ export default function DealerTrades() {
       return data as Trade[];
     },
     enabled: !!organization?.id && !!dealerRole,
-    onError: () => {
-      toast({
-        variant: "destructive",
-        title: "Error",
-        description: "Failed to fetch trades. Please try again later."
-      });
+    meta: {
+      errorMessage: "Failed to fetch trades. Please try again later."
     }
   });
 
-  const { data: availableVehicles } = useQuery({
+  const { data: availableVehicles = [] } = useQuery({
     queryKey: ['available-vehicles', organization?.id],
     queryFn: async () => {
       if (!organization?.id) return [];
@@ -126,12 +115,8 @@ export default function DealerTrades() {
       return data;
     },
     enabled: !!organization?.id && !!dealerRole,
-    onError: () => {
-      toast({
-        variant: "destructive",
-        title: "Error",
-        description: "Failed to fetch available vehicles. Please try again later."
-      });
+    meta: {
+      errorMessage: "Failed to fetch available vehicles. Please try again later."
     }
   });
 

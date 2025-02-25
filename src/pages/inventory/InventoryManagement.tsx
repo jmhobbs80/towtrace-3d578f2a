@@ -22,13 +22,8 @@ const InventoryManagement = () => {
   const { data: locations = [] } = useQuery<InventoryLocation[]>({
     queryKey: ['locations'],
     queryFn: getLocations,
-    onError: (error) => {
-      console.error('Failed to fetch locations:', error);
-      toast({
-        variant: "destructive",
-        title: "Error",
-        description: "Failed to load locations. Please try again."
-      });
+    meta: {
+      errorMessage: "Failed to load locations. Please try again."
     }
   });
 
@@ -40,13 +35,8 @@ const InventoryManagement = () => {
     queryKey: ['inventory', selectedLocationId],
     queryFn: () => getInventoryVehicles(selectedLocationId),
     enabled: !!organization?.id,
-    onError: (error) => {
-      console.error('Failed to fetch vehicles:', error);
-      toast({
-        variant: "destructive",
-        title: "Error",
-        description: "Failed to load inventory. Please try again."
-      });
+    meta: {
+      errorMessage: "Failed to load inventory. Please try again."
     }
   });
 

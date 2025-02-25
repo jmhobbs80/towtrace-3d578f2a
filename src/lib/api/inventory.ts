@@ -26,13 +26,16 @@ export async function createLocation(location: Pick<InventoryLocation, 'name' | 
     throw new Error('Organization ID is required');
   }
 
+  // Ensure name is a string before trimming
+  const sanitizedLocation = {
+    ...location,
+    name: String(location.name).trim(),
+    address: typeof location.address === 'string' ? location.address.trim() : location.address
+  };
+
   const { data, error } = await supabase
     .from('inventory_locations')
-    .insert({
-      ...location,
-      name: location.name.trim(),
-      address: location.address.trim(),
-    })
+    .insert(sanitizedLocation)
     .select('id, name, address, capacity, created_at, updated_at, organization_id')
     .single();
   
