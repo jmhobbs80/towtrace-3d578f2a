@@ -1,4 +1,3 @@
-
 import type { Database } from "@/integrations/supabase/types";
 
 export type PaymentMethod = Database["public"]["Enums"]["payment_method"];

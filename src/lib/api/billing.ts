@@ -1,5 +1,6 @@
 import { supabase } from "@/integrations/supabase/client";
-import type { Payment, PaymentMethod, SubscriptionPlan, OrganizationType, RoleFeature, OrganizationRole, VolumeDiscount, ProviderBalance, ProviderPayout, JobEarnings } from "../types/billing";
+import type { Payment, PaymentMethod, SubscriptionPlan, OrganizationType, RoleFeature, OrganizationRole, VolumeDiscount, ProviderBalance, ProviderPayout, JobEarnings, Invoice } from "../types/billing";
+import type { Job } from "@/lib/types/job";
 
 export const createPayment = async (data: {
   job_id: string;
@@ -16,6 +17,21 @@ export const createPayment = async (data: {
     .single();
 
   if (error) throw error;
+
+  // After creating payment, sync with QuickBooks
+  try {
+    await supabase.functions.invoke('quickbooks-sync', {
+      body: {
+        organization_id: data.organization_id,
+        entity_type: 'payment',
+        entity_id: payment.id
+      }
+    });
+  } catch (syncError) {
+    console.error('Error syncing payment to QuickBooks:', syncError);
+    // Continue anyway - the sync will be retried automatically
+  }
+
   return payment;
 };
 
@@ -241,4 +257,89 @@ export const requestPayout = async (data: {
     ...payout,
     status: payout.status as ProviderPayout['status']
   };
+};
+
+export const createInvoiceFromPayment = async (payment: Payment, job: Job) => {
+  const invoiceNumber = `INV-${Date.now()}-${job.id.slice(0, 4)}`;
+  
+  const invoiceItems = [{
+    description: `Towing Service - ${job.service_type}`,
+    amount: payment.amount,
+    quantity: 1
+  }];
+
+  try {
+    const { data: invoice, error } = await supabase
+      .from('invoices')
+      .insert({
+        invoice_number: invoiceNumber,
+        organization_id: payment.organization_id,
+        customer_id: job.customer_id,
+        total_amount: payment.amount,
+        items: invoiceItems,
+        status: payment.status === 'processed' ? 'paid' : 'pending',
+        paid_date: payment.status === 'processed' ? payment.processed_at : null
+      })
+      .select()
+      .single();
+
+    if (error) throw error;
+
+    // After creating invoice, sync with QuickBooks
+    try {
+      await supabase.functions.invoke('quickbooks-sync', {
+        body: {
+          organization_id: payment.organization_id,
+          entity_type: 'invoice',
+          entity_id: invoice.id
+        }
+      });
+    } catch (syncError) {
+      console.error('Error syncing invoice to QuickBooks:', syncError);
+      // Continue anyway - the sync will be retried automatically
+    }
+
+    return invoice;
+  } catch (error) {
+    console.error('Error creating invoice:', error);
+    throw error;
+  }
+};
+
+// New QuickBooks specific functions
+export const initiateQuickBooksConnect = async () => {
+  try {
+    const { data, error } = await supabase.functions.invoke('quickbooks-oauth', {
+      body: { path: 'authorize' }
+    });
+
+    if (error) throw error;
+    
+    // Redirect to QuickBooks authorization page
+    window.location.href = data.url;
+  } catch (error) {
+    console.error('Error initiating QuickBooks connection:', error);
+    throw error;
+  }
+};
+
+export const handleQuickBooksCallback = async (code: string, realmId: string, organizationId: string) => {
+  try {
+    const { data, error } = await supabase.functions.invoke('quickbooks-oauth', {
+      body: { 
+        path: 'callback',
+        code,
+        realmId
+      },
+      headers: {
+        'organization-id': organizationId
+      }
+    });
+
+    if (error) throw error;
+    return data;
+  } catch (error) {
+    console.error('Error handling QuickBooks callback:', error);
+    throw error;
+  }
 };
