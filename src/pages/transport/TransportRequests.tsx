@@ -6,6 +6,7 @@ import { Plus } from "lucide-react";
 import { LoadTable } from "@/components/transport/LoadTable";
 import { useAuth } from "@/components/auth/AuthProvider";
 import { supabase } from "@/integrations/supabase/client";
+import type { Load } from "@/lib/types/load";
 
 export default function TransportRequests() {
   const { organization } = useAuth();
@@ -21,12 +22,23 @@ export default function TransportRequests() {
         .order('created_at', { ascending: false });
 
       if (error) throw error;
-      return data;
+
+      return data.map((load): Load => ({
+        ...load,
+        pickup_location: {
+          address: load.pickup_location.address,
+          coordinates: load.pickup_location.coordinates
+        },
+        delivery_location: {
+          address: load.delivery_location.address,
+          coordinates: load.delivery_location.coordinates
+        }
+      }));
     },
     enabled: !!organization?.id,
   });
 
-  const handleOptimize = async (load: any) => {
+  const handleOptimize = async (load: Load) => {
     setIsOptimizing(true);
     try {
       // Implement route optimization logic here

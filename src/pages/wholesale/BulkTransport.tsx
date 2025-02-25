@@ -2,10 +2,11 @@
 import { useState } from "react";
 import { useQuery } from "@tanstack/react-query";
 import { Button } from "@/components/ui/button";
-import { Plus, Truck } from "lucide-react";
+import { Plus } from "lucide-react";
 import { useAuth } from "@/components/auth/AuthProvider";
 import { LoadTable } from "@/components/transport/LoadTable";
 import { supabase } from "@/integrations/supabase/client";
+import type { Load } from "@/lib/types/load";
 
 export default function BulkTransport() {
   const { organization } = useAuth();
@@ -18,16 +19,27 @@ export default function BulkTransport() {
         .from('loads')
         .select('*')
         .eq('organization_id', organization?.id)
-        .eq('load_type', 'bulk')
+        .eq('load_type', 'vehicle')
         .order('created_at', { ascending: false });
 
       if (error) throw error;
-      return data;
+
+      return data.map((load): Load => ({
+        ...load,
+        pickup_location: {
+          address: load.pickup_location.address,
+          coordinates: load.pickup_location.coordinates
+        },
+        delivery_location: {
+          address: load.delivery_location.address,
+          coordinates: load.delivery_location.coordinates
+        }
+      }));
     },
     enabled: !!organization?.id,
   });
 
-  const handleOptimize = async (load: any) => {
+  const handleOptimize = async (load: Load) => {
     setIsOptimizing(true);
     try {
       // Implement route optimization logic here
