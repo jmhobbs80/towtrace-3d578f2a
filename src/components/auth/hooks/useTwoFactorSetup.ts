@@ -89,7 +89,7 @@ export function useTwoFactorSetup({
     }
 
     try {
-      const { data, error } = await supabase.auth.mfa.unenroll({ factorId: '' });
+      const { error } = await supabase.auth.mfa.unenroll({ factorId: '' });
       if (error) throw error;
 
       await supabase.from('profiles')
