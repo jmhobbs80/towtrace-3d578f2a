@@ -23,6 +23,11 @@ interface ImpoundDetails {
   };
 }
 
+interface TokenValidation {
+  is_valid: boolean;
+  impound_id: string;
+}
+
 export default function CustomerPortal() {
   const [searchParams] = useSearchParams();
   const token = searchParams.get('token');
@@ -38,7 +43,7 @@ export default function CustomerPortal() {
         const { data: validation, error: validationError } = await supabase
           .rpc('validate_customer_access_token', {
             _token: token
-          });
+          }) as { data: TokenValidation | null, error: any };
 
         if (validationError) throw validationError;
         if (!validation?.is_valid) {
