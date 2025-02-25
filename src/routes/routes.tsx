@@ -14,12 +14,13 @@ import { analyticsRoutes } from "./analytics-routes";
 import { legalRoutes } from "./legal-routes";
 import NotFound from "@/pages/NotFound";
 import Dashboard from "@/pages/dashboard/Dashboard";
+import { UserRole } from "@/lib/types/auth";
 
 const protectedRoutes = [
   {
     path: "/",
     element: <Dashboard />,
-    allowedRoles: ["admin", "dealer", "fleet_manager", "dispatcher", "wholesaler"]
+    allowedRoles: ["admin", "dealer", "dispatcher", "wholesaler"] as UserRole[]
   },
   ...adminRoutes,
   ...dealerRoutes,
