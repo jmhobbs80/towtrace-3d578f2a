@@ -1,9 +1,8 @@
 
-import { ImageProps } from "next/image";
 import { forwardRef } from "react";
 import { cn } from "@/lib/utils";
 
-interface LocalImageProps extends Omit<ImageProps, "src"> {
+interface LocalImageProps extends React.ImgHTMLAttributes<HTMLImageElement> {
   src: string;
 }
 
