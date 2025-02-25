@@ -1,4 +1,3 @@
-
 import { BluetoothVINScanner } from './scanners/bluetooth-scanner';
 import { WebcamVINScanner } from './scanners/webcam-scanner';
 import { supabase } from "@/integrations/supabase/client";
@@ -75,21 +74,40 @@ export async function getVehicles(organizationId: string) {
 }
 
 export async function getVehicleDetails(vehicleId: string) {
-  const { data, error } = await supabase
+  // First get the vehicle details with basic related data
+  const { data: vehicleData, error: vehicleError } = await supabase
     .from('inventory_vehicles')
     .select(`
       *,
-      location:inventory_locations(name, address),
-      condition_logs:vehicle_condition_logs(*),
-      damage_reports:vehicle_damage_reports(*),
-      inspections:vehicle_inspections(*),
-      transit_history:vehicles_in_transit(*)
+      location:inventory_locations(name, address)
     `)
     .eq('id', vehicleId)
     .single();
 
-  if (error) throw error;
-  return data;
+  if (vehicleError) throw vehicleError;
+
+  // Get damage reports separately
+  const { data: damageReports, error: damageError } = await supabase
+    .from('vehicle_damage_reports')
+    .select('*')
+    .eq('vehicle_id', vehicleId);
+
+  if (damageError) throw damageError;
+
+  // Get transit history separately
+  const { data: transitHistory, error: transitError } = await supabase
+    .from('vehicles_in_transit')
+    .select('*')
+    .eq('vehicle_id', vehicleId);
+
+  if (transitError) throw transitError;
+
+  // Combine all data
+  return {
+    ...vehicleData,
+    damage_reports: damageReports || [],
+    transit_history: transitHistory || []
+  };
 }
 
 export async function updateVehicleStatus(

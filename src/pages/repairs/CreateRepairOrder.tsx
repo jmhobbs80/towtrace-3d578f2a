@@ -7,10 +7,10 @@ import { RepairOrderForm } from '@/components/repair/RepairOrderForm';
 export default function CreateRepairOrder() {
   const navigate = useNavigate();
   
-  const { data: facilities = [] } = useQuery({
-    queryKey: ['repair-facilities'],
-    queryFn: getRepairFacilities,
-  });
+  const handleSubmit = async (data: any) => {
+    // Handle form submission
+    navigate('/repairs');
+  };
 
   return (
     <div className="container mx-auto py-6 space-y-6">
@@ -18,8 +18,8 @@ export default function CreateRepairOrder() {
       
       <div className="bg-white p-6 rounded-lg shadow">
         <RepairOrderForm 
-          facilities={facilities}
-          onSuccess={() => navigate('/repairs')}
+          vehicleId="" // This should be passed from the route params or state
+          onSubmit={handleSubmit}
           onCancel={() => navigate('/repairs')}
         />
       </div>

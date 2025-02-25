@@ -27,9 +27,10 @@ const formSchema = z.object({
 interface RepairOrderFormProps {
   vehicleId: string;
   onSubmit: (data: z.infer<typeof formSchema>) => Promise<void>;
+  onCancel?: () => void;
 }
 
-export function RepairOrderForm({ vehicleId, onSubmit }: RepairOrderFormProps) {
+export function RepairOrderForm({ vehicleId, onSubmit, onCancel }: RepairOrderFormProps) {
   const [isSubmitting, setIsSubmitting] = useState(false);
 
   const { data: facilities } = useQuery({
@@ -117,9 +118,16 @@ export function RepairOrderForm({ vehicleId, onSubmit }: RepairOrderFormProps) {
           )}
         />
 
-        <Button type="submit" disabled={isSubmitting}>
-          Create Repair Order
-        </Button>
+        <div className="flex justify-end space-x-2">
+          {onCancel && (
+            <Button type="button" variant="outline" onClick={onCancel}>
+              Cancel
+            </Button>
+          )}
+          <Button type="submit" disabled={isSubmitting}>
+            Create Repair Order
+          </Button>
+        </div>
       </form>
     </Form>
   );
