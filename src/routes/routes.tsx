@@ -21,7 +21,7 @@ const protectedRoutes = [
   {
     path: "/",
     element: <Dashboard />,
-    allowedRoles: ["admin", "dealer", "dispatcher", "wholesaler", "transporter"] as UserRole[]
+    allowedRoles: ["admin", "dealer", "dispatcher", "wholesaler", "transporter", "driver"] as UserRole[]
   },
   ...adminRoutes,    // Admin dashboard, user management, system logs
   ...dealerRoutes,   // Inventory, repairs, transport requests
