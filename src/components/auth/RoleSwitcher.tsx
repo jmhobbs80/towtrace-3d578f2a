@@ -39,7 +39,7 @@ export function RoleSwitcher() {
             .filter((role): role is UserRole => {
               return ['admin', 'dispatcher', 'provider', 'dealer', 'wholesaler', 
                      'overwatch_admin', 'super_admin', 'support_agent', 
-                     'billing_manager', 'consumer', 'fleet_manager'].includes(role);
+                     'billing_manager', 'consumer', 'fleet_manager', 'driver'].includes(role);
             });
           setAvailableRoles(validRoles);
         }

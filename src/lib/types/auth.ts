@@ -1,7 +1,7 @@
 
 export type UserRole = 'dealer' | 'wholesaler' | 'admin' | 'dispatcher' | 'provider' | 
                       'consumer' | 'overwatch_admin' | 'super_admin' | 'support_agent' | 
-                      'billing_manager' | 'fleet_manager';
+                      'billing_manager' | 'fleet_manager' | 'driver';
 
 export interface AuthUser {
   id: string;
