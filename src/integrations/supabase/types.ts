@@ -1142,6 +1142,8 @@ export type Database = {
           id: string
           member_count: number | null
           name: string
+          public_pricing_settings: Json | null
+          service_area: Json | null
           settings: Json | null
           stripe_customer_id: string | null
           stripe_subscription_id: string | null
@@ -1150,6 +1152,7 @@ export type Database = {
           subscription_plan_id: string | null
           subscription_status: string
           subscription_tier: string
+          tow_provider_enabled: boolean | null
           trial_end: string | null
           type: Database["public"]["Enums"]["organization_type"] | null
           updated_at: string
@@ -1164,6 +1167,8 @@ export type Database = {
           id?: string
           member_count?: number | null
           name: string
+          public_pricing_settings?: Json | null
+          service_area?: Json | null
           settings?: Json | null
           stripe_customer_id?: string | null
           stripe_subscription_id?: string | null
@@ -1172,6 +1177,7 @@ export type Database = {
           subscription_plan_id?: string | null
           subscription_status?: string
           subscription_tier?: string
+          tow_provider_enabled?: boolean | null
           trial_end?: string | null
           type?: Database["public"]["Enums"]["organization_type"] | null
           updated_at?: string
@@ -1186,6 +1192,8 @@ export type Database = {
           id?: string
           member_count?: number | null
           name?: string
+          public_pricing_settings?: Json | null
+          service_area?: Json | null
           settings?: Json | null
           stripe_customer_id?: string | null
           stripe_subscription_id?: string | null
@@ -1194,6 +1202,7 @@ export type Database = {
           subscription_plan_id?: string | null
           subscription_status?: string
           subscription_tier?: string
+          tow_provider_enabled?: boolean | null
           trial_end?: string | null
           type?: Database["public"]["Enums"]["organization_type"] | null
           updated_at?: string
@@ -1362,6 +1371,47 @@ export type Database = {
           updated_at?: string
         }
         Relationships: []
+      }
+      provider_service_rates: {
+        Row: {
+          base_rate: number
+          created_at: string | null
+          id: string
+          minimum_fee: number | null
+          organization_id: string | null
+          per_mile_rate: number | null
+          service_type: Database["public"]["Enums"]["tow_service_type"]
+          updated_at: string | null
+        }
+        Insert: {
+          base_rate?: number
+          created_at?: string | null
+          id?: string
+          minimum_fee?: number | null
+          organization_id?: string | null
+          per_mile_rate?: number | null
+          service_type: Database["public"]["Enums"]["tow_service_type"]
+          updated_at?: string | null
+        }
+        Update: {
+          base_rate?: number
+          created_at?: string | null
+          id?: string
+          minimum_fee?: number | null
+          organization_id?: string | null
+          per_mile_rate?: number | null
+          service_type?: Database["public"]["Enums"]["tow_service_type"]
+          updated_at?: string | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "provider_service_rates_organization_id_fkey"
+            columns: ["organization_id"]
+            isOneToOne: false
+            referencedRelation: "organizations"
+            referencedColumns: ["id"]
+          },
+        ]
       }
       push_subscriptions: {
         Row: {
@@ -2204,6 +2254,15 @@ export type Database = {
         }
         Returns: number
       }
+      calculate_tow_cost: {
+        Args: {
+          provider_id: string
+          service_type: Database["public"]["Enums"]["tow_service_type"]
+          distance_miles?: number
+          is_peak_hours?: boolean
+        }
+        Returns: number
+      }
       check_subscription_limit: {
         Args: {
           org_id: string
@@ -2371,6 +2430,7 @@ export type Database = {
         | "check"
         | "insurance"
         | "motor_club"
+      pricing_type: "flat_rate" | "per_mile" | "surge"
       provider_rating: "1" | "2" | "3" | "4" | "5"
       repair_item_status: "pending" | "in_progress" | "completed" | "cancelled"
       service_type:
@@ -2382,6 +2442,7 @@ export type Database = {
         | "winch_out"
         | "transport"
       template_category: "general" | "mechanical" | "body" | "safety"
+      tow_service_type: "light_duty" | "heavy_duty" | "roadside_assistance"
       trade_status: "pending" | "accepted" | "rejected" | "completed"
       vehicle_condition:
         | "excellent"
