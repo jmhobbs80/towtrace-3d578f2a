@@ -9,7 +9,6 @@ export function FormHeader() {
         alt="TowTrace"
         width={200}
         height={48}
-        priority
         className="w-auto h-12"
       />
       <h1 className="text-2xl font-semibold tracking-tight text-foreground">
