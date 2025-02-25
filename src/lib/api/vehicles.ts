@@ -1,7 +1,21 @@
+
 import { BluetoothVINScanner } from './scanners/bluetooth-scanner';
 import { WebcamVINScanner } from './scanners/webcam-scanner';
 import { supabase } from "@/integrations/supabase/client";
 import type { VINScannerHardware } from './scanner-types';
+import type { Json } from '@/integrations/supabase/types';
+
+export type VehicleDamageSeverity = 'none' | 'minor' | 'moderate' | 'severe';
+
+export type VehicleCondition = 'excellent' | 'good' | 'fair' | 'poor' | 'damaged' | 'salvage';
+
+export interface DamageReport {
+  damage_locations: Json;
+  severity: VehicleDamageSeverity;
+  description?: string;
+  photos?: string[];
+  repair_estimate?: number;
+}
 
 // Re-export scanner types
 export type { VINScannerHardware };
@@ -51,7 +65,8 @@ export async function getVehicles(organizationId: string) {
     .select(`
       *,
       location:inventory_locations(name, address),
-      condition_logs:vehicle_condition_logs(*)
+      condition_logs:vehicle_condition_logs(*),
+      inspections:vehicle_inspections(*)
     `)
     .eq('organization_id', organizationId);
 
@@ -66,7 +81,9 @@ export async function getVehicleDetails(vehicleId: string) {
       *,
       location:inventory_locations(name, address),
       condition_logs:vehicle_condition_logs(*),
-      damage_reports:vehicle_damage_reports(*)
+      damage_reports:vehicle_damage_reports(*),
+      inspections:vehicle_inspections(*),
+      transit_history:vehicles_in_transit(*)
     `)
     .eq('id', vehicleId)
     .single();
@@ -78,9 +95,9 @@ export async function getVehicleDetails(vehicleId: string) {
 export async function updateVehicleStatus(
   vehicleId: string, 
   status: string,
-  condition?: string
+  condition?: VehicleCondition
 ) {
-  const updates: any = { status };
+  const updates: Record<string, any> = { status };
   if (condition) updates.condition = condition;
 
   const { data, error } = await supabase
@@ -94,16 +111,7 @@ export async function updateVehicleStatus(
   return data;
 }
 
-export async function createDamageReport(
-  vehicleId: string,
-  report: {
-    damage_locations: any;
-    severity: string;
-    description?: string;
-    photos?: string[];
-    repair_estimate?: number;
-  }
-) {
+export async function createDamageReport(vehicleId: string, report: DamageReport) {
   const { data, error } = await supabase
     .from('vehicle_damage_reports')
     .insert({
