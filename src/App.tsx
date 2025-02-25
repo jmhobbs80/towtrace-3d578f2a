@@ -1,4 +1,6 @@
+
 import React from 'react';
+import { createRoot } from 'react-dom/client';
 import { BrowserRouter as Router, Route, Routes } from 'react-router-dom';
 import AuthPage from './pages/auth/AuthPage';
 import Index from './pages/Index';
@@ -21,7 +23,7 @@ import RepairFacilityManagement from './pages/repairs/RepairFacilityManagement';
 import CreateRepairOrder from './pages/repairs/CreateRepairOrder';
 import CustomerPortal from './pages/impound/customer/CustomerPortal';
 
-function App() {
+const App = () => {
   return (
     <Router>
       <AuthProvider>
@@ -227,6 +229,6 @@ function App() {
       </AuthProvider>
     </Router>
   );
-}
+};
 
 export default App;
