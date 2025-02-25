@@ -19,7 +19,7 @@ const ProtectedRoute = ({ children, allowedRoles }: ProtectedRouteProps) => {
     return <Navigate to="/auth" />;
   }
 
-  if (allowedRoles && user.role && !allowedRoles.includes(user.role)) {
+  if (allowedRoles && user.role && !allowedRoles.includes(user.role as UserRole)) {
     return <Navigate to="/" />;
   }
 

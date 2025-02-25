@@ -47,7 +47,7 @@ export const routes: RouteObject[] = [
   {
     path: "/admin/overwatch",
     element: (
-      <ProtectedRoute allowedRoles={["overwatch_admin", "super_admin"]}>
+      <ProtectedRoute allowedRoles={["overwatch_admin" as UserRole, "super_admin" as UserRole]}>
         <OverwatchDashboard />
       </ProtectedRoute>
     ),
