@@ -11,9 +11,14 @@ import {
   SelectValue,
 } from "@/components/ui/select";
 import { Shield } from 'lucide-react';
-import { LoadingScreen } from '@/components/ui/loading-screen';
 import { toast } from 'sonner';
 import type { UserRole } from '@/lib/types/auth';
+
+const VALID_ROLES: UserRole[] = [
+  'admin', 'dispatcher', 'provider', 'dealer', 'wholesaler',
+  'overwatch_admin', 'super_admin', 'support_agent',
+  'billing_manager', 'consumer', 'fleet_manager', 'driver'
+];
 
 export function RoleSwitcher() {
   const { user, userRole, switchRole } = useAuth();
@@ -36,11 +41,7 @@ export function RoleSwitcher() {
         if (roles) {
           const validRoles = roles
             .map(r => r.role)
-            .filter((role): role is UserRole => {
-              return ['admin', 'dispatcher', 'provider', 'dealer', 'wholesaler', 
-                     'overwatch_admin', 'super_admin', 'support_agent', 
-                     'billing_manager', 'consumer', 'fleet_manager', 'driver'].includes(role);
-            });
+            .filter((role): role is UserRole => VALID_ROLES.includes(role as UserRole));
           setAvailableRoles(validRoles);
         }
       } catch (error) {

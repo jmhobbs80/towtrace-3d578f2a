@@ -3,9 +3,12 @@ import { useState, useCallback } from "react";
 import { supabase } from "@/integrations/supabase/client";
 import type { UserRole } from "@/lib/types/auth";
 
-const VALID_ROLES = ['dealer', 'wholesaler', 'admin', 'dispatcher', 'provider', 
-                     'consumer', 'overwatch_admin', 'super_admin', 'support_agent', 
-                     'billing_manager', 'fleet_manager', 'driver'] as const;
+// Define VALID_ROLES to match exactly with UserRole type
+const VALID_ROLES = [
+  'dealer', 'wholesaler', 'admin', 'dispatcher', 'provider', 
+  'consumer', 'overwatch_admin', 'super_admin', 'support_agent', 
+  'billing_manager', 'fleet_manager', 'driver'
+] as UserRole[];
 
 export const useUserProfileManager = () => {
   const [userRole, setUserRole] = useState<UserRole | null>(null);
