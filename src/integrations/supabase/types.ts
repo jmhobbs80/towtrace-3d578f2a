@@ -9,6 +9,153 @@ export type Json =
 export type Database = {
   public: {
     Tables: {
+      auction_bids: {
+        Row: {
+          amount: number
+          auction_item_id: string
+          bidder_id: string
+          created_at: string | null
+          id: string
+        }
+        Insert: {
+          amount: number
+          auction_item_id: string
+          bidder_id: string
+          created_at?: string | null
+          id?: string
+        }
+        Update: {
+          amount?: number
+          auction_item_id?: string
+          bidder_id?: string
+          created_at?: string | null
+          id?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "auction_bids_auction_item_id_fkey"
+            columns: ["auction_item_id"]
+            isOneToOne: false
+            referencedRelation: "auction_items"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "auction_bids_bidder_id_fkey"
+            columns: ["bidder_id"]
+            isOneToOne: false
+            referencedRelation: "organizations"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      auction_items: {
+        Row: {
+          auction_id: string
+          created_at: string | null
+          current_bid: number | null
+          current_winner_id: string | null
+          id: string
+          reserve_price: number | null
+          starting_price: number
+          status: string
+          updated_at: string | null
+          vehicle_id: string
+        }
+        Insert: {
+          auction_id: string
+          created_at?: string | null
+          current_bid?: number | null
+          current_winner_id?: string | null
+          id?: string
+          reserve_price?: number | null
+          starting_price: number
+          status?: string
+          updated_at?: string | null
+          vehicle_id: string
+        }
+        Update: {
+          auction_id?: string
+          created_at?: string | null
+          current_bid?: number | null
+          current_winner_id?: string | null
+          id?: string
+          reserve_price?: number | null
+          starting_price?: number
+          status?: string
+          updated_at?: string | null
+          vehicle_id?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "auction_items_auction_id_fkey"
+            columns: ["auction_id"]
+            isOneToOne: false
+            referencedRelation: "auctions"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "auction_items_current_winner_id_fkey"
+            columns: ["current_winner_id"]
+            isOneToOne: false
+            referencedRelation: "organizations"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "auction_items_vehicle_id_fkey"
+            columns: ["vehicle_id"]
+            isOneToOne: false
+            referencedRelation: "inventory_vehicles"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      auctions: {
+        Row: {
+          created_at: string | null
+          description: string | null
+          end_time: string
+          id: string
+          minimum_participants: number | null
+          organization_id: string
+          start_time: string
+          status: Database["public"]["Enums"]["auction_status"]
+          title: string
+          updated_at: string | null
+        }
+        Insert: {
+          created_at?: string | null
+          description?: string | null
+          end_time: string
+          id?: string
+          minimum_participants?: number | null
+          organization_id: string
+          start_time: string
+          status?: Database["public"]["Enums"]["auction_status"]
+          title: string
+          updated_at?: string | null
+        }
+        Update: {
+          created_at?: string | null
+          description?: string | null
+          end_time?: string
+          id?: string
+          minimum_participants?: number | null
+          organization_id?: string
+          start_time?: string
+          status?: Database["public"]["Enums"]["auction_status"]
+          title?: string
+          updated_at?: string | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "auctions_organization_id_fkey"
+            columns: ["organization_id"]
+            isOneToOne: false
+            referencedRelation: "organizations"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       customer_access_tokens: {
         Row: {
           created_at: string | null
@@ -2087,6 +2234,7 @@ export type Database = {
         | "consumer"
         | "dealer"
         | "wholesaler"
+      auction_status: "draft" | "scheduled" | "live" | "ended" | "canceled"
       bid_status: "pending" | "accepted" | "rejected" | "expired"
       impound_status:
         | "impounded"
