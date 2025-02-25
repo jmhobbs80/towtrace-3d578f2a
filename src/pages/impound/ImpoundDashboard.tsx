@@ -1,3 +1,4 @@
+
 import { useQuery } from "@tanstack/react-query";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table";
@@ -16,6 +17,19 @@ interface ImpoundedVehicle {
   vehicle_id: string;
   police_report_number?: string;
   insurance_claim_number?: string;
+}
+
+interface ImpoundLot {
+  id: string;
+  name: string;
+  address: {
+    street?: string;
+    city?: string;
+    state?: string;
+    zip?: string;
+  };
+  capacity: number;
+  daily_rate: number;
 }
 
 export default function ImpoundDashboard() {
@@ -54,15 +68,7 @@ export default function ImpoundDashboard() {
       
       if (error) throw error;
       
-      return (data as ImpoundLotDB[]).map(lot => ({
-        id: lot.id,
-        name: lot.name,
-        address: typeof lot.address === 'string' 
-          ? JSON.parse(lot.address)
-          : lot.address,
-        capacity: lot.capacity,
-        daily_rate: lot.daily_rate
-      })) as ImpoundLot[];
+      return data as ImpoundLot[];
     },
     enabled: !!organization?.id
   });
