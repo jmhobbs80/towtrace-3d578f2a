@@ -37,6 +37,7 @@ export default function JobDetails() {
         charge_amount: data.charge_amount,
         completed_at: data.completed_at,
         created_at: data.created_at,
+        updated_at: data.updated_at,
         customer_id: data.customer_id,
         dispatcher_id: data.dispatcher_id,
         driver_id: data.driver_id,

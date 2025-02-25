@@ -20,6 +20,7 @@ export interface Job {
   charge_amount?: number;
   completed_at?: string;
   created_at: string;
+  updated_at?: string;
   customer_id?: string;
   dispatcher_id?: string;
   driver_id?: string;

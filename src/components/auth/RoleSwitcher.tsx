@@ -26,7 +26,14 @@ export function RoleSwitcher() {
         .eq('user_id', user.id);
 
       if (roles) {
-        setAvailableRoles(roles.map(r => r.role));
+        const typedRoles = roles
+          .map(r => r.role)
+          .filter((role): role is UserRole => {
+            return ['admin', 'dispatcher', 'driver', 'dealer', 'wholesaler', 
+                   'overwatch_admin', 'super_admin', 'support_agent', 
+                   'billing_manager'].includes(role);
+          });
+        setAvailableRoles(typedRoles);
       }
     };
 
@@ -39,7 +46,7 @@ export function RoleSwitcher() {
     <div className="flex items-center gap-2 px-2 py-1">
       <Shield className="h-4 w-4 text-muted-foreground" />
       <Select
-        value={userRole}
+        value={userRole ?? undefined}
         onValueChange={(role) => switchRole(role as UserRole)}
       >
         <SelectTrigger className="w-full">
