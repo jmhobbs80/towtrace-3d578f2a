@@ -2,18 +2,9 @@
 import { useEffect } from "react";
 import { useNavigate, useSearchParams } from "react-router-dom";
 import { supabase } from "@/integrations/supabase/client";
-import { Button } from "@/components/ui/button";
-import {
-  Card,
-  CardContent,
-  CardDescription,
-  CardHeader,
-  CardTitle,
-} from "@/components/ui/card";
+import { useToast } from "@/hooks/use-toast";
 import { SignInForm } from "@/components/auth/SignInForm";
 import { SignUpForm } from "@/components/auth/SignUpForm";
-import { useState } from "react";
-import { useToast } from "@/hooks/use-toast";
 
 export default function AuthPage() {
   const [isSignUp, setIsSignUp] = useState(false);
@@ -78,31 +69,7 @@ export default function AuthPage() {
 
   return (
     <div className="min-h-screen flex items-center justify-center bg-gray-50 py-12 px-4 sm:px-6 lg:px-8">
-      <Card className="w-full max-w-md">
-        <CardHeader className="space-y-1">
-          <CardTitle className="text-2xl text-center font-bold">
-            {isSignUp ? "Create an account" : "Sign in to your account"}
-          </CardTitle>
-          <CardDescription className="text-center">
-            Enter your details below
-          </CardDescription>
-        </CardHeader>
-        <CardContent>
-          {isSignUp ? <SignUpForm /> : <SignInForm />}
-
-          <div className="mt-4 text-center">
-            <Button
-              variant="ghost"
-              className="text-sm"
-              onClick={() => setIsSignUp(!isSignUp)}
-            >
-              {isSignUp
-                ? "Already have an account? Sign in"
-                : "Don't have an account? Sign up"}
-            </Button>
-          </div>
-        </CardContent>
-      </Card>
+      {isSignUp ? <SignUpForm /> : <SignInForm />}
     </div>
   );
 }
