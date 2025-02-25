@@ -1,6 +1,7 @@
 
 import { supabase } from "@/integrations/supabase/client";
 import type { Payment, PaymentMethod, SubscriptionPlan } from "../types/billing";
+import type { Json } from "@/integrations/supabase/types";
 
 export const createPayment = async (data: {
   job_id: string;
@@ -53,12 +54,33 @@ export const fetchSubscriptionPlans = async (): Promise<SubscriptionPlan[]> => {
   if (error) throw error;
   
   // Transform the raw data to match the SubscriptionPlan type
-  const plans: SubscriptionPlan[] = (rawData || []).map(plan => ({
-    ...plan,
-    interval: plan.interval as 'month' | 'year',
-    features: Array.isArray(plan.features) ? plan.features : [],
-    limits: typeof plan.limits === 'object' ? plan.limits : {}
-  }));
+  const plans: SubscriptionPlan[] = (rawData || []).map(plan => {
+    // Ensure features is an array of strings
+    const features = Array.isArray(plan.features) 
+      ? plan.features.map(f => String(f))
+      : [];
+
+    // Ensure limits is a Record<string, number>
+    const limits: Record<string, number> = {};
+    if (typeof plan.limits === 'object' && plan.limits !== null) {
+      Object.entries(plan.limits).forEach(([key, value]) => {
+        if (typeof value === 'number') {
+          limits[key] = value;
+        }
+      });
+    }
+
+    return {
+      id: plan.id,
+      name: plan.name,
+      description: plan.description || undefined,
+      price: plan.price,
+      interval: plan.interval as 'month' | 'year',
+      features,
+      limits,
+      is_active: Boolean(plan.is_active)
+    };
+  });
 
   return plans;
 };
