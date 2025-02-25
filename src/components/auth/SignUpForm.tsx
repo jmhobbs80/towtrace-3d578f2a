@@ -23,6 +23,8 @@ export function SignUpForm() {
     setPreferPush,
     preferSMS,
     setPreferSMS,
+    companyName,
+    setCompanyName,
     handleSubmit
   } = useSignUpForm();
 
@@ -39,6 +41,8 @@ export function SignUpForm() {
         setPassword={setPassword}
         role={role}
         setRole={setRole}
+        companyName={companyName}
+        setCompanyName={setCompanyName}
       />
 
       <NotificationPreferences

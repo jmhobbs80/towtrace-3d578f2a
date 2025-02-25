@@ -15,6 +15,7 @@ export function useSignUpForm() {
   const [loading, setLoading] = useState(false);
   const [preferPush, setPreferPush] = useState(false);
   const [preferSMS, setPreferSMS] = useState(false);
+  const [companyName, setCompanyName] = useState("");
   const { toast } = useToast();
   const pushNotificationService = PushNotificationService.getInstance();
 
@@ -45,7 +46,7 @@ export function useSignUpForm() {
 
     try {
       // Validation
-      if (!email || !password || !firstName || !lastName || !role) {
+      if (!email || !password || !firstName || !lastName || !role || !companyName) {
         throw new Error("Please fill in all required fields");
       }
 
@@ -62,7 +63,7 @@ export function useSignUpForm() {
       }
 
       // Sign up
-      const { error: signUpError } = await supabase.auth.signUp({
+      const { error: signUpError, data: signUpData } = await supabase.auth.signUp({
         email,
         password,
         options: {
@@ -71,6 +72,7 @@ export function useSignUpForm() {
             last_name: lastName,
             phone_number: preferSMS ? phoneNumber : null,
             role: role,
+            company_name: companyName
           }
         }
       });
@@ -95,7 +97,7 @@ export function useSignUpForm() {
           },
           phone_number: preferSMS ? phoneNumber : null
         })
-        .eq('id', (await supabase.auth.getUser()).data.user?.id);
+        .eq('id', signUpData.user?.id);
 
       if (profileError) throw profileError;
 
@@ -132,6 +134,8 @@ export function useSignUpForm() {
     setPreferPush,
     preferSMS,
     setPreferSMS,
+    companyName,
+    setCompanyName,
     handleSubmit
   };
 }

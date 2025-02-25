@@ -1,5 +1,5 @@
 
-import { UserIcon, MailIcon, LockIcon } from "lucide-react";
+import { UserIcon, MailIcon, LockIcon, BuildingIcon } from "lucide-react";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import {
@@ -22,6 +22,8 @@ interface PersonalInfoSectionProps {
   setPassword: (value: string) => void;
   role: UserRole;
   setRole: (value: UserRole) => void;
+  companyName: string;
+  setCompanyName: (value: string) => void;
 }
 
 export function PersonalInfoSection({
@@ -35,9 +37,26 @@ export function PersonalInfoSection({
   setPassword,
   role,
   setRole,
+  companyName,
+  setCompanyName,
 }: PersonalInfoSectionProps) {
   return (
     <>
+      <div className="space-y-2">
+        <Label htmlFor="companyName">Company Name</Label>
+        <div className="relative">
+          <BuildingIcon className="absolute left-3 top-2.5 h-5 w-5 text-muted-foreground" />
+          <Input
+            id="companyName"
+            placeholder="Your Company Name"
+            value={companyName}
+            onChange={(e) => setCompanyName(e.target.value)}
+            className="pl-10"
+            required
+          />
+        </div>
+      </div>
+
       <div className="grid grid-cols-2 gap-4">
         <div className="space-y-2">
           <Label htmlFor="firstName">First Name</Label>
