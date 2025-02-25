@@ -38,10 +38,27 @@ export function PaymentDialog({ impoundId, currentFees, onPaymentComplete }: Pay
     if (!organization?.id) return;
 
     try {
+      // First create a dummy job for the payment record since job_id is required
+      const { data: job, error: jobError } = await supabase
+        .from('tow_jobs')
+        .insert({
+          organization_id: organization.id,
+          service_type: 'impound',
+          pickup_location: {},
+          charge_amount: data.amount,
+          payment_status: 'completed',
+          status: 'completed'
+        })
+        .select()
+        .single();
+
+      if (jobError) throw jobError;
+
       // Create payment record
       const { error: paymentError } = await supabase
         .from('payments')
         .insert({
+          job_id: job.id,
           organization_id: organization.id,
           amount: data.amount,
           method: data.method,
