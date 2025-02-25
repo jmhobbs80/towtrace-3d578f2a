@@ -5,7 +5,7 @@ import AuthPage from './pages/auth/AuthPage';
 import Index from './pages/Index';
 import ProtectedRoute from './components/auth/ProtectedRoute';
 import { AuthProvider } from './components/auth/AuthProvider';
-import Layout from './components/ui/sidebar';  // Updated import path
+import { SidebarProvider, Sidebar, SidebarInset } from './components/ui/sidebar';
 import BillingDashboard from './pages/billing/BillingDashboard';
 
 function App() {
@@ -18,9 +18,12 @@ function App() {
             path="/"
             element={
               <ProtectedRoute>
-                <Layout>
-                  <Index />
-                </Layout>
+                <SidebarProvider>
+                  <Sidebar />
+                  <SidebarInset>
+                    <Index />
+                  </SidebarInset>
+                </SidebarProvider>
               </ProtectedRoute>
             }
           />
@@ -28,9 +31,12 @@ function App() {
             path="/billing"
             element={
               <ProtectedRoute>
-                <Layout>
-                  <BillingDashboard />
-                </Layout>
+                <SidebarProvider>
+                  <Sidebar />
+                  <SidebarInset>
+                    <BillingDashboard />
+                  </SidebarInset>
+                </SidebarProvider>
               </ProtectedRoute>
             }
           />
