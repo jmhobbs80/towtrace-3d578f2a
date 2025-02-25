@@ -2,26 +2,39 @@
 import { useEffect, useCallback, useState } from 'react';
 import { supabase } from "@/integrations/supabase/client";
 import { Button } from "@/components/ui/button";
-import { useToast } from "@/components/ui/use-toast";
+import { useToast } from "@/hooks/use-toast";
 import { Badge } from "@/components/ui/badge";
+import { Wifi, WifiOff } from "lucide-react";
 
 interface LocationTrackerProps {
   jobId?: string;
   enabled?: boolean;
-  updateInterval?: number; // in milliseconds
+  updateInterval?: number;
+}
+
+interface LocationUpdate {
+  coords: {
+    latitude: number;
+    longitude: number;
+    accuracy: number;
+    speed: number | null;
+    heading: number | null;
+  };
+  timestamp: number;
 }
 
 export const LocationTracker = ({ 
   jobId, 
   enabled = true, 
-  updateInterval = 30000 // 30 seconds default
+  updateInterval = 30000
 }: LocationTrackerProps) => {
   const [isTracking, setIsTracking] = useState(false);
   const [lastUpdate, setLastUpdate] = useState<Date | null>(null);
   const [accuracy, setAccuracy] = useState<number | null>(null);
   const { toast } = useToast();
   const [watchId, setWatchId] = useState<number | null>(null);
-  const [queuedUpdates, setQueuedUpdates] = useState<GeolocationPosition[]>([]);
+  const [queuedUpdates, setQueuedUpdates] = useState<LocationUpdate[]>([]);
+  const [isOnline, setIsOnline] = useState(navigator.onLine);
 
   const processLocationQueue = useCallback(async () => {
     if (!navigator.onLine || queuedUpdates.length === 0) return;
@@ -65,13 +78,23 @@ export const LocationTracker = ({
     setLastUpdate(new Date());
     setAccuracy(position.coords.accuracy);
 
+    const locationUpdate: LocationUpdate = {
+      coords: {
+        latitude: position.coords.latitude,
+        longitude: position.coords.longitude,
+        accuracy: position.coords.accuracy,
+        speed: position.coords.speed,
+        heading: position.coords.heading,
+      },
+      timestamp: position.timestamp,
+    };
+
     if (!navigator.onLine) {
-      setQueuedUpdates(prev => [...prev, position]);
+      setQueuedUpdates(prev => [...prev, locationUpdate]);
       return;
     }
 
-    // Queue the update for batch processing
-    setQueuedUpdates(prev => [...prev, position]);
+    setQueuedUpdates(prev => [...prev, locationUpdate]);
   }, []);
 
   const startTracking = useCallback(() => {
@@ -84,7 +107,6 @@ export const LocationTracker = ({
       return;
     }
 
-    // Request background location permission if available
     if ('permissions' in navigator) {
       navigator.permissions.query({ name: 'geolocation' })
         .then(result => {
@@ -140,10 +162,38 @@ export const LocationTracker = ({
   // Process queued updates periodically
   useEffect(() => {
     if (queuedUpdates.length > 0) {
-      const interval = setInterval(processLocationQueue, 5000); // Process every 5 seconds
+      const interval = setInterval(processLocationQueue, 5000);
       return () => clearInterval(interval);
     }
   }, [queuedUpdates, processLocationQueue]);
+
+  // Handle online/offline status
+  useEffect(() => {
+    const handleOnline = () => {
+      setIsOnline(true);
+      toast({
+        title: "Back Online",
+        description: "Syncing location updates...",
+      });
+      processLocationQueue();
+    };
+
+    const handleOffline = () => {
+      setIsOnline(false);
+      toast({
+        title: "Offline Mode",
+        description: "Location updates will be queued until connection is restored",
+      });
+    };
+
+    window.addEventListener('online', handleOnline);
+    window.addEventListener('offline', handleOffline);
+
+    return () => {
+      window.removeEventListener('online', handleOnline);
+      window.removeEventListener('offline', handleOffline);
+    };
+  }, [toast, processLocationQueue]);
 
   // Cleanup on unmount
   useEffect(() => {
@@ -153,20 +203,6 @@ export const LocationTracker = ({
       }
     };
   }, [watchId]);
-
-  // Handle online/offline status
-  useEffect(() => {
-    const handleOnline = () => {
-      toast({
-        title: "Back Online",
-        description: "Syncing location updates...",
-      });
-      processLocationQueue();
-    };
-
-    window.addEventListener('online', handleOnline);
-    return () => window.removeEventListener('online', handleOnline);
-  }, [toast, processLocationQueue]);
 
   if (!enabled) return null;
 
@@ -180,16 +216,29 @@ export const LocationTracker = ({
         {isTracking ? "Stop Location Tracking" : "Start Location Tracking"}
       </Button>
       
-      {isTracking && lastUpdate && (
+      {isTracking && (
         <div className="flex flex-col gap-2">
           <Badge variant="outline" className="w-fit">
-            Last Update: {lastUpdate.toLocaleTimeString()}
+            {isOnline ? (
+              <Wifi className="mr-2 h-4 w-4" />
+            ) : (
+              <WifiOff className="mr-2 h-4 w-4" />
+            )}
+            {isOnline ? "Online" : "Offline Mode"}
           </Badge>
+          
+          {lastUpdate && (
+            <Badge variant="outline" className="w-fit">
+              Last Update: {lastUpdate.toLocaleTimeString()}
+            </Badge>
+          )}
+          
           {accuracy && (
             <Badge variant="outline" className="w-fit">
               Accuracy: ±{Math.round(accuracy)}m
             </Badge>
           )}
+          
           {queuedUpdates.length > 0 && (
             <Badge variant="secondary" className="w-fit">
               Pending Updates: {queuedUpdates.length}
