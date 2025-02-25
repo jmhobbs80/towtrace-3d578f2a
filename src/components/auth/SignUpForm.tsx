@@ -8,6 +8,14 @@ import { Label } from "@/components/ui/label";
 import { MailIcon, UserIcon, LockIcon } from "lucide-react";
 import { NotificationPreferences } from "./NotificationPreferences";
 import { PushNotificationService } from "@/lib/services/push-notifications";
+import {
+  Select,
+  SelectContent,
+  SelectItem,
+  SelectTrigger,
+  SelectValue,
+} from "@/components/ui/select";
+import type { UserRole } from "@/lib/types/auth";
 
 export function SignUpForm() {
   const [email, setEmail] = useState("");
@@ -15,6 +23,7 @@ export function SignUpForm() {
   const [firstName, setFirstName] = useState("");
   const [lastName, setLastName] = useState("");
   const [phoneNumber, setPhoneNumber] = useState("");
+  const [role, setRole] = useState<UserRole>("driver");
   const [loading, setLoading] = useState(false);
   const [preferPush, setPreferPush] = useState(false);
   const [preferSMS, setPreferSMS] = useState(false);
@@ -48,7 +57,7 @@ export function SignUpForm() {
 
     try {
       // Validation
-      if (!email || !password || !firstName || !lastName) {
+      if (!email || !password || !firstName || !lastName || !role) {
         throw new Error("Please fill in all required fields");
       }
 
@@ -73,6 +82,7 @@ export function SignUpForm() {
             first_name: firstName,
             last_name: lastName,
             phone_number: preferSMS ? phoneNumber : null,
+            role: role,
           }
         }
       });
@@ -145,6 +155,21 @@ export function SignUpForm() {
             />
           </div>
         </div>
+      </div>
+
+      <div className="space-y-2">
+        <Label htmlFor="role">Role</Label>
+        <Select value={role} onValueChange={(value) => setRole(value as UserRole)}>
+          <SelectTrigger>
+            <SelectValue placeholder="Select your role" />
+          </SelectTrigger>
+          <SelectContent>
+            <SelectItem value="driver">Driver</SelectItem>
+            <SelectItem value="dispatcher">Dispatcher</SelectItem>
+            <SelectItem value="dealer">Dealer</SelectItem>
+            <SelectItem value="wholesaler">Wholesaler</SelectItem>
+          </SelectContent>
+        </Select>
       </div>
 
       <div className="space-y-2">
