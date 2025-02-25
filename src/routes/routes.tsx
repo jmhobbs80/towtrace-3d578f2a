@@ -1,5 +1,8 @@
 import { RouteObject } from "react-router-dom";
-import AuthPage from "@/pages/auth/AuthPage";
+import { ProtectedRoute } from "@/components/auth/ProtectedRoute";
+import { AuthPage } from "@/pages/auth/AuthPage";
+import { Dashboard } from "@/pages/dashboard/Dashboard";
+import { AnalyticsDashboard } from "@/pages/analytics/AnalyticsDashboard";
 import Index from "@/pages/Index";
 import BillingDashboard from "@/pages/billing/BillingDashboard";
 import DispatchDashboard from "@/pages/dispatch/DispatchDashboard";
@@ -23,12 +26,20 @@ import RequestTow from "@/pages/public/RequestTow";
 
 export const routes: RouteObject[] = [
   {
-    path: "/auth",
-    element: <AuthPage />
+    path: "/",
+    element: <Dashboard />,
   },
   {
-    path: "/impound/customer",
-    element: <CustomerPortal />
+    path: "/auth",
+    element: <AuthPage />,
+  },
+  {
+    path: "/analytics",
+    element: (
+      <ProtectedRoute>
+        <AnalyticsDashboard />
+      </ProtectedRoute>
+    ),
   },
   {
     element: <SidebarLayout />,
@@ -106,5 +117,9 @@ export const routes: RouteObject[] = [
         element: <RequestTow />,
       }
     ]
+  },
+  {
+    path: "/impound/customer",
+    element: <CustomerPortal />
   }
 ];
