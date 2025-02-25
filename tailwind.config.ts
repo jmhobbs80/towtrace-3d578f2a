@@ -22,40 +22,37 @@ export default {
         border: "hsl(var(--border))",
         input: "hsl(var(--input))",
         ring: "hsl(var(--ring))",
-        background: "hsl(var(--background))",
-        foreground: "hsl(var(--foreground))",
+        background: "#F9F9F9",
+        foreground: "#333333",
         primary: {
-          DEFAULT: "#1E3A8A", // Professional dark blue
+          DEFAULT: "#C8102E", // TowTrace Red
           foreground: "#ffffff",
         },
         secondary: {
-          DEFAULT: "#374151", // Professional gray
+          DEFAULT: "#333333", // Dark Gray
           foreground: "#ffffff",
         },
         destructive: {
-          DEFAULT: "#ff453a",
+          DEFAULT: "#C8102E", // Using brand red for destructive actions
           foreground: "#ffffff",
         },
         muted: {
-          DEFAULT: "hsl(var(--muted))",
-          foreground: "hsl(var(--muted-foreground))",
+          DEFAULT: "#666666",
+          foreground: "#F9F9F9",
         },
         accent: {
-          DEFAULT: "#10B981", // High-visibility green
+          DEFAULT: "#C8102E",
+          hover: "#A50D25",
           foreground: "#ffffff",
         },
-        warning: {
-          DEFAULT: "#FACC15", // High-visibility yellow
-          foreground: "#1E3A8A",
-        },
         popover: {
-          DEFAULT: "hsl(var(--popover))",
-          foreground: "hsl(var(--popover-foreground))",
+          DEFAULT: "#F9F9F9",
+          foreground: "#333333",
         },
         card: {
-          DEFAULT: "hsl(var(--card))",
-          foreground: "hsl(var(--card-foreground))",
-        },
+          DEFAULT: "#FFFFFF",
+          foreground: "#333333",
+        }
       },
       keyframes: {
         "fade-in": {
@@ -70,11 +67,16 @@ export default {
           "0%": { transform: "translateX(-100%)" },
           "100%": { transform: "translateX(0)" },
         },
+        "pulse-glow": {
+          "0%, 100%": { opacity: "1" },
+          "50%": { opacity: "0.5" },
+        }
       },
       animation: {
         "fade-in": "fade-in 0.3s ease-out",
         "fade-out": "fade-out 0.3s ease-out",
         "slide-in": "slide-in 0.3s ease-out",
+        "pulse-glow": "pulse-glow 2s ease-in-out infinite",
       },
     },
   },
