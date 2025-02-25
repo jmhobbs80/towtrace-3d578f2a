@@ -1,4 +1,3 @@
-
 // Cache names
 const CACHE_NAME = 'towtrace-v1';
 const API_CACHE = 'towtrace-api-v1';
@@ -36,11 +35,41 @@ self.addEventListener('activate', (event) => {
 
 // Helper function to store API responses
 const storeApiResponse = async (request, response) => {
-  if (!response.ok) return response;
-  
-  const cache = await caches.open(API_CACHE);
-  await cache.put(request, response.clone());
-  return response;
+  // Don't cache error responses
+  if (!response.ok) {
+    console.log(`Not caching error response for ${request.url}`);
+    return response;
+  }
+
+  // Don't cache non-GET requests
+  if (request.method !== 'GET') {
+    console.log(`Not caching ${request.method} request for ${request.url}`);
+    return response;
+  }
+
+  try {
+    const cache = await caches.open(API_CACHE);
+    
+    // Check if we should cache this content type
+    const contentType = response.headers.get('content-type');
+    if (contentType && (
+      contentType.includes('application/json') ||
+      contentType.includes('text/html') ||
+      contentType.includes('text/css') ||
+      contentType.includes('application/javascript')
+    )) {
+      console.log(`Caching ${contentType} response for ${request.url}`);
+      await cache.put(request, response.clone());
+      return response;
+    }
+    
+    // Don't cache other content types
+    console.log(`Not caching ${contentType} response for ${request.url}`);
+    return response;
+  } catch (error) {
+    console.error('Error caching response:', error);
+    return response;
+  }
 };
 
 // Helper function for network-first strategy with timeout
