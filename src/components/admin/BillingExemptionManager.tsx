@@ -6,6 +6,7 @@ import { Button } from "@/components/ui/button";
 import { useToast } from "@/components/ui/use-toast";
 import { Shield, AlertTriangle } from "lucide-react";
 import { supabase } from "@/integrations/supabase/client";
+import { useAuth } from "@/components/auth/AuthProvider";
 
 interface BillingExemptionManagerProps {
   organizationId: string;
@@ -21,8 +22,11 @@ export function BillingExemptionManager({
   const [isExempt, setIsExempt] = useState(initialExemptStatus);
   const [isUpdating, setIsUpdating] = useState(false);
   const { toast } = useToast();
+  const { user } = useAuth();
 
   const toggleExemption = async () => {
+    if (!user?.id) return;
+    
     setIsUpdating(true);
     try {
       const newStatus = !isExempt;
@@ -39,6 +43,7 @@ export function BillingExemptionManager({
       const { error: logError } = await supabase
         .from('admin_audit_logs')
         .insert({
+          user_id: user.id,
           action_type: newStatus ? 'billing_exemption_enabled' : 'billing_exemption_disabled',
           entity_type: 'organization',
           entity_id: organizationId,

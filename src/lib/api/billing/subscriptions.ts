@@ -1,4 +1,3 @@
-
 import { supabase } from "@/integrations/supabase/client";
 import type { SubscriptionPlan, OrganizationType, VolumeDiscount } from "../../types/billing";
 
@@ -90,16 +89,14 @@ export const createCheckoutSession = async ({
   cancelUrl: string;
 }) => {
   // Check if organization is billing exempt
-  const { data: org, error: orgError } = await supabase
+  const { data: org } = await supabase
     .from('organizations')
     .select('billing_exempt')
     .eq('id', organizationId)
     .single();
 
-  if (orgError) throw orgError;
-
   // If organization is billing exempt, update their subscription directly
-  if (org.billing_exempt) {
+  if (org?.billing_exempt) {
     const { error: updateError } = await supabase
       .from('organizations')
       .update({

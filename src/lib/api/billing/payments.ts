@@ -1,4 +1,3 @@
-
 import { supabase } from "@/integrations/supabase/client";
 import type { Payment, PaymentMethod } from "../../types/billing";
 import type { Job } from "@/lib/types/job";
@@ -12,16 +11,14 @@ export const createPayment = async (data: {
   notes?: string;
 }): Promise<Payment> => {
   // Check if organization is billing exempt
-  const { data: org, error: orgError } = await supabase
+  const { data: org } = await supabase
     .from('organizations')
     .select('billing_exempt')
     .eq('id', data.organization_id)
     .single();
 
-  if (orgError) throw orgError;
-
   // If organization is billing exempt, create a $0 processed payment
-  if (org.billing_exempt) {
+  if (org?.billing_exempt) {
     const { data: payment, error } = await supabase
       .from('payments')
       .insert({
