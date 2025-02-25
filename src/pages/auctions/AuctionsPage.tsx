@@ -22,12 +22,17 @@ export default function AuctionsPage() {
   const { data: auctions, isLoading } = useQuery({
     queryKey: ['auctions'],
     queryFn: getAuctions,
-    onError: (error) => {
-      toast({
-        variant: "destructive",
-        title: "Error loading auctions",
-        description: error instanceof Error ? error.message : "An error occurred",
-      });
+    meta: {
+      errorMessage: "Failed to load auctions",
+    },
+    onSettled: (data, error) => {
+      if (error) {
+        toast({
+          variant: "destructive",
+          title: "Error loading auctions",
+          description: error instanceof Error ? error.message : "An error occurred",
+        });
+      }
     },
   });
 
