@@ -2,10 +2,40 @@
 import { useState } from "react";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { DataTable } from "@/components/ui/data-table";
-import { Loader2 } from "lucide-react";
+import { Alert, AlertDescription, AlertTitle } from "@/components/ui/alert";
+import { Loader2, AlertCircle } from "lucide-react";
 import { ErrorBoundary } from "@/components/ui/error-boundary";
 import { useQuery } from "@tanstack/react-query";
 import { supabase } from "@/integrations/supabase/client";
+import { ColumnDef } from "@tanstack/react-table";
+
+type Profile = {
+  id: string;
+  first_name: string;
+  last_name: string;
+  email: string;
+  created_at: string;
+};
+
+const columns: ColumnDef<Profile>[] = [
+  {
+    accessorKey: "email",
+    header: "Email"
+  },
+  {
+    accessorKey: "first_name",
+    header: "First Name"
+  },
+  {
+    accessorKey: "last_name",
+    header: "Last Name"
+  },
+  {
+    accessorKey: "created_at",
+    header: "Created At",
+    cell: ({ row }) => new Date(row.getValue("created_at")).toLocaleDateString()
+  }
+];
 
 export default function UserManagement() {
   const { data: users, isLoading, error } = useQuery({
@@ -48,7 +78,7 @@ export default function UserManagement() {
             ) : (
               <div className="mt-4">
                 {users && users.length > 0 ? (
-                  <DataTable data={users} />
+                  <DataTable columns={columns} data={users} />
                 ) : (
                   <p className="text-muted-foreground">No users found.</p>
                 )}
