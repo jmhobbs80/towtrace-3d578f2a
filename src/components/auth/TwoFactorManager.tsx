@@ -161,7 +161,7 @@ export function TwoFactorManager() {
           </>
         ) : (
           <>
-            <Alert variant="warning">
+            <Alert variant="destructive">
               <AlertTriangle className="h-4 w-4" />
               <AlertTitle>2FA is not enabled</AlertTitle>
               <AlertDescription>
