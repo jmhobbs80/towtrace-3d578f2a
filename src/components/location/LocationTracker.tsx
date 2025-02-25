@@ -4,12 +4,13 @@ import { supabase } from "@/integrations/supabase/client";
 import { Button } from "@/components/ui/button";
 import { useToast } from "@/hooks/use-toast";
 import { Badge } from "@/components/ui/badge";
-import { Wifi, WifiOff } from "lucide-react";
+import { Wifi, WifiOff, Navigation, Timer } from "lucide-react";
 
 interface LocationTrackerProps {
   jobId?: string;
   enabled?: boolean;
   updateInterval?: number;
+  onLocationUpdate?: (position: GeolocationPosition) => void;
 }
 
 interface LocationUpdate {
@@ -23,18 +24,61 @@ interface LocationUpdate {
   timestamp: number;
 }
 
+interface LocationQueue {
+  updates: LocationUpdate[];
+  lastSync: number;
+}
+
+const QUEUE_KEY = 'location_queue';
+const MAX_QUEUE_SIZE = 100;
+
 export const LocationTracker = ({ 
   jobId, 
   enabled = true, 
-  updateInterval = 30000
+  updateInterval = 30000,
+  onLocationUpdate 
 }: LocationTrackerProps) => {
   const [isTracking, setIsTracking] = useState(false);
   const [lastUpdate, setLastUpdate] = useState<Date | null>(null);
   const [accuracy, setAccuracy] = useState<number | null>(null);
+  const [speed, setSpeed] = useState<number | null>(null);
+  const [eta, setEta] = useState<number | null>(null);
   const { toast } = useToast();
   const [watchId, setWatchId] = useState<number | null>(null);
   const [queuedUpdates, setQueuedUpdates] = useState<LocationUpdate[]>([]);
   const [isOnline, setIsOnline] = useState(navigator.onLine);
+
+  // Load queued updates from localStorage
+  useEffect(() => {
+    try {
+      const savedQueue = localStorage.getItem(QUEUE_KEY);
+      if (savedQueue) {
+        const parsed: LocationQueue = JSON.parse(savedQueue);
+        // Only restore updates that are less than 24 hours old
+        const validUpdates = parsed.updates.filter(
+          update => Date.now() - update.timestamp < 24 * 60 * 60 * 1000
+        );
+        setQueuedUpdates(validUpdates);
+      }
+    } catch (error) {
+      console.error('Error loading queued updates:', error);
+    }
+  }, []);
+
+  // Save queued updates to localStorage
+  useEffect(() => {
+    if (queuedUpdates.length > 0) {
+      try {
+        const queue: LocationQueue = {
+          updates: queuedUpdates.slice(-MAX_QUEUE_SIZE),
+          lastSync: Date.now()
+        };
+        localStorage.setItem(QUEUE_KEY, JSON.stringify(queue));
+      } catch (error) {
+        console.error('Error saving queued updates:', error);
+      }
+    }
+  }, [queuedUpdates]);
 
   const processLocationQueue = useCallback(async () => {
     if (!navigator.onLine || queuedUpdates.length === 0) return;
@@ -74,9 +118,42 @@ export const LocationTracker = ({
     }
   }, [jobId, toast, queuedUpdates]);
 
+  const calculateETA = useCallback((position: GeolocationPosition) => {
+    if (!position.coords.speed || position.coords.speed === 0) {
+      setEta(null);
+      return;
+    }
+
+    // TODO: Replace with actual destination coordinates from job
+    const destination = { lat: 0, lng: 0 };
+    
+    // Calculate distance in meters using Haversine formula
+    const R = 6371e3; // Earth's radius in meters
+    const φ1 = position.coords.latitude * Math.PI / 180;
+    const φ2 = destination.lat * Math.PI / 180;
+    const Δφ = (destination.lat - position.coords.latitude) * Math.PI / 180;
+    const Δλ = (destination.lng - position.coords.longitude) * Math.PI / 180;
+
+    const a = Math.sin(Δφ/2) * Math.sin(Δφ/2) +
+              Math.cos(φ1) * Math.cos(φ2) *
+              Math.sin(Δλ/2) * Math.sin(Δλ/2);
+    const c = 2 * Math.atan2(Math.sqrt(a), Math.sqrt(1-a));
+    const distance = R * c;
+
+    // Calculate ETA in minutes
+    const etaMinutes = Math.round(distance / (position.coords.speed * 3.6) / 60);
+    setEta(etaMinutes);
+  }, []);
+
   const updateLocation = useCallback((position: GeolocationPosition) => {
     setLastUpdate(new Date());
     setAccuracy(position.coords.accuracy);
+    setSpeed(position.coords.speed);
+    calculateETA(position);
+
+    if (onLocationUpdate) {
+      onLocationUpdate(position);
+    }
 
     const locationUpdate: LocationUpdate = {
       coords: {
@@ -90,12 +167,12 @@ export const LocationTracker = ({
     };
 
     if (!navigator.onLine) {
-      setQueuedUpdates(prev => [...prev, locationUpdate]);
+      setQueuedUpdates(prev => [...prev.slice(-MAX_QUEUE_SIZE), locationUpdate]);
       return;
     }
 
     setQueuedUpdates(prev => [...prev, locationUpdate]);
-  }, []);
+  }, [onLocationUpdate, calculateETA]);
 
   const startTracking = useCallback(() => {
     if (!navigator.geolocation) {
@@ -229,13 +306,27 @@ export const LocationTracker = ({
           
           {lastUpdate && (
             <Badge variant="outline" className="w-fit">
+              <Timer className="mr-2 h-4 w-4" />
               Last Update: {lastUpdate.toLocaleTimeString()}
             </Badge>
           )}
           
           {accuracy && (
             <Badge variant="outline" className="w-fit">
+              <Navigation className="mr-2 h-4 w-4" />
               Accuracy: ±{Math.round(accuracy)}m
+            </Badge>
+          )}
+
+          {speed !== null && (
+            <Badge variant="outline" className="w-fit">
+              Speed: {Math.round(speed * 3.6)} km/h
+            </Badge>
+          )}
+
+          {eta !== null && (
+            <Badge variant="secondary" className="w-fit">
+              ETA: {eta} minutes
             </Badge>
           )}
           
