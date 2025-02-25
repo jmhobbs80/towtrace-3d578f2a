@@ -1,4 +1,3 @@
-
 import { useState, useEffect } from "react";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
@@ -134,6 +133,7 @@ export function TwoFactorManager() {
               supabase.rpc('log_admin_action', {
                 action_type: 'failed_2fa_attempts',
                 entity_type: 'auth',
+                entity_id: user?.id || '',
                 metadata: { attempts: newCount }
               });
             }
@@ -153,6 +153,7 @@ export function TwoFactorManager() {
         await supabase.rpc('log_admin_action', {
           action_type: '2fa_enabled',
           entity_type: 'auth',
+          entity_id: user?.id || '',
           metadata: { setup_type: 'totp' }
         });
 
@@ -197,7 +198,8 @@ export function TwoFactorManager() {
       // Log 2FA disabled
       await supabase.rpc('log_admin_action', {
         action_type: '2fa_disabled',
-        entity_type: 'auth'
+        entity_type: 'auth',
+        entity_id: user?.id || ''
       });
 
       toast({
