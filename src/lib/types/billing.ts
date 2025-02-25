@@ -1,4 +1,3 @@
-
 import type { Database } from "@/integrations/supabase/types";
 
 export type PaymentMethod = Database["public"]["Enums"]["payment_method"];
@@ -105,4 +104,43 @@ export interface BillingCalculation {
   addon_costs: number;
   volume_discounts: number;
   total: number;
+}
+
+export interface ProviderBalance {
+  id: string;
+  organization_id: string;
+  available_balance: number;
+  pending_balance: number;
+  total_earnings: number;
+  last_payout_at: string | null;
+  created_at: string;
+  updated_at: string;
+}
+
+export interface ProviderPayout {
+  id: string;
+  organization_id: string;
+  amount: number;
+  status: 'pending' | 'processing' | 'completed' | 'failed';
+  payout_method: string;
+  reference_number?: string;
+  created_at: string;
+  processed_at?: string;
+  error_message?: string;
+  metadata?: Record<string, any>;
+}
+
+export interface JobEarnings {
+  id: string;
+  job_id: string;
+  organization_id: string;
+  total_amount: number;
+  platform_fee: number;
+  provider_amount: number;
+  fee_type: string;
+  fee_percentage?: number;
+  flat_fee?: number;
+  surge_multiplier: number;
+  created_at: string;
+  status: 'pending' | 'processed' | 'cancelled';
 }

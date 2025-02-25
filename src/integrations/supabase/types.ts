@@ -871,6 +871,66 @@ export type Database = {
           },
         ]
       }
+      job_earnings: {
+        Row: {
+          created_at: string | null
+          fee_percentage: number | null
+          fee_type: string
+          flat_fee: number | null
+          id: string
+          job_id: string
+          organization_id: string
+          platform_fee: number
+          provider_amount: number
+          status: string
+          surge_multiplier: number | null
+          total_amount: number
+        }
+        Insert: {
+          created_at?: string | null
+          fee_percentage?: number | null
+          fee_type: string
+          flat_fee?: number | null
+          id?: string
+          job_id: string
+          organization_id: string
+          platform_fee: number
+          provider_amount: number
+          status?: string
+          surge_multiplier?: number | null
+          total_amount: number
+        }
+        Update: {
+          created_at?: string | null
+          fee_percentage?: number | null
+          fee_type?: string
+          flat_fee?: number | null
+          id?: string
+          job_id?: string
+          organization_id?: string
+          platform_fee?: number
+          provider_amount?: number
+          status?: string
+          surge_multiplier?: number | null
+          total_amount?: number
+        }
+        Relationships: [
+          {
+            foreignKeyName: "job_earnings_job_id_fkey"
+            columns: ["job_id"]
+            isOneToOne: false
+            referencedRelation: "tow_jobs"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "job_earnings_organization_id_fkey"
+            columns: ["organization_id"]
+            isOneToOne: false
+            referencedRelation: "organizations"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       load_bids: {
         Row: {
           amount: number
@@ -1372,6 +1432,94 @@ export type Database = {
         }
         Relationships: []
       }
+      provider_balances: {
+        Row: {
+          available_balance: number
+          created_at: string | null
+          id: string
+          last_payout_at: string | null
+          organization_id: string
+          pending_balance: number
+          total_earnings: number
+          updated_at: string | null
+        }
+        Insert: {
+          available_balance?: number
+          created_at?: string | null
+          id?: string
+          last_payout_at?: string | null
+          organization_id: string
+          pending_balance?: number
+          total_earnings?: number
+          updated_at?: string | null
+        }
+        Update: {
+          available_balance?: number
+          created_at?: string | null
+          id?: string
+          last_payout_at?: string | null
+          organization_id?: string
+          pending_balance?: number
+          total_earnings?: number
+          updated_at?: string | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "provider_balances_organization_id_fkey"
+            columns: ["organization_id"]
+            isOneToOne: false
+            referencedRelation: "organizations"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      provider_payouts: {
+        Row: {
+          amount: number
+          created_at: string | null
+          error_message: string | null
+          id: string
+          metadata: Json | null
+          organization_id: string
+          payout_method: string
+          processed_at: string | null
+          reference_number: string | null
+          status: string
+        }
+        Insert: {
+          amount: number
+          created_at?: string | null
+          error_message?: string | null
+          id?: string
+          metadata?: Json | null
+          organization_id: string
+          payout_method: string
+          processed_at?: string | null
+          reference_number?: string | null
+          status?: string
+        }
+        Update: {
+          amount?: number
+          created_at?: string | null
+          error_message?: string | null
+          id?: string
+          metadata?: Json | null
+          organization_id?: string
+          payout_method?: string
+          processed_at?: string | null
+          reference_number?: string | null
+          status?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "provider_payouts_organization_id_fkey"
+            columns: ["organization_id"]
+            isOneToOne: false
+            referencedRelation: "organizations"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       provider_service_rates: {
         Row: {
           base_rate: number
@@ -1726,7 +1874,12 @@ export type Database = {
             | null
           per_user_price: number | null
           per_vehicle_price: number | null
+          premium_listing: boolean | null
+          premium_listing_fee: number | null
           price: number
+          public_jobs_commission: number | null
+          public_jobs_enabled: boolean | null
+          public_jobs_flat_fee: number | null
           tier: string | null
           updated_at: string | null
           volume_discount: Json | null
@@ -1750,7 +1903,12 @@ export type Database = {
             | null
           per_user_price?: number | null
           per_vehicle_price?: number | null
+          premium_listing?: boolean | null
+          premium_listing_fee?: number | null
           price: number
+          public_jobs_commission?: number | null
+          public_jobs_enabled?: boolean | null
+          public_jobs_flat_fee?: number | null
           tier?: string | null
           updated_at?: string | null
           volume_discount?: Json | null
@@ -1774,7 +1932,12 @@ export type Database = {
             | null
           per_user_price?: number | null
           per_vehicle_price?: number | null
+          premium_listing?: boolean | null
+          premium_listing_fee?: number | null
           price?: number
+          public_jobs_commission?: number | null
+          public_jobs_enabled?: boolean | null
+          public_jobs_flat_fee?: number | null
           tier?: string | null
           updated_at?: string | null
           volume_discount?: Json | null
@@ -2242,6 +2405,14 @@ export type Database = {
       [_ in never]: never
     }
     Functions: {
+      calculate_platform_fees: {
+        Args: {
+          organization_id: string
+          total_amount: number
+          is_surge?: boolean
+        }
+        Returns: Record<string, unknown>
+      }
       calculate_repair_order_total: {
         Args: {
           repair_order_id: string
@@ -2377,6 +2548,14 @@ export type Database = {
           org_id: string
         }
         Returns: boolean
+      }
+      process_job_earnings: {
+        Args: {
+          job_id: string
+          total_amount: number
+          is_surge?: boolean
+        }
+        Returns: string
       }
       validate_customer_access_token: {
         Args: {
