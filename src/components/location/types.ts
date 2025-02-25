@@ -1,9 +1,11 @@
 
+import type { Position } from '@capacitor/geolocation';
+
 export interface LocationTrackerProps {
   jobId?: string;
   enabled?: boolean;
   updateInterval?: number;
-  onLocationUpdate?: (position: GeolocationPosition) => void;
+  onLocationUpdate?: (position: Position) => void;
 }
 
 export interface LocationUpdate {

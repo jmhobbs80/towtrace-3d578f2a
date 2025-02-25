@@ -1,6 +1,6 @@
 
 import { useState, useCallback, useEffect } from 'react';
-import { Geolocation } from '@capacitor/geolocation';
+import { Geolocation, Position } from '@capacitor/geolocation';
 import { supabase } from "@/integrations/supabase/client";
 import { useToast } from "@/hooks/use-toast";
 import { LocationUpdate, LocationQueue } from './types';
@@ -11,7 +11,7 @@ const MAX_QUEUE_SIZE = 100;
 export const useLocationTracking = (
   jobId?: string,
   updateInterval: number = 30000,
-  onLocationUpdate?: (position: GeolocationPosition) => void
+  onLocationUpdate?: (position: Position) => void
 ) => {
   const [isTracking, setIsTracking] = useState(false);
   const [lastUpdate, setLastUpdate] = useState<Date | null>(null);
@@ -23,7 +23,7 @@ export const useLocationTracking = (
   const [isOnline, setIsOnline] = useState(navigator.onLine);
   const { toast } = useToast();
 
-  const calculateETA = useCallback((position: GeolocationPosition) => {
+  const calculateETA = useCallback((position: Position) => {
     if (!position.coords.speed || position.coords.speed === 0) {
       setEta(null);
       return;
@@ -86,7 +86,7 @@ export const useLocationTracking = (
     }
   }, [jobId, toast, queuedUpdates]);
 
-  const updateLocation = useCallback((position: GeolocationPosition) => {
+  const updateLocation = useCallback((position: Position) => {
     setLastUpdate(new Date());
     setAccuracy(position.coords.accuracy);
     setSpeed(position.coords.speed);
