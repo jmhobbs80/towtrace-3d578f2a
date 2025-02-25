@@ -144,22 +144,32 @@ export function SignInForm() {
   }
 
   return (
-    <div className="space-y-6 animate-fade-in">
+    <div className="w-full max-w-md mx-auto space-y-8">
+      <div className="text-center space-y-2">
+        <h1 className="text-2xl font-semibold text-gray-900">
+          Sign in to your account
+        </h1>
+      </div>
+
       <form onSubmit={handleSubmit} className="space-y-6">
-        <div className="space-y-3">
-          <Label htmlFor="email" className="text-sm font-medium text-[#1A1F2C]">Email</Label>
+        <div className="space-y-2">
+          <Label htmlFor="email" className="text-sm font-medium text-gray-700">
+            Email
+          </Label>
           <EmailInput value={email} onChange={setEmail} />
         </div>
 
-        <div className="space-y-3">
-          <Label htmlFor="password" className="text-sm font-medium text-[#1A1F2C]">Password</Label>
+        <div className="space-y-2">
+          <Label htmlFor="password" className="text-sm font-medium text-gray-700">
+            Password
+          </Label>
           <PasswordInput value={password} onChange={setPassword} />
         </div>
 
         <SubmitButton loading={loading} />
       </form>
 
-      <div className="text-center animate-fade-in">
+      <div className="text-center space-y-4">
         <button
           type="button"
           onClick={() => setIsDialogOpen(true)}
@@ -167,6 +177,12 @@ export function SignInForm() {
         >
           Forgot password?
         </button>
+        <div className="text-sm">
+          <span className="text-gray-600">Don't have an account? </span>
+          <a href="/auth/signup" className="text-[#7E69AB] hover:text-[#9b87f5] transition-colors duration-200">
+            Sign up
+          </a>
+        </div>
         <PasswordResetDialog
           isOpen={isDialogOpen}
           onOpenChange={setIsDialogOpen}
