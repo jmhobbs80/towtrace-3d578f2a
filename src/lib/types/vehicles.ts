@@ -6,6 +6,7 @@ import type { Json } from "@/integrations/supabase/types";
 export type VehicleStatus = 'available' | 'in_transit' | 'pending_inspection' | 'sold' | 'auction_ready' | 'maintenance';
 export type VehicleDamageSeverity = 'none' | 'minor' | 'moderate' | 'severe';
 export type VehicleInspectionResult = 'pass' | 'fail' | 'needs_repair';
+export type VehicleCondition = 'excellent' | 'good' | 'fair' | 'poor' | 'damaged' | 'salvage';
 
 export interface Vehicle {
   id: string;
@@ -15,6 +16,7 @@ export interface Vehicle {
   year: number;
   color?: string;
   status: VehicleStatus;
+  condition: VehicleCondition;
   organization_id: string;
   location_id?: string;
   vin_scan_data?: any;
