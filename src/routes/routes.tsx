@@ -12,8 +12,15 @@ import { customerRoutes } from "./customer-routes";
 import { billingRoutes } from "./billing-routes";
 import { analyticsRoutes } from "./analytics-routes";
 import { legalRoutes } from "./legal-routes";
+import NotFound from "@/pages/NotFound";
+import Dashboard from "@/pages/dashboard/Dashboard";
 
 const protectedRoutes = [
+  {
+    path: "/",
+    element: <Dashboard />,
+    allowedRoles: ["admin", "dealer", "fleet_manager", "dispatcher", "wholesaler"]
+  },
   ...adminRoutes,
   ...dealerRoutes,
   ...fleetRoutes,
@@ -52,7 +59,7 @@ export const router = createBrowserRouter([
       },
       {
         path: "*",
-        element: <Navigate to="/auth" replace />
+        element: <NotFound />
       }
     ]
   }
