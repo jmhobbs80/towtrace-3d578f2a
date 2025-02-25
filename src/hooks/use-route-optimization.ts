@@ -75,12 +75,15 @@ export const useRouteOptimization = () => {
         console.error('Error fetching road conditions:', conditionsError);
       }
 
-      // Get historical trip data for better predictions
+      // Get historical trip data for better predictions using completed tow jobs
       const { data: historicalData, error: historicalError } = await supabase
-        .from('completed_trips')
-        .select('duration, distance, start_time')
-        .filter('start_location', 'near', input.startLocation)
-        .filter('end_location', 'near', input.endLocation)
+        .from('tow_jobs')
+        .select('eta, mileage, created_at')
+        .eq('status', 'completed')
+        .filter('pickup_location->coordinates->0', 'gte', input.startLocation.lat - 0.1)
+        .filter('pickup_location->coordinates->0', 'lte', input.startLocation.lat + 0.1)
+        .filter('pickup_location->coordinates->1', 'gte', input.startLocation.lng - 0.1)
+        .filter('pickup_location->coordinates->1', 'lte', input.startLocation.lng + 0.1)
         .order('created_at', { ascending: false })
         .limit(100);
 
@@ -122,13 +125,20 @@ export const useRouteOptimization = () => {
 
       setOptimizedRoute(optimizedData);
 
-      // Store optimization result for analysis
+      // Store optimization result in route_optimizations table with correct schema
       await supabase.from('route_optimizations').insert({
-        start_location: input.startLocation,
-        end_location: input.endLocation,
-        preferences: input.preferences,
-        constraints: input.constraints,
-        result: optimizedData,
+        start_location: { 
+          coordinates: [input.startLocation.lat, input.startLocation.lng]
+        },
+        end_location: { 
+          coordinates: [input.endLocation.lat, input.endLocation.lng]
+        },
+        waypoints: optimizedData.waypoints.map(wp => ({
+          coordinates: [wp.lat, wp.lng]
+        })),
+        estimated_duration: optimizedData.duration,
+        estimated_distance: optimizedData.distance,
+        optimization_score: 0.95, // Default score for now
         created_at: new Date().toISOString()
       });
 
