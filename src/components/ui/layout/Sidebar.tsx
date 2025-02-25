@@ -4,10 +4,11 @@ import { Menu, X, Home, Truck, Users, FileText, Settings, LogOut } from "lucide-
 import { Button } from "@/components/ui/button";
 import { cn } from "@/lib/utils";
 import { useAuth } from "@/components/auth/AuthProvider";
+import { OrganizationSwitcher } from "@/components/organization/OrganizationSwitcher";
 
 export const Sidebar = () => {
   const [isOpen, setIsOpen] = useState(true);
-  const { signOut } = useAuth();
+  const { signOut, organization } = useAuth();
 
   const navigationItems = [
     { name: "Dashboard", icon: Home, href: "/" },
@@ -36,11 +37,15 @@ export const Sidebar = () => {
           "lg:translate-x-0"
         )}
       >
-        <div className="flex h-16 items-center justify-center border-b">
+        <div className="flex h-16 items-center justify-between border-b px-4">
           <h1 className="text-xl font-bold text-primary">TowTrace</h1>
         </div>
 
-        <nav className="mt-8">
+        <div className="p-4">
+          <OrganizationSwitcher />
+        </div>
+
+        <nav className="mt-4">
           <ul className="space-y-2 px-4">
             {navigationItems.map((item) => (
               <li key={item.name}>

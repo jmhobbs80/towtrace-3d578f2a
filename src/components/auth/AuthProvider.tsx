@@ -8,6 +8,7 @@ import type { UserRole } from "@/lib/types/auth";
 interface Organization {
   id: string;
   name: string;
+  type: 'dealer' | 'wholesaler' | 'transporter' | null;
   subscription_tier: string;
   subscription_status: string;
   subscription_period_end?: string;
@@ -34,6 +35,7 @@ interface AuthContextType {
   organization: Organization | null;
   userRole: UserRole | null;
   signOut: () => Promise<void>;
+  switchOrganization: (orgId: string) => Promise<void>;
 }
 
 const AuthContext = createContext<AuthContextType>({
@@ -42,6 +44,7 @@ const AuthContext = createContext<AuthContextType>({
   organization: null,
   userRole: null,
   signOut: async () => {},
+  switchOrganization: async () => {},
 });
 
 export const AuthProvider = ({ children }: { children: React.ReactNode }) => {
@@ -68,13 +71,52 @@ export const AuthProvider = ({ children }: { children: React.ReactNode }) => {
     }
   };
 
+  const switchOrganization = async (orgId: string) => {
+    try {
+      const { data: org, error: orgError } = await supabase
+        .from('organizations')
+        .select('*')
+        .eq('id', orgId)
+        .single();
+
+      if (orgError) throw orgError;
+
+      if (org) {
+        const formattedOrg: Organization = {
+          id: org.id,
+          name: org.name,
+          type: org.type,
+          subscription_tier: org.subscription_tier,
+          subscription_status: org.subscription_status,
+          subscription_period_end: org.subscription_period_end,
+          stripe_customer_id: org.stripe_customer_id,
+          subscription_plan_id: org.subscription_plan_id,
+          member_count: org.member_count || 0,
+          vehicle_count: org.vehicle_count || 0,
+          billing_details: typeof org.billing_details === 'object' ? org.billing_details : undefined
+        };
+        setOrganization(formattedOrg);
+        
+        // Update user metadata
+        await supabase.auth.updateUser({
+          data: { current_organization_id: orgId }
+        });
+      }
+    } catch (error) {
+      console.error('Error switching organization:', error);
+    }
+  };
+
   useEffect(() => {
     // Check active sessions
     supabase.auth.getSession().then(({ data: { session } }) => {
       setUser(session?.user ?? null);
       if (session?.user) {
         fetchUserRole(session.user.id);
-        fetchUserOrganization(session.user.id);
+        const currentOrgId = session.user.user_metadata.current_organization_id;
+        if (currentOrgId) {
+          switchOrganization(currentOrgId);
+        }
       }
       setLoading(false);
     });
@@ -86,7 +128,10 @@ export const AuthProvider = ({ children }: { children: React.ReactNode }) => {
       setUser(session?.user ?? null);
       if (session?.user) {
         fetchUserRole(session.user.id);
-        fetchUserOrganization(session.user.id);
+        const currentOrgId = session.user.user_metadata.current_organization_id;
+        if (currentOrgId) {
+          switchOrganization(currentOrgId);
+        }
       } else {
         setOrganization(null);
         setUserRole(null);
@@ -97,59 +142,13 @@ export const AuthProvider = ({ children }: { children: React.ReactNode }) => {
     return () => subscription.unsubscribe();
   }, []);
 
-  const fetchUserOrganization = async (userId: string) => {
-    try {
-      const { data: organizationMember, error: memberError } = await supabase
-        .from('organization_members')
-        .select('organization_id')
-        .eq('user_id', userId)
-        .single();
-
-      if (memberError) {
-        console.error('Error fetching organization member:', memberError);
-        return;
-      }
-
-      if (organizationMember?.organization_id) {
-        const { data: org, error: orgError } = await supabase
-          .from('organizations')
-          .select('*')
-          .eq('id', organizationMember.organization_id)
-          .single();
-
-        if (orgError) {
-          console.error('Error fetching organization:', orgError);
-          return;
-        }
-
-        if (org) {
-          const formattedOrg: Organization = {
-            id: org.id,
-            name: org.name,
-            subscription_tier: org.subscription_tier,
-            subscription_status: org.subscription_status,
-            subscription_period_end: org.subscription_period_end,
-            stripe_customer_id: org.stripe_customer_id,
-            subscription_plan_id: org.subscription_plan_id,
-            member_count: org.member_count || 0,
-            vehicle_count: org.vehicle_count || 0,
-            billing_details: typeof org.billing_details === 'object' ? org.billing_details as Organization['billing_details'] : undefined
-          };
-          setOrganization(formattedOrg);
-        }
-      }
-    } catch (error) {
-      console.error('Error in fetchUserOrganization:', error);
-    }
-  };
-
   const signOut = async () => {
     await supabase.auth.signOut();
     navigate("/auth");
   };
 
   return (
-    <AuthContext.Provider value={{ user, loading, organization, userRole, signOut }}>
+    <AuthContext.Provider value={{ user, loading, organization, userRole, signOut, switchOrganization }}>
       {children}
     </AuthContext.Provider>
   );
