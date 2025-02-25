@@ -33,107 +33,65 @@ const handler = async (req: Request): Promise<Response> => {
     console.log(`✅ Received Stripe webhook event: ${event.type}`);
 
     switch (event.type) {
-      case "customer.subscription.created":
-      case "customer.subscription.updated": {
-        const subscription = event.data.object;
-        const additionalRoles = JSON.parse(subscription.metadata.additional_roles || '[]');
+      case "payment_intent.succeeded": {
+        const paymentIntent = event.data.object;
+        const jobId = paymentIntent.metadata.job_id;
+        const organizationId = paymentIntent.metadata.organization_id;
         
-        // Update organization subscription details
-        const { error: orgError } = await supabase
-          .from("organizations")
-          .update({
-            stripe_subscription_id: subscription.id,
-            subscription_status: subscription.status,
-            subscription_period_start: new Date(subscription.current_period_start * 1000),
-            subscription_period_end: new Date(subscription.current_period_end * 1000),
-            subscription_plan_id: subscription.items.data[0].price.lookup_key || subscription.items.data[0].price.id,
-            trial_end: subscription.trial_end ? new Date(subscription.trial_end * 1000) : null,
-          })
-          .eq("stripe_customer_id", subscription.customer);
-
-        if (orgError) {
-          console.error("Error updating organization subscription:", orgError);
-          return new Response("Error updating subscription", { status: 500 });
-        }
-
-        // Update organization roles
-        if (additionalRoles.length > 0) {
-          const { data: org } = await supabase
-            .from("organizations")
-            .select("id")
-            .eq("stripe_customer_id", subscription.customer)
-            .single();
-
-          if (org) {
-            // Delete existing non-primary roles
-            await supabase
-              .from("organization_roles")
-              .delete()
-              .eq("organization_id", org.id)
-              .eq("is_primary", false);
-
-            // Insert new roles
-            const rolesToInsert = additionalRoles.map((role: string) => ({
-              organization_id: org.id,
-              role_type: role,
-              is_primary: false,
-            }));
-
-            const { error: rolesError } = await supabase
-              .from("organization_roles")
-              .insert(rolesToInsert);
-
-            if (rolesError) {
-              console.error("Error updating organization roles:", rolesError);
+        // Create payment record
+        const { error: paymentError } = await supabase
+          .from('payments')
+          .insert({
+            job_id: jobId,
+            organization_id: organizationId,
+            amount: paymentIntent.amount / 100, // Convert from cents
+            method: 'credit_card',
+            status: 'processed',
+            reference_number: paymentIntent.id,
+            processed_at: new Date().toISOString(),
+            metadata: {
+              stripe_payment_intent_id: paymentIntent.id,
+              payment_method_type: paymentIntent.payment_method_type,
             }
-          }
+          });
+
+        if (paymentError) {
+          console.error('Error creating payment record:', paymentError);
+          return new Response('Error creating payment record', { status: 500 });
         }
-        break;
-      }
 
-      case "customer.subscription.deleted": {
-        const subscription = event.data.object;
-        
-        // Get organization ID
-        const { data: org } = await supabase
-          .from("organizations")
-          .select("id")
-          .eq("stripe_subscription_id", subscription.id)
-          .single();
+        // Calculate and process earnings
+        await supabase.rpc('process_job_earnings', {
+          job_id: jobId,
+          total_amount: paymentIntent.amount / 100,
+          is_surge: false
+        });
 
-        if (org) {
-          // Update organization subscription status
-          await supabase
-            .from("organizations")
-            .update({
-              subscription_status: "inactive",
-              subscription_period_end: new Date(),
-            })
-            .eq("stripe_subscription_id", subscription.id);
-
-          // Remove all non-primary roles
-          await supabase
-            .from("organization_roles")
-            .delete()
-            .eq("organization_id", org.id)
-            .eq("is_primary", false);
-        }
-        break;
-      }
-
-      case "customer.created": {
-        const customer = event.data.object;
-        const { error } = await supabase
-          .from("organizations")
-          .update({
-            stripe_customer_id: customer.id,
+        // Update job status
+        await supabase
+          .from('tow_jobs')
+          .update({ 
+            payment_status: 'paid',
+            status: 'completed'
           })
-          .eq("id", customer.metadata.organization_id);
+          .eq('id', jobId);
 
-        if (error) {
-          console.error("Error updating organization customer:", error);
-          return new Response("Error updating customer", { status: 500 });
-        }
+        break;
+      }
+
+      case "payment_intent.payment_failed": {
+        const paymentIntent = event.data.object;
+        const jobId = paymentIntent.metadata.job_id;
+
+        // Update job status
+        await supabase
+          .from('tow_jobs')
+          .update({ 
+            payment_status: 'failed',
+            payment_error: paymentIntent.last_payment_error?.message
+          })
+          .eq('id', jobId);
+
         break;
       }
 
