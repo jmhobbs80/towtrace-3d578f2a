@@ -2,6 +2,7 @@
 import { Outlet } from "react-router-dom";
 import { SidebarProvider, Sidebar, SidebarInset } from "@/components/ui/sidebar";
 import { Logo } from "@/components/branding/Logo";
+import { PageTransition } from "@/components/ui/page-transition";
 import ProtectedRoute from "@/components/auth/ProtectedRoute";
 
 export function SidebarLayout() {
@@ -15,7 +16,9 @@ export function SidebarLayout() {
               <Logo variant="mobile" size="sm" />
             </div>
             <SidebarInset>
-              <Outlet />
+              <PageTransition>
+                <Outlet />
+              </PageTransition>
             </SidebarInset>
           </div>
         </div>
