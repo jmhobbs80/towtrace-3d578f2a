@@ -3,14 +3,18 @@ project_id = "pfraresupodbfeggrwiy"
 
 [api]
 enabled = true
-cors = ["*"]
-max_request_per_second = 10
-request_timeout = 30
 
-[[functions]]
-name = "optimize-route"
+[functions.create-checkout-session]
 verify_jwt = true
 
-[[functions]]
-name = "get-mapbox-token"
+[functions.stripe-webhook]
+verify_jwt = false
+
+[functions.optimize-route]
+verify_jwt = true
+
+[functions.quickbooks-oauth]
+verify_jwt = true
+
+[functions.quickbooks-sync]
 verify_jwt = true

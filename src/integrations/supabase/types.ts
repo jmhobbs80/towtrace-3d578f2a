@@ -1785,6 +1785,103 @@ export type Database = {
         }
         Relationships: []
       }
+      quickbooks_connections: {
+        Row: {
+          access_token: string
+          created_at: string | null
+          id: string
+          is_connected: boolean | null
+          organization_id: string
+          realm_id: string
+          refresh_token: string
+          settings: Json | null
+          token_expires_at: string
+          updated_at: string | null
+        }
+        Insert: {
+          access_token: string
+          created_at?: string | null
+          id?: string
+          is_connected?: boolean | null
+          organization_id: string
+          realm_id: string
+          refresh_token: string
+          settings?: Json | null
+          token_expires_at: string
+          updated_at?: string | null
+        }
+        Update: {
+          access_token?: string
+          created_at?: string | null
+          id?: string
+          is_connected?: boolean | null
+          organization_id?: string
+          realm_id?: string
+          refresh_token?: string
+          settings?: Json | null
+          token_expires_at?: string
+          updated_at?: string | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "quickbooks_connections_organization_id_fkey"
+            columns: ["organization_id"]
+            isOneToOne: false
+            referencedRelation: "organizations"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      quickbooks_sync_logs: {
+        Row: {
+          created_at: string | null
+          entity_id: string
+          entity_type: string
+          error_message: string | null
+          id: string
+          organization_id: string
+          processed_at: string | null
+          quickbooks_id: string | null
+          retries: number | null
+          status: string
+          sync_type: string
+        }
+        Insert: {
+          created_at?: string | null
+          entity_id: string
+          entity_type: string
+          error_message?: string | null
+          id?: string
+          organization_id: string
+          processed_at?: string | null
+          quickbooks_id?: string | null
+          retries?: number | null
+          status?: string
+          sync_type: string
+        }
+        Update: {
+          created_at?: string | null
+          entity_id?: string
+          entity_type?: string
+          error_message?: string | null
+          id?: string
+          organization_id?: string
+          processed_at?: string | null
+          quickbooks_id?: string | null
+          retries?: number | null
+          status?: string
+          sync_type?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "quickbooks_sync_logs_organization_id_fkey"
+            columns: ["organization_id"]
+            isOneToOne: false
+            referencedRelation: "organizations"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       release_checklist_items: {
         Row: {
           completed_at: string | null
