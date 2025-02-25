@@ -2,13 +2,13 @@
 import * as React from "react"
 import { Sheet, SheetContent } from "@/components/ui/sheet"
 import { Input } from "@/components/ui/input"
-import { Separator } from "@/components/ui/separator"
 import { Button } from "@/components/ui/button"
 import { PanelLeft } from "lucide-react"
 import { cn } from "@/lib/utils"
 import { useSidebar } from "./context"
 import { SIDEBAR_WIDTH_MOBILE } from "./types"
 
+// Export the Sidebar component
 export const Sidebar = React.forwardRef<
   HTMLDivElement,
   React.ComponentProps<"div"> & {
