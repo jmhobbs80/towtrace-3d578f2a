@@ -12,6 +12,15 @@ interface QueueStatus {
   lastSyncAttempt: number | null;
 }
 
+// Extend ServiceWorkerRegistration type to include sync
+declare global {
+  interface ServiceWorkerRegistration {
+    sync?: {
+      register(tag: string): Promise<void>;
+    };
+  }
+}
+
 export const useOfflineQueue = () => {
   const [queuedUpdates, setQueuedUpdates] = useState<LocationUpdate[]>([]);
   const [isOnline, setIsOnline] = useState(navigator.onLine);
@@ -89,9 +98,11 @@ export const useOfflineQueue = () => {
   useEffect(() => {
     const handleOnline = () => {
       setIsOnline(true);
-      // Request sync when coming back online
+      // Request sync when coming back online, with type checking
       navigator.serviceWorker?.ready.then(registration => {
-        registration.sync.register('sync-updates');
+        if (registration.sync) {
+          registration.sync.register('sync-updates').catch(console.error);
+        }
       });
       toast({
         title: "Back Online",
