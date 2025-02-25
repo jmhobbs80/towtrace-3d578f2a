@@ -12,6 +12,6 @@ export const ROLE_ACCESS = {
   DRIVER: ["driver", "admin", "super_admin"] as UserRole[],
   DISPATCH: ["dispatcher", "admin", "super_admin"] as UserRole[],
   ANALYTICS: ["dealer", "wholesaler", "dispatcher", "admin", "super_admin"] as UserRole[],
-  CUSTOMER: ["customer", "admin", "super_admin"] as UserRole[],
-  PUBLIC: [] as UserRole[],
+  CUSTOMER: [] as UserRole[], // Public access
+  PUBLIC: [] as UserRole[], // Public access
 } as const;

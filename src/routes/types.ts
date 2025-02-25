@@ -5,4 +5,5 @@ export interface RouteConfig {
   path: string;
   element: React.ReactNode;
   allowedRoles: UserRole[];
+  children?: RouteConfig[];
 }
