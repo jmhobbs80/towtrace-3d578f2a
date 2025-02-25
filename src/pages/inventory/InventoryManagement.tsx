@@ -10,6 +10,7 @@ import { AddVehicleModal } from "@/components/inventory/AddVehicleModal";
 import { getInventoryVehicles, getLocations } from "@/lib/api/inventory";
 import { useToast } from "@/components/ui/use-toast";
 import { useAuth } from "@/lib/auth";
+import type { InventoryLocation, InventoryVehicle } from "@/lib/types/inventory";
 
 const InventoryManagement = () => {
   const [selectedLocationId, setSelectedLocationId] = useState<string>();
@@ -18,7 +19,7 @@ const InventoryManagement = () => {
   const { toast } = useToast();
   const { organization } = useAuth();
 
-  const { data: locations = [] } = useQuery({
+  const { data: locations = [] } = useQuery<InventoryLocation[]>({
     queryKey: ['locations'],
     queryFn: getLocations
   });
@@ -27,7 +28,7 @@ const InventoryManagement = () => {
     data: vehicles = [], 
     isLoading,
     refetch: refetchVehicles
-  } = useQuery({
+  } = useQuery<InventoryVehicle[]>({
     queryKey: ['inventory', selectedLocationId],
     queryFn: () => getInventoryVehicles(selectedLocationId),
   });
@@ -41,7 +42,7 @@ const InventoryManagement = () => {
   };
 
   if (!organization?.id) {
-    return null; // or show a loading state or error message
+    return null;
   }
 
   return (

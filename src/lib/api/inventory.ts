@@ -1,4 +1,3 @@
-
 import { supabase } from "@/integrations/supabase/client";
 import type { 
   InventoryLocation, 
@@ -14,18 +13,18 @@ import { decodeVIN } from "./vin-decoder";
 export async function getLocations() {
   const { data, error } = await supabase
     .from('inventory_locations')
-    .select('id, name, address, capacity')
+    .select('id, name, address, capacity, created_at, updated_at, organization_id')
     .order('name');
   
   if (error) throw error;
-  return data;
+  return data as InventoryLocation[];
 }
 
 export async function createLocation(location: Pick<InventoryLocation, 'name' | 'address' | 'capacity'> & { organization_id: string }) {
   const { data, error } = await supabase
     .from('inventory_locations')
     .insert(location)
-    .select('id, name, address, capacity')
+    .select('id, name, address, capacity, created_at, updated_at, organization_id')
     .single();
   
   if (error) throw error;
@@ -43,6 +42,24 @@ export async function getInventoryVehicles(locationId?: string) {
       vin,
       status,
       condition,
+      location_id,
+      color,
+      trim,
+      mileage,
+      purchase_price,
+      listing_price,
+      photos,
+      notes,
+      metadata,
+      service_history,
+      auction_status,
+      auction_result_id,
+      auction_date,
+      inspection_date,
+      damage_report,
+      created_at,
+      updated_at,
+      organization_id,
       location:inventory_locations!inner(
         id,
         name,
@@ -62,7 +79,7 @@ export async function getInventoryVehicles(locationId?: string) {
 
   const { data, error } = await query;
   if (error) throw error;
-  return data;
+  return data as InventoryVehicle[];
 }
 
 export async function addVehicleToInventory(vehicle: Pick<InventoryVehicle, 'make' | 'model' | 'year' | 'vin' | 'organization_id'> & Partial<Omit<InventoryVehicle, 'id' | 'created_at' | 'updated_at'>>) {
