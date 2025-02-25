@@ -2626,6 +2626,11 @@ export type Database = {
       }
     }
     Enums: {
+      admin_account_type:
+        | "overwatch_admin"
+        | "super_admin"
+        | "support_agent"
+        | "billing_manager"
       app_role:
         | "admin"
         | "dispatcher"
