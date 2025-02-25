@@ -78,28 +78,28 @@ export default function AuthPage() {
     setIsSignUp(searchParams.get("signup") === "true");
   }, [searchParams]);
 
-  return (
-    <div className="min-h-screen flex flex-col items-center justify-center bg-background py-12 px-4 sm:px-6 lg:px-8">
-      {/* Pre-Sign-Up Text */}
-      {isSignUp ? (
-        <p className="text-muted-foreground text-sm mb-8 text-center">
-          Create an account to manage your fleet with TowTrace.
-        </p>
-      ) : (
-        <p className="text-muted-foreground text-sm mb-8 text-center">
-          Sign in to continue managing your fleet.
-        </p>
-      )}
-
-      {loading ? (
+  const renderAuthContent = () => {
+    if (loading) {
+      return (
         <div className="text-muted-foreground text-sm animate-pulse">
           Checking authentication...
         </div>
-      ) : isSignUp ? (
-        <SignUpForm />
-      ) : (
-        <SignInForm />
-      )}
+      );
+    }
+    
+    return isSignUp ? <SignUpForm /> : <SignInForm />;
+  };
+
+  return (
+    <div className="min-h-screen flex flex-col items-center justify-center bg-background py-12 px-4 sm:px-6 lg:px-8">
+      {/* Pre-Sign-Up Text */}
+      <p className="text-muted-foreground text-sm mb-8 text-center">
+        {isSignUp
+          ? "Create an account to manage your fleet with TowTrace."
+          : "Sign in to continue managing your fleet."}
+      </p>
+
+      {renderAuthContent()}
     </div>
   );
 }
