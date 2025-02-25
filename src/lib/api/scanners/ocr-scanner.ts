@@ -94,15 +94,24 @@ export class OCRVINScanner implements VINScannerHardware {
 
   async stopScanning(): Promise<void> {
     try {
-      this.reader.reset();
-      
-      if (this.videoElement && this.videoElement.parentNode) {
+      // Stop all video streams
+      if (this.videoElement && this.videoElement.srcObject) {
         const stream = this.videoElement.srcObject as MediaStream;
         if (stream) {
           stream.getTracks().forEach(track => track.stop());
         }
         this.videoElement.srcObject = null;
+      }
+      
+      // Remove video element from DOM
+      if (this.videoElement && this.videoElement.parentNode) {
         this.videoElement.parentNode.removeChild(this.videoElement);
+      }
+      
+      // Clean up reader
+      if (this.reader) {
+        this.reader.stopAsyncDecode();
+        this.reader.stopContinuousDecode();
       }
       
       this.videoElement = null;
