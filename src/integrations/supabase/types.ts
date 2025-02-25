@@ -1471,6 +1471,89 @@ export type Database = {
         }
         Relationships: []
       }
+      promo_code_redemptions: {
+        Row: {
+          id: string
+          metadata: Json | null
+          organization_id: string
+          promo_code_id: string | null
+          redeemed_at: string | null
+          subscription_id: string | null
+          user_id: string
+        }
+        Insert: {
+          id?: string
+          metadata?: Json | null
+          organization_id: string
+          promo_code_id?: string | null
+          redeemed_at?: string | null
+          subscription_id?: string | null
+          user_id: string
+        }
+        Update: {
+          id?: string
+          metadata?: Json | null
+          organization_id?: string
+          promo_code_id?: string | null
+          redeemed_at?: string | null
+          subscription_id?: string | null
+          user_id?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "promo_code_redemptions_promo_code_id_fkey"
+            columns: ["promo_code_id"]
+            isOneToOne: false
+            referencedRelation: "promo_codes"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      promo_codes: {
+        Row: {
+          code: string
+          created_at: string | null
+          description: string | null
+          discount_percent: number | null
+          expires_at: string | null
+          id: string
+          is_active: boolean | null
+          max_uses: number | null
+          times_used: number | null
+          trial_days: number | null
+          type: Database["public"]["Enums"]["promo_code_type"]
+          updated_at: string | null
+        }
+        Insert: {
+          code: string
+          created_at?: string | null
+          description?: string | null
+          discount_percent?: number | null
+          expires_at?: string | null
+          id?: string
+          is_active?: boolean | null
+          max_uses?: number | null
+          times_used?: number | null
+          trial_days?: number | null
+          type?: Database["public"]["Enums"]["promo_code_type"]
+          updated_at?: string | null
+        }
+        Update: {
+          code?: string
+          created_at?: string | null
+          description?: string | null
+          discount_percent?: number | null
+          expires_at?: string | null
+          id?: string
+          is_active?: boolean | null
+          max_uses?: number | null
+          times_used?: number | null
+          trial_days?: number | null
+          type?: Database["public"]["Enums"]["promo_code_type"]
+          updated_at?: string | null
+        }
+        Relationships: []
+      }
       provider_balances: {
         Row: {
           available_balance: number
@@ -2628,6 +2711,18 @@ export type Database = {
           impound_id: string
         }[]
       }
+      validate_promo_code: {
+        Args: {
+          code_input: string
+          user_id_input: string
+        }
+        Returns: {
+          is_valid: boolean
+          message: string
+          trial_days: number
+          discount_percent: number
+        }[]
+      }
     }
     Enums: {
       admin_account_type:
@@ -2681,6 +2776,7 @@ export type Database = {
         | "insurance"
         | "motor_club"
       pricing_type: "flat_rate" | "per_mile" | "surge"
+      promo_code_type: "trial" | "discount" | "other"
       provider_rating: "1" | "2" | "3" | "4" | "5"
       repair_item_status: "pending" | "in_progress" | "completed" | "cancelled"
       service_type:

@@ -29,21 +29,63 @@ export function useSignUpForm() {
       return null;
     }
 
-    const { data, error } = await supabase.rpc('validate_promo_code', {
-      code_input: promoCode,
-      user_id_input: await supabase.auth.getUser().then(({ data }) => data.user?.id)
-    });
-
-    if (error) {
+    // First get the user
+    const { data: { user } } = await supabase.auth.getUser();
+    if (!user) {
       setPromoCodeValid(false);
-      setPromoCodeMessage("Error validating promo code");
+      setPromoCodeMessage("Please sign in to validate promo code");
       return null;
     }
 
-    const validation = data[0];
-    setPromoCodeValid(validation.is_valid);
-    setPromoCodeMessage(validation.message);
-    return validation;
+    // Get the promo code details directly from the table
+    const { data: promoData, error: promoError } = await supabase
+      .from('promo_codes')
+      .select('*')
+      .eq('code', promoCode)
+      .eq('is_active', true)
+      .single();
+
+    if (promoError || !promoData) {
+      setPromoCodeValid(false);
+      setPromoCodeMessage("Invalid or expired promo code");
+      return null;
+    }
+
+    // Check if code has been used by this user
+    const { data: existingRedemption } = await supabase
+      .from('promo_codes')
+      .select(`
+        promo_code_redemptions!inner(
+          user_id
+        )
+      `)
+      .eq('code', promoCode)
+      .eq('promo_code_redemptions.user_id', user.id)
+      .maybeSingle();
+
+    if (existingRedemption) {
+      setPromoCodeValid(false);
+      setPromoCodeMessage("You have already used this promo code");
+      return null;
+    }
+
+    // Check usage limits
+    if (promoData.max_uses && promoData.times_used >= promoData.max_uses) {
+      setPromoCodeValid(false);
+      setPromoCodeMessage("This promo code has reached its usage limit");
+      return null;
+    }
+
+    // Check expiration
+    if (promoData.expires_at && new Date(promoData.expires_at) < new Date()) {
+      setPromoCodeValid(false);
+      setPromoCodeMessage("This promo code has expired");
+      return null;
+    }
+
+    setPromoCodeValid(true);
+    setPromoCodeMessage("Valid promo code - 90 day trial will be activated");
+    return promoData;
   }
 
   async function setupNotifications() {
@@ -89,15 +131,6 @@ export function useSignUpForm() {
         throw new Error("Password must be at least 6 characters long");
       }
 
-      // Validate promo code if provided
-      let promoValidation = null;
-      if (promoCode) {
-        promoValidation = await validatePromoCode();
-        if (!promoValidation?.is_valid) {
-          throw new Error("Invalid promo code");
-        }
-      }
-
       // Sign up
       const { error: signUpError, data: signUpData } = await supabase.auth.signUp({
         email,
@@ -109,7 +142,7 @@ export function useSignUpForm() {
             phone_number: preferSMS ? phoneNumber : null,
             role: role,
             company_name: companyName,
-            promo_code: promoValidation?.is_valid ? promoCode : null
+            promo_code: promoCodeValid ? promoCode : null
           }
         }
       });
@@ -138,24 +171,9 @@ export function useSignUpForm() {
 
       if (profileError) throw profileError;
 
-      // Record promo code redemption if valid
-      if (promoValidation?.is_valid && signUpData.user) {
-        const { error: redemptionError } = await supabase
-          .from('promo_code_redemptions')
-          .insert({
-            user_id: signUpData.user.id,
-            organization_id: signUpData.user.user_metadata.current_organization_id,
-            promo_code_id: promoCode
-          });
-
-        if (redemptionError) {
-          console.error('Error recording promo code redemption:', redemptionError);
-        }
-      }
-
       toast({
         title: "Account created successfully",
-        description: promoValidation?.is_valid 
+        description: promoCodeValid 
           ? "Your 90-day trial has been activated! Please check your email to verify your account."
           : "Please check your email to verify your account",
       });
