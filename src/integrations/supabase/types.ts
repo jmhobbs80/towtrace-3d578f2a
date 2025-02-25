@@ -1982,6 +1982,13 @@ export type Database = {
           updated_at: string
         }[]
       }
+      has_feature_access: {
+        Args: {
+          org_id: string
+          feature_key: string
+        }
+        Returns: boolean
+      }
       has_role: {
         Args: {
           required_role: Database["public"]["Enums"]["app_role"]
