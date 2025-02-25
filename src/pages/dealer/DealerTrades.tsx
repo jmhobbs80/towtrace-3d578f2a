@@ -1,3 +1,4 @@
+
 import { useState, useEffect } from "react";
 import { useQuery } from "@tanstack/react-query";
 import { useAuth } from "@/components/auth/AuthProvider";
@@ -41,33 +42,37 @@ export default function DealerTrades() {
   const { toast } = useToast();
   const [selectedVehicle, setSelectedVehicle] = useState<string | null>(null);
 
-  useEffect(() => {
-    const checkDealerRole = async () => {
-      if (!user?.id) {
-        navigate("/auth");
-        return;
-      }
+  // Move auth check to a query to prevent race conditions
+  const { data: dealerRole } = useQuery({
+    queryKey: ['dealer-role', organization?.id, user?.id],
+    queryFn: async () => {
+      if (!user?.id || !organization?.id) return null;
 
       const { data, error } = await supabase
         .from('organization_roles')
         .select('role_type')
-        .eq('organization_id', organization?.id)
+        .eq('organization_id', organization.id)
         .eq('role_type', 'dealer')
         .maybeSingle();
 
-      if (error || !data) {
-        toast({
-          variant: "destructive",
-          title: "Access Denied",
-          description: "You must be a dealer to access this page."
-        });
-        navigate("/");
-        return;
-      }
-    };
+      if (error) throw error;
+      return data;
+    },
+    onError: () => {
+      toast({
+        variant: "destructive",
+        title: "Access Denied",
+        description: "You must be a dealer to access this page."
+      });
+      navigate("/");
+    }
+  });
 
-    checkDealerRole();
-  }, [user, organization, navigate, toast]);
+  useEffect(() => {
+    if (!user?.id) {
+      navigate("/auth");
+    }
+  }, [user, navigate]);
 
   const { data: trades, isLoading } = useQuery({
     queryKey: ['dealer-trades', organization?.id],
@@ -92,18 +97,17 @@ export default function DealerTrades() {
         .or(`source_dealer.eq.${organization.id},destination_dealer.eq.${organization.id}`)
         .order('created_at', { ascending: false });
 
-      if (error) {
-        toast({
-          variant: "destructive",
-          title: "Error",
-          description: "Failed to fetch trades. Please try again later."
-        });
-        return [];
-      }
-
+      if (error) throw error;
       return data as Trade[];
     },
-    enabled: !!organization?.id
+    enabled: !!organization?.id && !!dealerRole,
+    onError: () => {
+      toast({
+        variant: "destructive",
+        title: "Error",
+        description: "Failed to fetch trades. Please try again later."
+      });
+    }
   });
 
   const { data: availableVehicles } = useQuery({
@@ -118,55 +122,60 @@ export default function DealerTrades() {
         .eq('status', 'available')
         .order('created_at', { ascending: false });
 
-      if (error) {
-        toast({
-          variant: "destructive",
-          title: "Error",
-          description: "Failed to fetch available vehicles. Please try again later."
-        });
-        return [];
-      }
-
+      if (error) throw error;
       return data;
     },
-    enabled: !!organization?.id
+    enabled: !!organization?.id && !!dealerRole,
+    onError: () => {
+      toast({
+        variant: "destructive",
+        title: "Error",
+        description: "Failed to fetch available vehicles. Please try again later."
+      });
+    }
   });
 
   const handleInitiateTrade = async () => {
     if (!selectedVehicle || !organization?.id) return;
 
-    const { error } = await supabase
-      .from('dealer_trades')
-      .insert({
-        source_dealer: organization.id,
-        vehicle_id: selectedVehicle,
-        status: 'pending' as TradeStatus
-      });
+    try {
+      const { error } = await supabase
+        .from('dealer_trades')
+        .insert({
+          source_dealer: organization.id,
+          vehicle_id: selectedVehicle,
+          status: 'pending' as TradeStatus
+        });
 
-    if (error) {
-      toast({
-        variant: "destructive",
-        title: "Error",
-        description: "Failed to initiate trade. Please try again later."
-      });
-    } else {
+      if (error) throw error;
+
       toast({
         title: "Success",
         description: "Trade initiated successfully."
       });
       setSelectedVehicle(null);
+    } catch (error) {
+      console.error('Failed to initiate trade:', error);
+      toast({
+        variant: "destructive",
+        title: "Error",
+        description: "Failed to initiate trade. Please try again later."
+      });
     }
   };
 
-  if (isLoading) {
-    return <div>Loading...</div>;
+  if (!dealerRole || !user) {
+    return null;
   }
 
   return (
     <div className="p-6 space-y-6">
       <div className="flex justify-between items-center">
         <h1 className="text-2xl font-bold">Dealer Trades</h1>
-        <Button onClick={handleInitiateTrade} disabled={!selectedVehicle}>
+        <Button 
+          onClick={handleInitiateTrade} 
+          disabled={!selectedVehicle || !organization?.id}
+        >
           <ArrowLeftRight className="mr-2 h-4 w-4" />
           Initiate Trade
         </Button>

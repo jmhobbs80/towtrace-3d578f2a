@@ -1,3 +1,4 @@
+
 import { supabase } from "@/integrations/supabase/client";
 import type { 
   InventoryLocation, 
@@ -21,9 +22,17 @@ export async function getLocations() {
 }
 
 export async function createLocation(location: Pick<InventoryLocation, 'name' | 'address' | 'capacity'> & { organization_id: string }) {
+  if (!location.organization_id) {
+    throw new Error('Organization ID is required');
+  }
+
   const { data, error } = await supabase
     .from('inventory_locations')
-    .insert(location)
+    .insert({
+      ...location,
+      name: location.name.trim(),
+      address: location.address.trim(),
+    })
     .select('id, name, address, capacity, created_at, updated_at, organization_id')
     .single();
   
