@@ -1,4 +1,3 @@
-
 import { useEffect, useState } from "react";
 import { useQuery } from "@tanstack/react-query";
 import { supabase } from "@/integrations/supabase/client";
@@ -10,6 +9,7 @@ import type { Load, Dimensions, PriceRange } from "@/lib/types/load";
 import { CreateLoadDialog } from "@/components/transport/CreateLoadDialog";
 import { Map } from "@/components/map/Map";
 import { LoadTable } from "@/components/transport/LoadTable";
+import { parseLocation, isValidLoadStatus } from "@/lib/types/load";
 
 function isDimensions(value: unknown): value is Dimensions {
   if (!value || typeof value !== 'object') return false;
@@ -53,20 +53,23 @@ export default function LoadBoard() {
         throw error;
       }
 
-      const transformedData: Load[] = data.map((load) => ({
-        ...load,
-        pickup_location: load.pickup_location as { address: string },
-        delivery_location: load.delivery_location as { address: string },
-        requirements: isStringArray(load.requirements) ? load.requirements : [],
-        photos: isStringArray(load.photos) ? load.photos : [],
-        dimensions: isDimensions(load.dimensions) ? load.dimensions : undefined,
-        weight: typeof load.weight === 'number' ? load.weight : undefined,
-        price_range: isPriceRange(load.price_range) ? load.price_range : undefined,
-        assigned_to: load.assigned_to || undefined,
-        description: load.description || undefined
-      }));
-
-      return transformedData;
+      return data.map((load): Load => {
+        const status = isValidLoadStatus(load.status) ? load.status : 'open';
+        
+        return {
+          ...load,
+          pickup_location: parseLocation(load.pickup_location),
+          delivery_location: parseLocation(load.delivery_location),
+          status,
+          requirements: isStringArray(load.requirements) ? load.requirements : [],
+          photos: isStringArray(load.photos) ? load.photos : [],
+          dimensions: isDimensions(load.dimensions) ? load.dimensions : undefined,
+          weight: typeof load.weight === 'number' ? load.weight : undefined,
+          price_range: isPriceRange(load.price_range) ? load.price_range : undefined,
+          assigned_to: load.assigned_to || undefined,
+          description: load.description || undefined
+        };
+      });
     },
   });
 

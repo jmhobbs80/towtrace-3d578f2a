@@ -35,8 +35,12 @@ export default function BulkTransport() {
           pickup_location: parseLocation(load.pickup_location),
           delivery_location: parseLocation(load.delivery_location),
           status,
-          requirements: Array.isArray(load.requirements) ? load.requirements : [],
-          photos: Array.isArray(load.photos) ? load.photos : [],
+          requirements: Array.isArray(load.requirements) 
+            ? load.requirements.map(r => String(r))
+            : [],
+          photos: Array.isArray(load.photos) 
+            ? load.photos.map(p => String(p))
+            : [],
         };
       });
     },
