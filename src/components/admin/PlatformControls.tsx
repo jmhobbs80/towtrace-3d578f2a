@@ -1,74 +1,123 @@
 
-import { useState } from "react";
-import { useQuery } from "@tanstack/react-query";
+import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
-import { AuditLog } from "./AuditLog";
-import { AdminAuditLog } from "@/lib/types/auth";
+import { Switch } from "@/components/ui/switch";
+import { Badge } from "@/components/ui/badge";
+import { toast } from "sonner";
 import { supabase } from "@/integrations/supabase/client";
+import type { FeatureToggle } from "@/lib/types/features";
 
 export function PlatformControls() {
-  const [timeRange, setTimeRange] = useState("24h");
+  const queryClient = useQueryClient();
 
-  const { data: logs } = useQuery({
-    queryKey: ["audit-logs", timeRange],
+  const { data: features = [], isLoading } = useQuery({
+    queryKey: ['feature-toggles'],
     queryFn: async () => {
       const { data, error } = await supabase
-        .from("admin_audit_logs")
-        .select("*")
-        .order("created_at", { ascending: false });
+        .from('feature_toggles')
+        .select('*')
+        .order('category');
 
       if (error) throw error;
-      return data as AdminAuditLog[];
+      return data as FeatureToggle[];
     },
   });
 
+  // Subscribe to feature toggle changes
+  useEffect(() => {
+    const channel = supabase
+      .channel('feature-toggles')
+      .on(
+        'postgres_changes',
+        {
+          event: '*',
+          schema: 'public',
+          table: 'feature_toggles'
+        },
+        () => {
+          queryClient.invalidateQueries({ queryKey: ['feature-toggles'] });
+        }
+      )
+      .subscribe();
+
+    return () => {
+      supabase.removeChannel(channel);
+    };
+  }, [queryClient]);
+
+  const toggleFeature = useMutation({
+    mutationFn: async ({ id, isEnabled }: { id: string; isEnabled: boolean }) => {
+      const { error } = await supabase
+        .from('feature_toggles')
+        .update({ is_enabled: isEnabled })
+        .eq('id', id);
+
+      if (error) throw error;
+    },
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ['feature-toggles'] });
+      toast.success('Feature toggle updated successfully');
+    },
+    onError: (error) => {
+      toast.error('Failed to update feature toggle');
+      console.error('Toggle error:', error);
+    }
+  });
+
+  const handleToggleFeature = (id: string, isEnabled: boolean) => {
+    toggleFeature.mutate({ id, isEnabled });
+  };
+
+  const groupedFeatures = features.reduce((acc, feature) => {
+    if (!acc[feature.category]) {
+      acc[feature.category] = [];
+    }
+    acc[feature.category].push(feature);
+    return acc;
+  }, {} as Record<string, FeatureToggle[]>);
+
+  if (isLoading) {
+    return <div>Loading platform controls...</div>;
+  }
+
   return (
     <div className="space-y-6">
-      <Card>
-        <CardHeader>
-          <CardTitle>Platform Controls</CardTitle>
-        </CardHeader>
-        <CardContent>
-          <div className="space-y-4">
-            <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-              <Card>
-                <CardHeader>
-                  <CardTitle className="text-sm">Active Users</CardTitle>
-                </CardHeader>
-                <CardContent>
-                  <div className="text-2xl font-bold">Loading...</div>
-                </CardContent>
-              </Card>
-              <Card>
-                <CardHeader>
-                  <CardTitle className="text-sm">System Status</CardTitle>
-                </CardHeader>
-                <CardContent>
-                  <div className="text-2xl font-bold text-green-500">Operational</div>
-                </CardContent>
-              </Card>
-              <Card>
-                <CardHeader>
-                  <CardTitle className="text-sm">Failed Login Attempts</CardTitle>
-                </CardHeader>
-                <CardContent>
-                  <div className="text-2xl font-bold text-yellow-500">0</div>
-                </CardContent>
-              </Card>
-              <Card>
-                <CardHeader>
-                  <CardTitle className="text-sm">Security Alerts</CardTitle>
-                </CardHeader>
-                <CardContent>
-                  <div className="text-2xl font-bold text-red-500">0</div>
-                </CardContent>
-              </Card>
-            </div>
-          </div>
-        </CardContent>
-      </Card>
-
-      <AuditLog logs={logs || []} />
+      <CardHeader className="px-0">
+        <CardTitle>Platform Feature Controls</CardTitle>
+      </CardHeader>
+      {Object.entries(groupedFeatures).map(([category, categoryFeatures]) => (
+        <Card key={category}>
+          <CardHeader>
+            <CardTitle className="capitalize">{category}</CardTitle>
+          </CardHeader>
+          <CardContent className="space-y-4">
+            {categoryFeatures.map((feature) => (
+              <div
+                key={feature.id}
+                className="flex items-center justify-between p-2 rounded-lg hover:bg-muted/50"
+              >
+                <div className="space-y-1">
+                  <div className="flex items-center gap-2">
+                    <h4 className="font-medium">{feature.name}</h4>
+                    <Badge variant={feature.is_enabled ? "default" : "secondary"}>
+                      {feature.is_enabled ? "Enabled" : "Coming Soon"}
+                    </Badge>
+                  </div>
+                  {feature.description && (
+                    <p className="text-sm text-muted-foreground">
+                      {feature.description}
+                    </p>
+                  )}
+                </div>
+                <Switch
+                  checked={feature.is_enabled}
+                  onCheckedChange={(checked) => handleToggleFeature(feature.id, checked)}
+                />
+              </div>
+            ))}
+          </CardContent>
+        </Card>
+      ))}
     </div>
   );
 }
