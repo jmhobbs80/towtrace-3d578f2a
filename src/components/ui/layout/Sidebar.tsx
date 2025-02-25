@@ -4,6 +4,7 @@ import { Menu, X, Home, Truck, Users, FileText, Settings, LogOut, Building, Wren
 import { Button } from "@/components/ui/button";
 import { cn } from "@/lib/utils";
 import { useAuth } from "@/components/auth/AuthProvider";
+import { Logo } from "@/components/branding/Logo";
 import { OrganizationSwitcher } from "@/components/organization/OrganizationSwitcher";
 import type { Database } from "@/integrations/supabase/types";
 
@@ -86,8 +87,8 @@ export const Sidebar = () => {
           "lg:translate-x-0"
         )}
       >
-        <div className="flex h-16 items-center justify-between border-b px-4">
-          <h1 className="text-xl font-bold text-primary">TowTrace</h1>
+        <div className="flex h-16 items-center border-b px-4">
+          <Logo variant={isOpen ? "default" : "mobile"} size="md" />
         </div>
 
         <div className="p-4">
