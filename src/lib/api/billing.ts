@@ -1,4 +1,3 @@
-
 import { supabase } from "@/integrations/supabase/client";
 import type { Payment, PaymentMethod, SubscriptionPlan, OrganizationType, RoleFeature, OrganizationRole, VolumeDiscount } from "../types/billing";
 
@@ -74,15 +73,12 @@ export const fetchSubscriptionPlans = async (organizationType: OrganizationType)
     let volumeDiscount: VolumeDiscount[] | undefined;
     if (Array.isArray(plan.volume_discount)) {
       volumeDiscount = plan.volume_discount.map(discount => {
-        if (typeof discount === 'object' && discount !== null) {
-          return {
-            threshold: Number(discount.threshold) || 0,
-            discount_percentage: Number(discount.discount_percentage) || 0
-          };
-        }
+        const discountObj = discount as Record<string, unknown>;
         return {
-          threshold: 0,
-          discount_percentage: 0
+          threshold: typeof discountObj.threshold === 'number' ? discountObj.threshold : 
+                    typeof discountObj.threshold === 'string' ? Number(discountObj.threshold) : 0,
+          discount_percentage: typeof discountObj.discount_percentage === 'number' ? discountObj.discount_percentage :
+                             typeof discountObj.discount_percentage === 'string' ? Number(discountObj.discount_percentage) : 0
         };
       });
     }
