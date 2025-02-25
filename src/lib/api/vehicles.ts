@@ -10,7 +10,18 @@ import type { Database } from "@/integrations/supabase/types";
 export type { VINScannerHardware };
 
 type Tables = Database['public']['Tables']
-type DamageReportRow = Tables['vehicle_damage_reports']['Row']
+type DamageReportRow = {
+  id: string;
+  vehicle_id: string;
+  inspector_id: string;
+  damage_locations: Record<string, any>;
+  severity: 'none' | 'minor' | 'moderate' | 'severe';
+  description: string | null;
+  repair_estimate: number | null;
+  photos: string[];
+  created_at: string;
+  updated_at: string;
+}
 
 export async function searchVehicles(filters: VehicleSearchFilters): Promise<Vehicle[]> {
   let query = supabase
@@ -63,12 +74,9 @@ export async function getVehicleDetails(vehicleId: string): Promise<VehicleDetai
 
   if (transitError) throw transitError;
 
-  // Fetch damage reports
+  // Fetch damage reports using raw query
   const { data: damageReportsRaw, error: damageError } = await supabase
-    .from('vehicle_damage_reports')
-    .select('*')
-    .eq('vehicle_id', vehicleId)
-    .order('created_at', { ascending: false });
+    .rpc('get_vehicle_damage_reports', { vehicle_id_param: vehicleId });
 
   if (damageError) throw damageError;
 
@@ -111,18 +119,15 @@ export async function createDamageReport(
   report: Omit<VehicleDamageReport, 'id' | 'created_at' | 'updated_at'>
 ): Promise<VehicleDamageReport> {
   const { data: newReport, error } = await supabase
-    .from('vehicle_damage_reports')
-    .insert([{
-      vehicle_id: report.vehicle_id,
-      inspector_id: report.inspector_id,
-      damage_locations: report.damage_locations,
-      severity: report.severity,
-      description: report.description,
-      repair_estimate: report.repair_estimate,
-      photos: report.photos
-    }])
-    .select()
-    .single();
+    .rpc('create_damage_report', {
+      vehicle_id_param: report.vehicle_id,
+      inspector_id_param: report.inspector_id,
+      damage_locations_param: report.damage_locations,
+      severity_param: report.severity,
+      description_param: report.description,
+      repair_estimate_param: report.repair_estimate,
+      photos_param: report.photos
+    });
 
   if (error) throw error;
 
