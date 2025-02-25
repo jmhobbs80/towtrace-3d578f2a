@@ -47,6 +47,61 @@ export type Database = {
           },
         ]
       }
+      dealer_trades: {
+        Row: {
+          created_at: string | null
+          destination_dealer: string | null
+          id: string
+          notes: string | null
+          source_dealer: string
+          status: Database["public"]["Enums"]["trade_status"]
+          updated_at: string | null
+          vehicle_id: string
+        }
+        Insert: {
+          created_at?: string | null
+          destination_dealer?: string | null
+          id?: string
+          notes?: string | null
+          source_dealer: string
+          status?: Database["public"]["Enums"]["trade_status"]
+          updated_at?: string | null
+          vehicle_id: string
+        }
+        Update: {
+          created_at?: string | null
+          destination_dealer?: string | null
+          id?: string
+          notes?: string | null
+          source_dealer?: string
+          status?: Database["public"]["Enums"]["trade_status"]
+          updated_at?: string | null
+          vehicle_id?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "dealer_trades_destination_dealer_fkey"
+            columns: ["destination_dealer"]
+            isOneToOne: false
+            referencedRelation: "organizations"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "dealer_trades_source_dealer_fkey"
+            columns: ["source_dealer"]
+            isOneToOne: false
+            referencedRelation: "organizations"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "dealer_trades_vehicle_id_fkey"
+            columns: ["vehicle_id"]
+            isOneToOne: false
+            referencedRelation: "inventory_vehicles"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       dealerships: {
         Row: {
           address: Json
@@ -2075,6 +2130,7 @@ export type Database = {
         | "winch_out"
         | "transport"
       template_category: "general" | "mechanical" | "body" | "safety"
+      trade_status: "pending" | "accepted" | "rejected" | "completed"
       vehicle_condition:
         | "excellent"
         | "good"

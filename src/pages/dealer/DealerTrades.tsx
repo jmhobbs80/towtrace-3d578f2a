@@ -15,13 +15,17 @@ import {
 import { CarFront, Building2, ArrowLeftRight } from "lucide-react";
 import { supabase } from "@/integrations/supabase/client";
 
+type TradeStatus = 'pending' | 'accepted' | 'rejected' | 'completed';
+
 interface Trade {
   id: string;
   source_dealer: string;
-  destination_dealer: string;
+  destination_dealer: string | null;
   vehicle_id: string;
-  status: 'pending' | 'accepted' | 'rejected' | 'completed';
+  status: TradeStatus;
+  notes: string | null;
   created_at: string;
+  updated_at: string;
   vehicle: {
     make: string;
     model: string;
@@ -37,20 +41,33 @@ export default function DealerTrades() {
   const { data: trades, isLoading } = useQuery({
     queryKey: ['dealer-trades', organization?.id],
     queryFn: async () => {
+      if (!organization?.id) return [];
+      
       const { data, error } = await supabase
         .from('dealer_trades')
         .select(`
-          *,
-          vehicle:inventory_vehicles(
+          id,
+          source_dealer,
+          destination_dealer,
+          vehicle_id,
+          status,
+          notes,
+          created_at,
+          updated_at,
+          vehicle:inventory_vehicles (
             make,
             model,
             year,
             vin
           )
         `)
-        .or(`source_dealer.eq.${organization?.id},destination_dealer.eq.${organization?.id}`);
+        .or(`source_dealer.eq.${organization.id},destination_dealer.eq.${organization.id}`);
 
-      if (error) throw error;
+      if (error) {
+        console.error('Error fetching trades:', error);
+        return [];
+      }
+
       return data as Trade[];
     },
     enabled: !!organization?.id
@@ -59,13 +76,19 @@ export default function DealerTrades() {
   const { data: availableVehicles } = useQuery({
     queryKey: ['available-vehicles', organization?.id],
     queryFn: async () => {
+      if (!organization?.id) return [];
+
       const { data, error } = await supabase
         .from('inventory_vehicles')
         .select('id, make, model, year, vin')
-        .eq('organization_id', organization?.id)
+        .eq('organization_id', organization.id)
         .eq('status', 'available');
 
-      if (error) throw error;
+      if (error) {
+        console.error('Error fetching vehicles:', error);
+        return [];
+      }
+
       return data;
     },
     enabled: !!organization?.id
@@ -79,7 +102,7 @@ export default function DealerTrades() {
       .insert({
         source_dealer: organization.id,
         vehicle_id: selectedVehicle,
-        status: 'pending'
+        status: 'pending' as TradeStatus
       });
 
     if (error) {
