@@ -1,4 +1,3 @@
-
 import { useState, useEffect } from "react";
 import { useQuery } from "@tanstack/react-query";
 import { useAuth } from "@/components/auth/AuthProvider";
@@ -42,7 +41,6 @@ export default function DealerTrades() {
   const { toast } = useToast();
   const [selectedVehicle, setSelectedVehicle] = useState<string | null>(null);
 
-  // Check if user has dealer role
   useEffect(() => {
     const checkDealerRole = async () => {
       if (!user?.id) {
@@ -54,9 +52,10 @@ export default function DealerTrades() {
         .from('organization_roles')
         .select('role_type')
         .eq('organization_id', organization?.id)
-        .single();
+        .eq('role_type', 'dealer')
+        .maybeSingle();
 
-      if (error || data?.role_type !== 'dealer') {
+      if (error || !data) {
         toast({
           variant: "destructive",
           title: "Access Denied",
@@ -81,19 +80,17 @@ export default function DealerTrades() {
           id,
           source_dealer,
           destination_dealer,
-          vehicle_id,
           status,
-          notes,
           created_at,
-          updated_at,
-          vehicle:inventory_vehicles (
+          vehicle:inventory_vehicles!inner (
             make,
             model,
             year,
             vin
           )
         `)
-        .or(`source_dealer.eq.${organization.id},destination_dealer.eq.${organization.id}`);
+        .or(`source_dealer.eq.${organization.id},destination_dealer.eq.${organization.id}`)
+        .order('created_at', { ascending: false });
 
       if (error) {
         toast({
@@ -118,7 +115,8 @@ export default function DealerTrades() {
         .from('inventory_vehicles')
         .select('id, make, model, year, vin')
         .eq('organization_id', organization.id)
-        .eq('status', 'available');
+        .eq('status', 'available')
+        .order('created_at', { ascending: false });
 
       if (error) {
         toast({

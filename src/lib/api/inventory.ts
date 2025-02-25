@@ -1,3 +1,4 @@
+
 import { supabase } from "@/integrations/supabase/client";
 import type { 
   InventoryLocation, 
@@ -13,7 +14,8 @@ import { decodeVIN } from "./vin-decoder";
 export async function getLocations() {
   const { data, error } = await supabase
     .from('inventory_locations')
-    .select('*');
+    .select('id, name, address, capacity')
+    .order('name');
   
   if (error) throw error;
   return data;
@@ -23,7 +25,7 @@ export async function createLocation(location: Pick<InventoryLocation, 'name' | 
   const { data, error } = await supabase
     .from('inventory_locations')
     .insert(location)
-    .select()
+    .select('id, name, address, capacity')
     .single();
   
   if (error) throw error;
@@ -34,10 +36,25 @@ export async function getInventoryVehicles(locationId?: string) {
   let query = supabase
     .from('inventory_vehicles')
     .select(`
-      *,
-      location:inventory_locations(name, address),
-      condition_logs:vehicle_condition_logs(*)
-    `);
+      id,
+      make,
+      model,
+      year,
+      vin,
+      status,
+      condition,
+      location:inventory_locations!inner(
+        id,
+        name,
+        address
+      ),
+      condition_logs:vehicle_condition_logs(
+        id,
+        condition,
+        created_at
+      )
+    `)
+    .order('created_at', { ascending: false });
 
   if (locationId) {
     query = query.eq('location_id', locationId);
@@ -52,7 +69,7 @@ export async function addVehicleToInventory(vehicle: Pick<InventoryVehicle, 'mak
   const { data, error } = await supabase
     .from('inventory_vehicles')
     .insert(vehicle)
-    .select()
+    .select('id, make, model, year, vin, status, condition')
     .single();
   
   if (error) throw error;
@@ -89,85 +106,21 @@ export async function bulkAddVehicles(
     })
   );
 
-  const { data, error } = await supabase
-    .from('inventory_vehicles')
-    .insert(processedVehicles)
-    .select();
+  const chunkSize = 100;
+  const results = [];
 
-  if (error) throw error;
-  return data;
-}
+  for (let i = 0; i < processedVehicles.length; i += chunkSize) {
+    const chunk = processedVehicles.slice(i, i + chunkSize);
+    const { data, error } = await supabase
+      .from('inventory_vehicles')
+      .insert(chunk)
+      .select('id, make, model, year, vin, status');
 
-export async function addConditionLog(log: Pick<VehicleConditionLog, 'vehicle_id' | 'condition'> & Partial<Omit<VehicleConditionLog, 'id' | 'created_at'>>) {
-  const { data, error } = await supabase
-    .from('vehicle_condition_logs')
-    .insert(log)
-    .select()
-    .single();
-  
-  if (error) throw error;
-  return data;
-}
+    if (error) throw error;
+    results.push(...(data || []));
+  }
 
-export async function updateVehicleStatus(
-  vehicleId: string,
-  status: InventoryVehicle['status'],
-  condition?: InventoryVehicle['condition']
-) {
-  const updates: Partial<InventoryVehicle> = { status };
-  if (condition) updates.condition = condition;
-
-  const { data, error } = await supabase
-    .from('inventory_vehicles')
-    .update(updates)
-    .eq('id', vehicleId)
-    .select()
-    .single();
-  
-  if (error) throw error;
-  return data;
-}
-
-export async function updateVehicleLocation(vehicleId: string, locationId: string) {
-  const { data, error } = await supabase
-    .from('inventory_vehicles')
-    .update({ location_id: locationId })
-    .eq('id', vehicleId)
-    .select()
-    .single();
-  
-  if (error) throw error;
-  return data;
-}
-
-export async function subscribeToVehicleUpdates(callback: (payload: any) => void) {
-  return supabase
-    .channel('vehicle-updates')
-    .on(
-      'postgres_changes',
-      {
-        event: '*',
-        schema: 'public',
-        table: 'inventory_vehicles'
-      },
-      callback
-    )
-    .subscribe();
-}
-
-export async function subscribeToRepairUpdates(callback: (payload: any) => void) {
-  return supabase
-    .channel('repair-updates')
-    .on(
-      'postgres_changes',
-      {
-        event: '*',
-        schema: 'public',
-        table: 'repair_orders'
-      },
-      callback
-    )
-    .subscribe();
+  return results;
 }
 
 export async function searchInventory(
@@ -180,25 +133,23 @@ export async function searchInventory(
     .from('inventory_vehicles')
     .select(`
       id,
-      organization_id,
-      location_id,
       make,
       model,
       year,
       vin,
-      color,
-      trim,
-      mileage,
-      purchase_price,
-      listing_price,
       status,
       condition,
-      created_at,
-      updated_at,
-      location:inventory_locations(name, address),
-      condition_logs:vehicle_condition_logs(*)
+      listing_price,
+      location:inventory_locations!inner(
+        name,
+        address
+      )
     `)
-    .or(`make.ilike.%${query}%,model.ilike.%${query}%,vin.ilike.%${query}%`);
+    .or(`
+      make.ilike.%${query}%,
+      model.ilike.%${query}%,
+      vin.ilike.%${query}%
+    `);
 
   // Apply filters
   if (filters.status) dbQuery = dbQuery.eq('status', filters.status);
@@ -206,7 +157,6 @@ export async function searchInventory(
   if (filters.make) dbQuery = dbQuery.ilike('make', `%${filters.make}%`);
   if (filters.model) dbQuery = dbQuery.ilike('model', `%${filters.model}%`);
   if (filters.year) dbQuery = dbQuery.eq('year', filters.year);
-  if (filters.color) dbQuery = dbQuery.ilike('color', `%${filters.color}%`);
   if (filters.location_id) dbQuery = dbQuery.eq('location_id', filters.location_id);
   
   if (minPrice) dbQuery = dbQuery.gte('listing_price', minPrice);
@@ -215,17 +165,32 @@ export async function searchInventory(
   if (maxYear) dbQuery = dbQuery.lte('year', maxYear);
 
   const { data, error } = await dbQuery;
-
   if (error) throw error;
   return data as VehicleSearchResult[];
+}
+
+export async function addConditionLog(log: Pick<VehicleConditionLog, 'vehicle_id' | 'condition'> & Partial<Omit<VehicleConditionLog, 'id' | 'created_at'>>) {
+  const { data, error } = await supabase
+    .from('vehicle_condition_logs')
+    .insert(log)
+    .select('id, condition, created_at')
+    .single();
+  
+  if (error) throw error;
+  return data;
 }
 
 export async function getVehicleInspectionHistory(vehicleId: string) {
   const { data, error } = await supabase
     .from('vehicle_condition_logs')
     .select(`
-      *,
-      inspector:profiles(first_name, last_name)
+      id,
+      condition,
+      created_at,
+      inspector:profiles(
+        first_name,
+        last_name
+      )
     `)
     .eq('vehicle_id', vehicleId)
     .order('created_at', { ascending: false });
