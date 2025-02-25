@@ -1,125 +1,295 @@
 
-import { useState } from "react";
-import { Dialog, DialogContent, DialogHeader, DialogTitle } from "@/components/ui/dialog";
+import React, { useState, useRef } from 'react';
+import { X } from 'lucide-react';
+import Papa from 'papaparse';
+import {
+  Dialog,
+  DialogContent,
+  DialogDescription,
+  DialogHeader,
+  DialogTitle,
+} from "@/components/ui/dialog";
 import { Button } from "@/components/ui/button";
-import { Input } from "@/components/ui/input";
-import { useToast } from "@/components/ui/use-toast";
-import { bulkAddVehicles } from "@/lib/api/inventory";
-import type { BulkUploadRow } from "@/lib/types/inventory";
-import { useAuth } from "@/lib/auth";
+import { Progress } from "@/components/ui/progress";
+import {
+  Table,
+  TableBody,
+  TableCell,
+  TableHead,
+  TableHeader,
+  TableRow,
+} from "@/components/ui/table";
+import { supabase } from "@/integrations/supabase/client";
+import { useToast } from "@/hooks/use-toast";
+import { validateVIN } from '@/lib/api/vin-validator';
+import { downloadTemplate } from '@/lib/utils';
 
 interface BulkUploadModalProps {
   open: boolean;
   onClose: () => void;
   onSuccess: () => void;
-  locationId?: string;
 }
 
-export const BulkUploadModal = ({
-  open,
-  onClose,
-  onSuccess,
-  locationId,
-}: BulkUploadModalProps) => {
+interface VehicleData {
+  vin: string;
+  make?: string;
+  model?: string;
+  year?: string;
+  color?: string;
+  status?: string;
+  location?: string;
+}
+
+interface ValidationError {
+  row: number;
+  vin: string;
+  error: string;
+}
+
+export function BulkUploadModal({ open, onClose, onSuccess }: BulkUploadModalProps) {
   const [isUploading, setIsUploading] = useState(false);
+  const [progress, setProgress] = useState(0);
+  const [validationErrors, setValidationErrors] = useState<ValidationError[]>([]);
+  const [validatedData, setValidatedData] = useState<VehicleData[]>([]);
+  const fileInputRef = useRef<HTMLInputElement>(null);
   const { toast } = useToast();
-  const { organization } = useAuth();
 
-  const handleFileUpload = async (event: React.ChangeEvent<HTMLInputElement>) => {
-    if (!organization?.id) {
-      toast({
-        variant: "destructive",
-        title: "Error",
-        description: "No organization found",
-      });
-      return;
+  const resetState = () => {
+    setIsUploading(false);
+    setProgress(0);
+    setValidationErrors([]);
+    setValidatedData([]);
+    if (fileInputRef.current) {
+      fileInputRef.current.value = '';
     }
+  };
 
+  const handleFileUpload = (event: React.ChangeEvent<HTMLInputElement>) => {
     const file = event.target.files?.[0];
     if (!file) return;
 
     setIsUploading(true);
-    const reader = new FileReader();
+    setValidationErrors([]);
+    setValidatedData([]);
 
-    reader.onload = async (e) => {
-      try {
-        const content = e.target?.result as string;
-        const rows = content.split('\n').slice(1); // Skip header row
-        const vehicles: BulkUploadRow[] = rows
-          .filter(row => row.trim())
-          .map(row => {
-            const [vin, make, model, year, trim, color, mileage, purchase_price, listing_price, notes] = row.split(',');
-            return {
-              vin: vin.trim(),
-              make: make.trim(),
-              model: model.trim(),
-              year: parseInt(year.trim(), 10),
-              trim: trim?.trim(),
-              color: color?.trim(),
-              mileage: mileage ? parseInt(mileage.trim(), 10) : undefined,
-              purchase_price: purchase_price ? parseFloat(purchase_price.trim()) : undefined,
-              listing_price: listing_price ? parseFloat(listing_price.trim()) : undefined,
-              notes: notes?.trim(),
-            };
-          });
+    Papa.parse(file, {
+      header: true,
+      complete: async (results) => {
+        const errors: ValidationError[] = [];
+        const validData: VehicleData[] = [];
+        let processedCount = 0;
 
-        await bulkAddVehicles(vehicles, locationId, organization.id);
-        onSuccess();
-        onClose();
-        toast({
-          title: "Success",
-          description: `Uploaded ${vehicles.length} vehicles`,
-        });
-      } catch (error: any) {
+        for (const [index, row] of results.data.entries()) {
+          const vehicle = row as VehicleData;
+          processedCount++;
+          setProgress((processedCount / results.data.length) * 100);
+
+          // Validate VIN
+          if (!vehicle.vin || !validateVIN(vehicle.vin)) {
+            errors.push({
+              row: index + 2, // +2 because of header row and 0-based index
+              vin: vehicle.vin || 'Missing',
+              error: 'Invalid VIN',
+            });
+            continue;
+          }
+
+          // Check for required fields
+          if (!vehicle.make || !vehicle.model || !vehicle.year) {
+            errors.push({
+              row: index + 2,
+              vin: vehicle.vin,
+              error: 'Missing required fields (make, model, or year)',
+            });
+            continue;
+          }
+
+          validData.push(vehicle);
+        }
+
+        setValidationErrors(errors);
+        setValidatedData(validData);
+        setIsUploading(false);
+      },
+      error: (error) => {
+        console.error('Error parsing CSV:', error);
         toast({
           variant: "destructive",
-          title: "Error uploading vehicles",
-          description: error.message,
+          title: "Upload Error",
+          description: "Failed to parse the CSV file. Please check the file format.",
         });
-      } finally {
         setIsUploading(false);
-      }
-    };
+      },
+    });
+  };
 
-    reader.readAsText(file);
+  const handleSubmit = async () => {
+    if (validatedData.length === 0) return;
+
+    setIsUploading(true);
+    let processedCount = 0;
+
+    try {
+      for (const vehicle of validatedData) {
+        const { error } = await supabase
+          .from('inventory_vehicles')
+          .insert({
+            vin: vehicle.vin,
+            make: vehicle.make,
+            model: vehicle.model,
+            year: parseInt(vehicle.year || '0'),
+            color: vehicle.color,
+            status: vehicle.status || 'available',
+            location: vehicle.location,
+          });
+
+        if (error) throw error;
+
+        processedCount++;
+        setProgress((processedCount / validatedData.length) * 100);
+      }
+
+      toast({
+        title: "Upload Complete",
+        description: `Successfully uploaded ${validatedData.length} vehicles.`,
+      });
+      onSuccess();
+      onClose();
+      resetState();
+    } catch (error) {
+      console.error('Error uploading vehicles:', error);
+      toast({
+        variant: "destructive",
+        title: "Upload Error",
+        description: "Failed to upload vehicles. Please try again.",
+      });
+    } finally {
+      setIsUploading(false);
+    }
+  };
+
+  const handleDownloadTemplate = () => {
+    downloadTemplate([
+      'vin,make,model,year,color,status,location',
+      'SAMPLE1234567890,Toyota,Camry,2023,Silver,available,Lot A',
+    ].join('\n'), 'vehicle_upload_template.csv');
   };
 
   return (
     <Dialog open={open} onOpenChange={onClose}>
-      <DialogContent>
+      <DialogContent className="max-w-3xl">
         <DialogHeader>
           <DialogTitle>Bulk Upload Vehicles</DialogTitle>
+          <DialogDescription>
+            Upload multiple vehicles using a CSV file. Download the template below for the correct format.
+          </DialogDescription>
         </DialogHeader>
 
         <div className="space-y-4">
-          <p className="text-sm text-muted-foreground">
-            Upload a CSV file with the following columns:
-            VIN, Make, Model, Year, Trim, Color, Mileage, Purchase Price, Listing Price, Notes
-          </p>
+          <div className="flex justify-between items-center">
+            <Button
+              variant="outline"
+              onClick={handleDownloadTemplate}
+            >
+              Download Template
+            </Button>
+            <input
+              ref={fileInputRef}
+              type="file"
+              accept=".csv"
+              onChange={handleFileUpload}
+              className="hidden"
+              id="csv-upload"
+            />
+            <Button
+              onClick={() => fileInputRef.current?.click()}
+              disabled={isUploading}
+            >
+              Select CSV File
+            </Button>
+          </div>
 
-          <Input
-            type="file"
-            accept=".csv"
-            onChange={handleFileUpload}
-            disabled={isUploading}
-          />
+          {isUploading && (
+            <Progress value={progress} className="w-full" />
+          )}
 
-          <Button
-            variant="outline"
-            onClick={() => {
-              const template = "VIN,Make,Model,Year,Trim,Color,Mileage,Purchase Price,Listing Price,Notes\n";
-              const blob = new Blob([template], { type: 'text/csv' });
-              const url = window.URL.createObjectURL(blob);
-              const a = document.createElement('a');
-              a.href = url;
-              a.download = 'inventory_template.csv';
-              a.click();
-            }}
-          >
-            Download Template
-          </Button>
+          {validationErrors.length > 0 && (
+            <div className="space-y-2">
+              <h3 className="text-lg font-semibold text-destructive">
+                Validation Errors ({validationErrors.length})
+              </h3>
+              <div className="max-h-40 overflow-y-auto">
+                <Table>
+                  <TableHeader>
+                    <TableRow>
+                      <TableHead>Row</TableHead>
+                      <TableHead>VIN</TableHead>
+                      <TableHead>Error</TableHead>
+                    </TableRow>
+                  </TableHeader>
+                  <TableBody>
+                    {validationErrors.map((error, index) => (
+                      <TableRow key={index}>
+                        <TableCell>{error.row}</TableCell>
+                        <TableCell>{error.vin}</TableCell>
+                        <TableCell>{error.error}</TableCell>
+                      </TableRow>
+                    ))}
+                  </TableBody>
+                </Table>
+              </div>
+            </div>
+          )}
+
+          {validatedData.length > 0 && (
+            <div className="space-y-2">
+              <h3 className="text-lg font-semibold text-green-600">
+                Valid Entries ({validatedData.length})
+              </h3>
+              <div className="max-h-40 overflow-y-auto">
+                <Table>
+                  <TableHeader>
+                    <TableRow>
+                      <TableHead>VIN</TableHead>
+                      <TableHead>Make</TableHead>
+                      <TableHead>Model</TableHead>
+                      <TableHead>Year</TableHead>
+                    </TableRow>
+                  </TableHeader>
+                  <TableBody>
+                    {validatedData.map((vehicle, index) => (
+                      <TableRow key={index}>
+                        <TableCell>{vehicle.vin}</TableCell>
+                        <TableCell>{vehicle.make}</TableCell>
+                        <TableCell>{vehicle.model}</TableCell>
+                        <TableCell>{vehicle.year}</TableCell>
+                      </TableRow>
+                    ))}
+                  </TableBody>
+                </Table>
+              </div>
+            </div>
+          )}
+
+          <div className="flex justify-end space-x-2">
+            <Button
+              variant="outline"
+              onClick={() => {
+                resetState();
+                onClose();
+              }}
+            >
+              Cancel
+            </Button>
+            <Button
+              onClick={handleSubmit}
+              disabled={isUploading || validatedData.length === 0}
+            >
+              Upload {validatedData.length} Vehicles
+            </Button>
+          </div>
         </div>
       </DialogContent>
     </Dialog>
   );
-};
+}
