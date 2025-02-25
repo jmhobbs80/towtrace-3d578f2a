@@ -64,7 +64,7 @@ export default function AIDispatch() {
       if (error) throw error;
       if (!jobData) return [];
 
-      return (jobData as DatabaseJob[]).map((job: DatabaseJob): Job => ({
+      return jobData.map((job: any): Job => ({
         ...job,
         pickup_location: toLocation(job.pickup_location) || { address: 'Unknown' },
         delivery_location: job.delivery_location ? toLocation(job.delivery_location) : undefined,

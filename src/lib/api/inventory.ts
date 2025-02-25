@@ -128,13 +128,55 @@ export async function updateVehicleStatus(
   return data;
 }
 
+export async function updateVehicleLocation(vehicleId: string, locationId: string) {
+  const { data, error } = await supabase
+    .from('inventory_vehicles')
+    .update({ location_id: locationId })
+    .eq('id', vehicleId)
+    .select()
+    .single();
+  
+  if (error) throw error;
+  return data;
+}
+
+export async function subscribeToVehicleUpdates(callback: (payload: any) => void) {
+  return supabase
+    .channel('vehicle-updates')
+    .on(
+      'postgres_changes',
+      {
+        event: '*',
+        schema: 'public',
+        table: 'inventory_vehicles'
+      },
+      callback
+    )
+    .subscribe();
+}
+
+export async function subscribeToRepairUpdates(callback: (payload: any) => void) {
+  return supabase
+    .channel('repair-updates')
+    .on(
+      'postgres_changes',
+      {
+        event: '*',
+        schema: 'public',
+        table: 'repair_orders'
+      },
+      callback
+    )
+    .subscribe();
+}
+
 export async function searchInventory(
   query: string, 
   filters: SearchFilters = {}
 ): Promise<VehicleSearchResult[]> {
   const { minPrice, maxPrice, minYear, maxYear, ...restFilters } = filters;
 
-  const { data: vehiclesData, error: vehiclesError } = await supabase
+  let dbQuery = supabase
     .from('inventory_vehicles')
     .select(`
       id,
@@ -152,36 +194,30 @@ export async function searchInventory(
       status,
       condition,
       created_at,
-      updated_at
+      updated_at,
+      location:inventory_locations(name, address),
+      condition_logs:vehicle_condition_logs(*)
     `)
     .or(`make.ilike.%${query}%,model.ilike.%${query}%,vin.ilike.%${query}%`);
 
-  if (vehiclesError) throw vehiclesError;
-  if (!vehiclesData) return [];
+  // Apply filters
+  if (filters.status) dbQuery = dbQuery.eq('status', filters.status);
+  if (filters.condition) dbQuery = dbQuery.eq('condition', filters.condition);
+  if (filters.make) dbQuery = dbQuery.ilike('make', `%${filters.make}%`);
+  if (filters.model) dbQuery = dbQuery.ilike('model', `%${filters.model}%`);
+  if (filters.year) dbQuery = dbQuery.eq('year', filters.year);
+  if (filters.color) dbQuery = dbQuery.ilike('color', `%${filters.color}%`);
+  if (filters.location_id) dbQuery = dbQuery.eq('location_id', filters.location_id);
+  
+  if (minPrice) dbQuery = dbQuery.gte('listing_price', minPrice);
+  if (maxPrice) dbQuery = dbQuery.lte('listing_price', maxPrice);
+  if (minYear) dbQuery = dbQuery.gte('year', minYear);
+  if (maxYear) dbQuery = dbQuery.lte('year', maxYear);
 
-  const vehicles = await Promise.all(
-    vehiclesData.map(async (vehicle) => {
-      const [locationData, logsData] = await Promise.all([
-        supabase
-          .from('inventory_locations')
-          .select('name, address')
-          .eq('id', vehicle.location_id)
-          .single(),
-        supabase
-          .from('vehicle_condition_logs')
-          .select('*')
-          .eq('vehicle_id', vehicle.id)
-      ]);
+  const { data, error } = await dbQuery;
 
-      return {
-        ...vehicle,
-        location: locationData.data as LocationSummary,
-        condition_logs: (logsData.data || []) as VehicleConditionLog[]
-      };
-    })
-  );
-
-  return vehicles;
+  if (error) throw error;
+  return data as VehicleSearchResult[];
 }
 
 export async function getVehicleInspectionHistory(vehicleId: string) {

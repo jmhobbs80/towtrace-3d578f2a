@@ -1,3 +1,4 @@
+
 import type { Database } from "@/integrations/supabase/types";
 
 // Basic types from database
@@ -10,6 +11,8 @@ export type InventoryStatus =
   | 'in_transit'
   | 'sold'
   | 'auction_ready'
+  | 'in_auction'
+  | 'sold_at_auction'
   | 'maintenance'
   | 'pending_repair'
   | 'in_repair';
