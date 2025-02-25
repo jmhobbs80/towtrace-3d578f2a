@@ -134,6 +134,7 @@ export function SignUpForm() {
             <SelectItem value="dispatcher">Dispatcher</SelectItem>
             <SelectItem value="driver">Driver</SelectItem>
             <SelectItem value="wholesaler">Wholesaler</SelectItem>
+            <SelectItem value="overwatch_admin">Overwatch Admin</SelectItem>
           </SelectContent>
         </Select>
       </div>
