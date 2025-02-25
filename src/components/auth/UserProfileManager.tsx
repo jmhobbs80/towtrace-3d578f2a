@@ -5,7 +5,7 @@ import type { UserRole } from "@/lib/types/auth";
 
 const VALID_ROLES = ['dealer', 'wholesaler', 'admin', 'dispatcher', 'provider', 
                      'consumer', 'overwatch_admin', 'super_admin', 'support_agent', 
-                     'billing_manager', 'driver', 'transporter', 'fleet_manager'] as const;
+                     'billing_manager', 'fleet_manager'] as const;
 
 export const useUserProfileManager = () => {
   const [userRole, setUserRole] = useState<UserRole | null>(null);
