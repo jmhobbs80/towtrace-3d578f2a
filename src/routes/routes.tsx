@@ -23,12 +23,17 @@ import DealerTrades from "@/pages/dealer/DealerTrades";
 import { UserRole } from "@/lib/types/auth";
 
 const ROLE_ACCESS = {
+  ADMIN: ["admin", "super_admin", "overwatch_admin"] as UserRole[],
   FLEET: ["dispatcher", "admin", "super_admin"] as UserRole[],
   INVENTORY: ["dealer", "wholesaler", "admin", "super_admin"] as UserRole[],
   DEALER: ["dealer", "admin", "super_admin"] as UserRole[],
   WHOLESALER: ["wholesaler", "admin", "super_admin"] as UserRole[],
   TRANSPORT: ["dealer", "wholesaler", "transporter", "admin", "super_admin"] as UserRole[],
   BILLING: ["dealer", "wholesaler", "admin", "super_admin"] as UserRole[],
+  DRIVER: ["driver", "admin", "super_admin"] as UserRole[],
+  DISPATCH: ["dispatcher", "admin", "super_admin"] as UserRole[],
+  ANALYTICS: ["dealer", "wholesaler", "dispatcher", "admin", "super_admin"] as UserRole[],
+  PUBLIC: [] as UserRole[], // Empty array means public access
 } as const;
 
 const RootLayout = () => (
@@ -42,75 +47,137 @@ const protectedRoutes = [
     path: "/",
     element: <Index />
   },
-  // Dealer routes
+  // Profile & Organization Routes
+  {
+    path: "/profile/:userId",
+    element: <ProfileSettings />,
+    allowedRoles: ROLE_ACCESS.ADMIN
+  },
+  {
+    path: "/notifications",
+    element: <NotificationCenter />,
+    allowedRoles: Object.values(ROLE_ACCESS).flat()
+  },
+  {
+    path: "/organization",
+    element: <OrganizationDashboard />,
+    allowedRoles: ROLE_ACCESS.ADMIN
+  },
+  // Admin Routes
+  {
+    path: "/admin",
+    element: <OverwatchDashboard />,
+    allowedRoles: ["overwatch_admin", "super_admin"]
+  },
+  // Dispatch & Job Management
+  {
+    path: "/dispatch",
+    element: <DispatchDashboard />,
+    allowedRoles: ROLE_ACCESS.DISPATCH
+  },
+  {
+    path: "/job/:jobId",
+    element: <JobDetails />,
+    allowedRoles: ROLE_ACCESS.TRANSPORT
+  },
+  {
+    path: "/reports/jobs",
+    element: <JobReports />,
+    allowedRoles: ROLE_ACCESS.ANALYTICS
+  },
+  // Driver Routes
+  {
+    path: "/driver",
+    element: <DriverPortal />,
+    allowedRoles: ROLE_ACCESS.DRIVER
+  },
+  // Fleet Routes
+  {
+    path: "/fleet",
+    element: <FleetManagement />,
+    allowedRoles: ROLE_ACCESS.FLEET
+  },
+  {
+    path: "/fleet/:vehicleId",
+    element: <VehicleDetails />,
+    allowedRoles: ROLE_ACCESS.FLEET
+  },
+  // Customer Routes
+  {
+    path: "/customer",
+    element: <CustomerPortal />,
+    allowedRoles: ROLE_ACCESS.PUBLIC
+  },
+  {
+    path: "/customer/book",
+    element: <BookingFlow />,
+    allowedRoles: ROLE_ACCESS.PUBLIC
+  },
+  {
+    path: "/public/jobs",
+    element: <PublicJobRequests />,
+    allowedRoles: ROLE_ACCESS.PUBLIC
+  },
+  // Dealer Routes
   {
     path: "/dealer",
     allowedRoles: ROLE_ACCESS.DEALER,
     children: [
-      {
-        path: "dashboard",
-        element: <DealerDashboard />
-      },
-      {
-        path: "inventory",
-        element: <InventoryManagement />
-      },
-      {
-        path: "repairs",
-        element: <RepairTracking />
-      },
-      {
-        path: "transport-requests",
-        element: <TransportRequests />
-      },
-      {
-        path: "preferred-transporters",
-        element: <PreferredTransporters />
-      },
-      {
-        path: "billing",
-        element: <BillingDashboard />
-      },
-      {
-        path: "trades",
-        element: <DealerTrades />
-      }
+      { path: "dashboard", element: <DealerDashboard /> },
+      { path: "inventory", element: <InventoryManagement /> },
+      { path: "repairs", element: <RepairTracking /> },
+      { path: "transport-requests", element: <TransportRequests /> },
+      { path: "preferred-transporters", element: <PreferredTransporters /> },
+      { path: "billing", element: <BillingDashboard /> },
+      { path: "trades", element: <DealerTrades /> }
     ]
   },
-  // Wholesaler routes
+  // Wholesaler Routes
   {
     path: "/wholesale",
     allowedRoles: ROLE_ACCESS.WHOLESALER,
     children: [
-      {
-        path: "vehicles",
-        element: <WholesaleVehicles />
-      },
-      {
-        path: "auctions",
-        element: <WholesaleAuctions />
-      },
-      {
-        path: "transport",
-        element: <BulkTransport />
-      }
+      { path: "vehicles", element: <WholesaleVehicles /> },
+      { path: "auctions", element: <WholesaleAuctions /> },
+      { path: "transport", element: <BulkTransport /> }
     ]
   },
-  // Shared routes
+  // Billing Routes
   {
-    path: "/inventory",
-    allowedRoles: ROLE_ACCESS.INVENTORY,
-    element: <InventoryManagement />
+    path: "/billing",
+    allowedRoles: ROLE_ACCESS.BILLING,
+    children: [
+      { path: "/", element: <BillingDashboard /> },
+      { path: "invoices", element: <InvoiceList /> },
+      { path: "payouts", element: <PayoutManagement /> }
+    ]
+  },
+  // AI & Analytics Routes
+  {
+    path: "/ai",
+    allowedRoles: ROLE_ACCESS.ADMIN,
+    children: [
+      { path: "dispatch", element: <AIDispatch /> },
+      { path: "reports", element: <AIReports /> }
+    ]
   },
   {
-    path: "/transport",
-    allowedRoles: ROLE_ACCESS.TRANSPORT,
-    element: <TransportRequests />
+    path: "/analytics",
+    allowedRoles: ROLE_ACCESS.ANALYTICS,
+    children: [
+      { path: "/", element: <AnalyticsDashboard /> },
+      { path: "reports", element: <ReportBuilder /> }
+    ]
   },
+  // Legal Routes
   {
-    path: "/fleet",
-    allowedRoles: ROLE_ACCESS.FLEET,
-    element: <FleetManagement />
+    path: "/legal",
+    allowedRoles: ROLE_ACCESS.PUBLIC,
+    children: [
+      { path: "terms", element: <TermsOfService /> },
+      { path: "privacy", element: <PrivacyPolicy /> },
+      { path: "compliance", element: <ComplianceInfo /> }
+    ]
   }
 ];
 
