@@ -31,43 +31,47 @@ export function Logo({
       {variant === "icon" ? (
         <svg
           className="h-full w-auto"
-          viewBox="0 0 800 400"
+          viewBox="0 0 512 128"
           fill="none"
           xmlns="http://www.w3.org/2000/svg"
         >
           <path
-            d="M600 200H200L300 100H700L600 200Z"
+            d="M400 64H100L150 32H450L400 64Z"
             fill="#ff0000"
             className="animate-pulse"
           />
           <path
-            d="M500 300H100L200 200H600L500 300Z"
+            d="M380 80H80L130 48H430L380 80Z"
+            fill="#ff0000"
+            opacity="0.9"
+            className="animate-pulse"
+          />
+          <path
+            d="M360 96H60L110 64H410L360 96Z"
             fill="#ff0000"
             opacity="0.8"
             className="animate-pulse"
           />
           <path
-            d="M400 400H0L100 300H500L400 400Z"
+            d="M340 112H40L90 80H390L340 112Z"
             fill="#ff0000"
-            opacity="0.6"
+            opacity="0.7"
             className="animate-pulse"
           />
           <path
-            d="M700 100H300L400 0H800L700 100Z"
-            fill="#ff0000"
-            opacity="0.4"
-            className="animate-pulse"
-          />
-          <path
-            d="M600 200L700 100H800L700 200H600Z"
+            d="M90 80L130 48H150L110 80H90Z"
             fill="#4B5563"
           />
           <path
-            d="M500 300L600 200H700L600 300H500Z"
+            d="M110 64L150 32H170L130 64H110Z"
             fill="#4B5563"
           />
           <path
-            d="M400 400L500 300H600L500 400H400Z"
+            d="M130 48L170 16H190L150 48H130Z"
+            fill="#4B5563"
+          />
+          <path 
+            d="M150 32L190 0H210L170 32H150Z" 
             fill="#4B5563"
           />
         </svg>
@@ -75,48 +79,52 @@ export function Logo({
         <>
           <svg
             className="h-full w-auto"
-            viewBox="0 0 800 400"
+            viewBox="0 0 512 128"
             fill="none"
             xmlns="http://www.w3.org/2000/svg"
           >
             <path
-              d="M600 200H200L300 100H700L600 200Z"
+              d="M400 64H100L150 32H450L400 64Z"
               fill="#ff0000"
               className="animate-pulse"
             />
             <path
-              d="M500 300H100L200 200H600L500 300Z"
+              d="M380 80H80L130 48H430L380 80Z"
+              fill="#ff0000"
+              opacity="0.9"
+              className="animate-pulse"
+            />
+            <path
+              d="M360 96H60L110 64H410L360 96Z"
               fill="#ff0000"
               opacity="0.8"
               className="animate-pulse"
             />
             <path
-              d="M400 400H0L100 300H500L400 400Z"
+              d="M340 112H40L90 80H390L340 112Z"
               fill="#ff0000"
-              opacity="0.6"
+              opacity="0.7"
               className="animate-pulse"
             />
             <path
-              d="M700 100H300L400 0H800L700 100Z"
-              fill="#ff0000"
-              opacity="0.4"
-              className="animate-pulse"
-            />
-            <path
-              d="M600 200L700 100H800L700 200H600Z"
+              d="M90 80L130 48H150L110 80H90Z"
               fill="#4B5563"
             />
             <path
-              d="M500 300L600 200H700L600 300H500Z"
+              d="M110 64L150 32H170L130 64H110Z"
               fill="#4B5563"
             />
             <path
-              d="M400 400L500 300H600L500 400H400Z"
+              d="M130 48L170 16H190L150 48H130Z"
+              fill="#4B5563"
+            />
+            <path 
+              d="M150 32L190 0H210L170 32H150Z" 
               fill="#4B5563"
             />
           </svg>
           {variant !== "mobile" && (
-            <span className="text-2xl tracking-tight">TowLogix</span>
+            <span className="text-2xl tracking-tight">TowTrace</span>
           )}
         </>
       )}
