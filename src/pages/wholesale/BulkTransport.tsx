@@ -1,4 +1,3 @@
-
 import { useState } from "react";
 import { useQuery } from "@tanstack/react-query";
 import { Button } from "@/components/ui/button";
@@ -7,16 +6,8 @@ import { useAuth } from "@/components/auth/AuthProvider";
 import { LoadTable } from "@/components/transport/LoadTable";
 import { supabase } from "@/integrations/supabase/client";
 import type { Load } from "@/lib/types/load";
-import { parseLocation, isValidLoadStatus } from "@/lib/types/load";
+import { parseLocation, isValidLoadStatus, isDimensions, isPriceRange } from "@/lib/types/load";
 import { useToast } from "@/components/ui/use-toast";
-
-function isDimensions(value: any): value is Load['dimensions'] {
-  if (!value || typeof value !== 'object') return false;
-  return typeof value.length === 'number' 
-    && typeof value.width === 'number' 
-    && typeof value.height === 'number'
-    && (value.unit === 'ft' || value.unit === 'm');
-}
 
 export default function BulkTransport() {
   const { organization } = useAuth();
@@ -49,7 +40,9 @@ export default function BulkTransport() {
           photos: Array.isArray(load.photos) 
             ? load.photos.map(p => String(p))
             : [],
-          dimensions: isDimensions(load.dimensions) ? load.dimensions : undefined
+          dimensions: isDimensions(load.dimensions) ? load.dimensions : undefined,
+          price_range: isPriceRange(load.price_range) ? load.price_range : undefined,
+          weight: typeof load.weight === 'number' ? load.weight : undefined
         };
       });
     },

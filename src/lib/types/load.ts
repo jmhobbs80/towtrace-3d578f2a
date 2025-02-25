@@ -1,5 +1,6 @@
 
 import type { Database } from "@/integrations/supabase/types";
+import type { Json } from "@/integrations/supabase/types";
 
 export type LoadType = Database["public"]["Enums"]["load_type"];
 export type BidStatus = Database["public"]["Enums"]["bid_status"];
@@ -44,35 +45,35 @@ export interface Load {
   updated_at: string;
 }
 
-export interface LoadBid {
-  id: string;
-  load_id: string;
-  organization_id: string;
-  bidder_id: string;
-  amount: number;
-  proposed_dates?: {
-    pickup_date: string;
-    delivery_date: string;
-  };
-  notes?: string;
-  status: BidStatus;
-  created_at: string;
-  updated_at: string;
+// Type guard functions
+export function isPriceRange(value: Json | null): value is PriceRange {
+  if (!value || typeof value !== 'object') return false;
+  const range = value as Partial<PriceRange>;
+  return typeof range.min === 'number' && typeof range.max === 'number';
+}
+
+export function isDimensions(value: Json | null): value is Dimensions {
+  if (!value || typeof value !== 'object') return false;
+  const dims = value as Partial<Dimensions>;
+  return typeof dims.length === 'number' 
+    && typeof dims.width === 'number' 
+    && typeof dims.height === 'number'
+    && (dims.unit === 'ft' || dims.unit === 'm');
 }
 
 // Helper to convert database JSON to Location type
-export function parseLocation(locationJson: any): Location {
+export function parseLocation(locationJson: Json | null): Location {
   if (!locationJson || typeof locationJson !== 'object') {
-    throw new Error('Invalid location data');
+    return { address: '', coordinates: [0, 0] };
   }
 
+  const location = locationJson as Partial<Location>;
   return {
-    address: locationJson.address || '',
-    coordinates: locationJson.coordinates || [0, 0]
+    address: location.address || '',
+    coordinates: Array.isArray(location.coordinates) ? location.coordinates as [number, number] : [0, 0]
   };
 }
 
-// Helper to validate load status
 export function isValidLoadStatus(status: string): status is LoadStatus {
   return ['open', 'assigned', 'in_transit', 'completed', 'cancelled'].includes(status);
 }
