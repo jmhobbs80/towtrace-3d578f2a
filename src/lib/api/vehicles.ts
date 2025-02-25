@@ -5,6 +5,9 @@ import type { VehicleInspection } from "../types/inspection";
 import type { VehicleInTransit } from "../types/fleet";
 import type { VINScannerHardware } from "./scanner-types";
 
+// Re-export the VINScannerHardware type
+export type { VINScannerHardware };
+
 export async function searchVehicles(filters: VehicleSearchFilters): Promise<Vehicle[]> {
   let query = supabase
     .from('inventory_vehicles')
