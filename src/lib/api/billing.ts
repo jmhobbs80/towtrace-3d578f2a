@@ -44,14 +44,23 @@ export const updatePaymentStatus = async (paymentId: string, status: string): Pr
 };
 
 export const fetchSubscriptionPlans = async (): Promise<SubscriptionPlan[]> => {
-  const { data, error } = await supabase
+  const { data: rawData, error } = await supabase
     .from('subscription_plans')
     .select('*')
     .eq('is_active', true)
     .order('price', { ascending: true });
 
   if (error) throw error;
-  return data;
+  
+  // Transform the raw data to match the SubscriptionPlan type
+  const plans: SubscriptionPlan[] = (rawData || []).map(plan => ({
+    ...plan,
+    interval: plan.interval as 'month' | 'year',
+    features: Array.isArray(plan.features) ? plan.features : [],
+    limits: typeof plan.limits === 'object' ? plan.limits : {}
+  }));
+
+  return plans;
 };
 
 export const createCheckoutSession = async ({

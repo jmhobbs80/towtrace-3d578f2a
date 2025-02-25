@@ -1,13 +1,11 @@
+
 import React from 'react';
 import { BrowserRouter as Router, Route, Routes } from 'react-router-dom';
-import AuthPage from './pages/AuthPage';
+import AuthPage from './pages/auth/AuthPage';
 import Index from './pages/Index';
 import ProtectedRoute from './components/auth/ProtectedRoute';
 import { AuthProvider } from './components/auth/AuthProvider';
-import Layout from './components/layout/Layout';
-import JobsPage from './pages/JobsPage';
-import JobDetailsPage from './pages/JobDetailsPage';
-import OrganizationSettingsPage from './pages/OrganizationSettingsPage';
+import Layout from './components/ui/layout/Layout';
 import BillingDashboard from './pages/billing/BillingDashboard';
 
 function App() {
@@ -32,36 +30,6 @@ function App() {
               <ProtectedRoute>
                 <Layout>
                   <BillingDashboard />
-                </Layout>
-              </ProtectedRoute>
-            }
-          />
-          <Route
-            path="/jobs"
-            element={
-              <ProtectedRoute>
-                <Layout>
-                  <JobsPage />
-                </Layout>
-              </ProtectedRoute>
-            }
-          />
-          <Route
-            path="/jobs/:jobId"
-            element={
-              <ProtectedRoute>
-                <Layout>
-                  <JobDetailsPage />
-                </Layout>
-              </ProtectedRoute>
-            }
-          />
-          <Route
-            path="/settings/organization"
-            element={
-              <ProtectedRoute>
-                <Layout>
-                  <OrganizationSettingsPage />
                 </Layout>
               </ProtectedRoute>
             }
