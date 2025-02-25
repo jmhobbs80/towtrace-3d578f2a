@@ -3,6 +3,7 @@ import { createContext, useContext, useEffect, useState } from "react";
 import { supabase } from "@/integrations/supabase/client";
 import { User } from "@supabase/supabase-js";
 import { useNavigate } from "react-router-dom";
+import type { UserRole } from "@/lib/types/auth";
 
 interface Organization {
   id: string;
@@ -15,6 +16,7 @@ interface AuthContextType {
   user: User | null;
   loading: boolean;
   organization: Organization | null;
+  userRole: UserRole | null;
   signOut: () => Promise<void>;
 }
 
@@ -22,6 +24,7 @@ const AuthContext = createContext<AuthContextType>({
   user: null,
   loading: true,
   organization: null,
+  userRole: null,
   signOut: async () => {},
 });
 
@@ -29,13 +32,32 @@ export const AuthProvider = ({ children }: { children: React.ReactNode }) => {
   const [user, setUser] = useState<User | null>(null);
   const [loading, setLoading] = useState(true);
   const [organization, setOrganization] = useState<Organization | null>(null);
+  const [userRole, setUserRole] = useState<UserRole | null>(null);
   const navigate = useNavigate();
+
+  const fetchUserRole = async (userId: string) => {
+    const { data, error } = await supabase
+      .from('user_roles')
+      .select('role')
+      .eq('user_id', userId)
+      .single();
+
+    if (error) {
+      console.error('Error fetching user role:', error);
+      return;
+    }
+
+    if (data) {
+      setUserRole(data.role as UserRole);
+    }
+  };
 
   useEffect(() => {
     // Check active sessions
     supabase.auth.getSession().then(({ data: { session } }) => {
       setUser(session?.user ?? null);
       if (session?.user) {
+        fetchUserRole(session.user.id);
         fetchUserOrganization(session.user.id);
       }
       setLoading(false);
@@ -47,9 +69,11 @@ export const AuthProvider = ({ children }: { children: React.ReactNode }) => {
     } = supabase.auth.onAuthStateChange((_event, session) => {
       setUser(session?.user ?? null);
       if (session?.user) {
+        fetchUserRole(session.user.id);
         fetchUserOrganization(session.user.id);
       } else {
         setOrganization(null);
+        setUserRole(null);
       }
       setLoading(false);
     });
@@ -91,7 +115,7 @@ export const AuthProvider = ({ children }: { children: React.ReactNode }) => {
   };
 
   return (
-    <AuthContext.Provider value={{ user, loading, organization, signOut }}>
+    <AuthContext.Provider value={{ user, loading, organization, userRole, signOut }}>
       {children}
     </AuthContext.Provider>
   );
