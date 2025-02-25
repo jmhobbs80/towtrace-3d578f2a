@@ -7,6 +7,7 @@ import { Button } from "@/components/ui/button"
 import { PanelLeft } from "lucide-react"
 import { cn } from "@/lib/utils"
 import { useSidebar } from "./context"
+import { SIDEBAR_WIDTH_MOBILE } from "./types"
 
 export const Sidebar = React.forwardRef<
   HTMLDivElement,

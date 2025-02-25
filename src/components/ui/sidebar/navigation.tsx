@@ -88,7 +88,7 @@ SidebarGroup.displayName = "SidebarGroup"
 
 export const SidebarMenu = React.forwardRef<
   HTMLUListElement,
-  React.HTMLAttributes<"ul">
+  React.ComponentPropsWithoutRef<"ul">
 >(({ className, ...props }, ref) => (
   <ul
     ref={ref}
@@ -101,7 +101,7 @@ SidebarMenu.displayName = "SidebarMenu"
 
 export const SidebarMenuItem = React.forwardRef<
   HTMLLIElement,
-  React.HTMLAttributes<"li">
+  React.ComponentPropsWithoutRef<"li">
 >(({ className, ...props }, ref) => (
   <li
     ref={ref}
@@ -170,8 +170,3 @@ export const SidebarMenuButton = React.forwardRef<
   }
 )
 SidebarMenuButton.displayName = "SidebarMenuButton"
-
-// Export all components from a single file
-export * from "./components"
-export * from "./context"
-export type * from "./types"

@@ -3,14 +3,7 @@ import * as React from "react"
 import { TooltipProvider } from "@radix-ui/react-tooltip"
 import { useIsMobile } from "@/hooks/use-mobile"
 import { cn } from "@/lib/utils"
-import { type SidebarContext } from "./types"
-
-const SIDEBAR_COOKIE_NAME = "sidebar:state"
-const SIDEBAR_COOKIE_MAX_AGE = 60 * 60 * 24 * 7
-const SIDEBAR_WIDTH = "16rem"
-const SIDEBAR_WIDTH_MOBILE = "18rem"
-const SIDEBAR_WIDTH_ICON = "3rem"
-const SIDEBAR_KEYBOARD_SHORTCUT = "b"
+import { type SidebarContext, SIDEBAR_COOKIE_NAME, SIDEBAR_COOKIE_MAX_AGE, SIDEBAR_WIDTH, SIDEBAR_WIDTH_ICON, SIDEBAR_KEYBOARD_SHORTCUT } from "./types"
 
 export const SidebarContext = React.createContext<SidebarContext | null>(null)
 
