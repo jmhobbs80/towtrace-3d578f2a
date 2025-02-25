@@ -21,7 +21,10 @@ export default function AuctionsPage() {
 
   const { data: auctions, isLoading, error } = useQuery({
     queryKey: ['auctions'],
-    queryFn: getAuctions
+    queryFn: getAuctions,
+    meta: {
+      errorMessage: "Failed to load auctions"
+    }
   });
 
   // Handle error outside of useQuery
