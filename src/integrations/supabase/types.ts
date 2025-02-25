@@ -9,6 +9,45 @@ export type Json =
 export type Database = {
   public: {
     Tables: {
+      admin_audit_logs: {
+        Row: {
+          action_type: string
+          created_at: string | null
+          entity_id: string | null
+          entity_type: string
+          id: string
+          ip_address: string | null
+          metadata: Json | null
+          new_state: Json | null
+          previous_state: Json | null
+          user_id: string
+        }
+        Insert: {
+          action_type: string
+          created_at?: string | null
+          entity_id?: string | null
+          entity_type: string
+          id?: string
+          ip_address?: string | null
+          metadata?: Json | null
+          new_state?: Json | null
+          previous_state?: Json | null
+          user_id: string
+        }
+        Update: {
+          action_type?: string
+          created_at?: string | null
+          entity_id?: string | null
+          entity_type?: string
+          id?: string
+          ip_address?: string | null
+          metadata?: Json | null
+          new_state?: Json | null
+          previous_state?: Json | null
+          user_id?: string
+        }
+        Relationships: []
+      }
       auction_bids: {
         Row: {
           amount: number
@@ -2537,6 +2576,10 @@ export type Database = {
         }
         Returns: undefined
       }
+      is_internal_employee: {
+        Args: Record<PropertyKey, never>
+        Returns: boolean
+      }
       is_org_admin: {
         Args: {
           org_id: string
@@ -2548,6 +2591,21 @@ export type Database = {
           org_id: string
         }
         Returns: boolean
+      }
+      is_overwatch_admin: {
+        Args: Record<PropertyKey, never>
+        Returns: boolean
+      }
+      log_admin_action: {
+        Args: {
+          action_type: string
+          entity_type: string
+          entity_id: string
+          previous_state?: Json
+          new_state?: Json
+          metadata?: Json
+        }
+        Returns: string
       }
       process_job_earnings: {
         Args: {
@@ -2575,6 +2633,10 @@ export type Database = {
         | "consumer"
         | "dealer"
         | "wholesaler"
+        | "overwatch_admin"
+        | "super_admin"
+        | "support_agent"
+        | "billing_manager"
       auction_status: "draft" | "scheduled" | "live" | "ended" | "canceled"
       bid_status: "pending" | "accepted" | "rejected" | "expired"
       impound_status:
