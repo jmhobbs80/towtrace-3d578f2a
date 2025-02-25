@@ -4,6 +4,29 @@ import { useToast } from "@/hooks/use-toast";
 import { PushNotificationService } from "@/lib/services/push-notifications";
 import type { UserRole } from "@/lib/types/auth";
 
+const calculatePasswordStrength = (password: string): number => {
+  if (!password) return 0;
+  
+  let strength = 0;
+  
+  // Length check
+  if (password.length >= 8) strength += 25;
+  
+  // Contains number
+  if (/\d/.test(password)) strength += 25;
+  
+  // Contains lowercase
+  if (/[a-z]/.test(password)) strength += 25;
+  
+  // Contains uppercase
+  if (/[A-Z]/.test(password)) strength += 15;
+  
+  // Contains special character
+  if (/[!@#$%^&*(),.?":{}|<>]/.test(password)) strength += 10;
+  
+  return Math.min(100, strength);
+};
+
 export function useSignUpForm() {
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
@@ -20,6 +43,8 @@ export function useSignUpForm() {
   const [promoCodeMessage, setPromoCodeMessage] = useState("");
   const { toast } = useToast();
   const pushNotificationService = PushNotificationService.getInstance();
+
+  const passwordStrength = calculatePasswordStrength(password);
 
   async function validatePromoCode() {
     if (!promoCode) {
@@ -183,6 +208,7 @@ export function useSignUpForm() {
     promoCodeValid,
     promoCodeMessage,
     validatePromoCode,
-    handleSubmit
+    handleSubmit,
+    passwordStrength
   };
 }
