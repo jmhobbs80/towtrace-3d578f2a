@@ -12,6 +12,9 @@ import { customerRoutes } from "./customer-routes";
 import { billingRoutes } from "./billing-routes";
 import { analyticsRoutes } from "./analytics-routes";
 import { legalRoutes } from "./legal-routes";
+import { auctionRoutes } from "./auction-routes";
+import { supportRoutes } from "./support-routes";
+import { wholesalerRoutes } from "./wholesaler-routes";
 import Dashboard from "@/pages/dashboard/Dashboard";
 import NotFound from "@/pages/NotFound";
 import CustomerPortal from "@/pages/customer/CustomerPortal";
@@ -21,15 +24,18 @@ const protectedRoutes = [
   {
     path: "/",
     element: <Dashboard />,
-    allowedRoles: ["admin", "dealer", "dispatcher", "wholesaler", "transporter"] as UserRole[]
+    allowedRoles: ["admin", "dealer", "dispatcher", "wholesaler", "transporter", "provider", "support_agent", "billing_manager"] as UserRole[]
   },
-  ...adminRoutes,    // Admin dashboard, user management, system logs
+  ...adminRoutes,    // System admin, user management, audit logs
   ...dealerRoutes,   // Inventory, repairs, transport requests
   ...fleetRoutes,    // Vehicle management, driver assignments
   ...dispatchRoutes, // Job dispatch, route optimization
   ...customerRoutes, // Customer portal, service requests
   ...billingRoutes,  // Invoices, payments, billing dashboard
-  ...analyticsRoutes // Performance metrics, reports
+  ...analyticsRoutes, // Performance metrics, reports
+  ...auctionRoutes,  // Auction listings, bidding, results
+  ...wholesalerRoutes, // Wholesale vehicle management
+  ...supportRoutes   // Support agent dashboard, tickets
 ];
 
 const publicRoutes = [
