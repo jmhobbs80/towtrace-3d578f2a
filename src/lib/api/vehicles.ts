@@ -50,7 +50,8 @@ interface VehicleTransitData {
   model: string;
 }
 
-async function createVINScanner(): Promise<VINScannerHardware> {
+// Re-exporting these functions since they are used by other components
+export async function createVINScanner(): Promise<VINScannerHardware> {
   const bluetoothScanner = new BluetoothVINScanner();
   if (await bluetoothScanner.isAvailable()) {
     console.log('Using Bluetooth VIN scanner');
@@ -66,11 +67,11 @@ async function createVINScanner(): Promise<VINScannerHardware> {
   throw new Error('No VIN scanner hardware available');
 }
 
-function validateVIN(vin: string): boolean {
+export function validateVIN(vin: string): boolean {
   return vin.length === 17 && /^[A-HJ-NP-TV-Z0-9]{17}$/.test(vin);
 }
 
-async function decodeVIN(vin: string): Promise<any> {
+export async function decodeVIN(vin: string): Promise<any> {
   try {
     const { data, error } = await supabase.functions.invoke('decode-vin', {
       body: { vin }
