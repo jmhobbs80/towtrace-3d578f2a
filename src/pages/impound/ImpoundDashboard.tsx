@@ -6,36 +6,7 @@ import { useAuth } from "@/components/auth/AuthProvider";
 import { Car, Warehouse, DollarSign } from "lucide-react";
 import { AddImpoundLotDialog } from "./AddImpoundLotDialog";
 import { AddImpoundedVehicleDialog } from "./AddImpoundedVehicleDialog";
-
-interface ImpoundLotDB {
-  id: string;
-  name: string;
-  address: {
-    street: string;
-    city: string;
-    state: string;
-    zip: string;
-  } | string;
-  capacity: number;
-  daily_rate: number;
-  organization_id: string;
-  created_at: string;
-  updated_at: string;
-  late_fee_rate: number;
-}
-
-interface ImpoundLot {
-  id: string;
-  name: string;
-  address: {
-    street: string;
-    city: string;
-    state: string;
-    zip: string;
-  };
-  capacity: number;
-  daily_rate: number;
-}
+import { ReleaseVehicleDialog } from "./ReleaseVehicleDialog";
 
 interface ImpoundedVehicle {
   id: string;
@@ -49,6 +20,29 @@ interface ImpoundedVehicle {
 
 export default function ImpoundDashboard() {
   const { organization } = useAuth();
+  const { data: vehicles, refetch: refetchVehicles } = useQuery({
+    queryKey: ['impoundedVehicles', organization?.id],
+    queryFn: async () => {
+      const { data, error } = await supabase
+        .from('impounded_vehicles')
+        .select(`
+          id,
+          status,
+          impound_date,
+          total_fees,
+          vehicle_id,
+          police_report_number,
+          insurance_claim_number,
+          inventory_vehicles(make, model, year)
+        `)
+        .eq('organization_id', organization?.id)
+        .not('status', 'eq', 'released');
+      
+      if (error) throw error;
+      return data;
+    },
+    enabled: !!organization?.id
+  });
 
   const { data: lots } = useQuery({
     queryKey: ['impoundLots', organization?.id],
@@ -69,21 +63,6 @@ export default function ImpoundDashboard() {
         capacity: lot.capacity,
         daily_rate: lot.daily_rate
       })) as ImpoundLot[];
-    },
-    enabled: !!organization?.id
-  });
-
-  const { data: vehicles } = useQuery({
-    queryKey: ['impoundedVehicles', organization?.id],
-    queryFn: async () => {
-      const { data, error } = await supabase
-        .from('impounded_vehicles')
-        .select('*')
-        .eq('organization_id', organization?.id)
-        .not('status', 'eq', 'released');
-      
-      if (error) throw error;
-      return data as ImpoundedVehicle[];
     },
     enabled: !!organization?.id
   });
@@ -146,12 +125,14 @@ export default function ImpoundDashboard() {
         <Table>
           <TableHeader>
             <TableRow>
+              <TableHead>Vehicle</TableHead>
               <TableHead>Status</TableHead>
               <TableHead>Impound Date</TableHead>
               <TableHead>Days in Storage</TableHead>
               <TableHead>Total Fees</TableHead>
               <TableHead>Police Report #</TableHead>
               <TableHead>Insurance Claim #</TableHead>
+              <TableHead>Actions</TableHead>
             </TableRow>
           </TableHeader>
           <TableBody>
@@ -163,7 +144,10 @@ export default function ImpoundDashboard() {
               
               return (
                 <TableRow key={vehicle.id}>
-                  <TableCell className="font-medium capitalize">
+                  <TableCell className="font-medium">
+                    {vehicle.inventory_vehicles?.year} {vehicle.inventory_vehicles?.make} {vehicle.inventory_vehicles?.model}
+                  </TableCell>
+                  <TableCell className="capitalize">
                     {vehicle.status.replace('_', ' ')}
                   </TableCell>
                   <TableCell>
@@ -173,6 +157,14 @@ export default function ImpoundDashboard() {
                   <TableCell>${vehicle.total_fees.toLocaleString()}</TableCell>
                   <TableCell>{vehicle.police_report_number || '-'}</TableCell>
                   <TableCell>{vehicle.insurance_claim_number || '-'}</TableCell>
+                  <TableCell>
+                    {vehicle.status === 'impounded' && (
+                      <ReleaseVehicleDialog 
+                        impoundId={vehicle.id}
+                        onRelease={refetchVehicles}
+                      />
+                    )}
+                  </TableCell>
                 </TableRow>
               );
             })}
