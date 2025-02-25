@@ -5,6 +5,7 @@ import { supabase } from "@/integrations/supabase/client";
 import { useAuth } from "@/components/auth/AuthProvider";
 import { Car, Warehouse, DollarSign } from "lucide-react";
 import { AddImpoundLotDialog } from "./AddImpoundLotDialog";
+import { AddImpoundedVehicleDialog } from "./AddImpoundedVehicleDialog";
 
 interface ImpoundLotDB {
   id: string;
@@ -91,7 +92,10 @@ export default function ImpoundDashboard() {
     <div className="p-6">
       <div className="flex justify-between items-center mb-6">
         <h1 className="text-2xl font-bold">Impound Management</h1>
-        <AddImpoundLotDialog />
+        <div className="flex gap-2">
+          <AddImpoundedVehicleDialog />
+          <AddImpoundLotDialog />
+        </div>
       </div>
       
       <div className="grid gap-4 md:grid-cols-2 lg:grid-cols-3 mb-6">
