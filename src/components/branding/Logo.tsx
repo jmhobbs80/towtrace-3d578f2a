@@ -22,7 +22,7 @@ export function Logo({
   return (
     <div 
       className={cn(
-        "flex items-center gap-2 font-display font-bold text-primary",
+        "flex items-center gap-2 font-display font-bold",
         sizeClasses[size],
         className
       )} 
@@ -31,64 +31,92 @@ export function Logo({
       {variant === "icon" ? (
         <svg
           className="h-full w-auto"
-          viewBox="0 0 24 24"
+          viewBox="0 0 800 400"
           fill="none"
           xmlns="http://www.w3.org/2000/svg"
         >
           <path
-            d="M12 2L2 7L12 12L22 7L12 2Z"
-            className="fill-primary"
-            strokeWidth="2"
-            strokeLinecap="round"
-            strokeLinejoin="round"
+            d="M600 200H200L300 100H700L600 200Z"
+            fill="#ff0000"
+            className="animate-pulse"
           />
           <path
-            d="M2 17L12 22L22 17"
-            className="fill-primary"
-            strokeWidth="2"
-            strokeLinecap="round"
-            strokeLinejoin="round"
+            d="M500 300H100L200 200H600L500 300Z"
+            fill="#ff0000"
+            opacity="0.8"
+            className="animate-pulse"
           />
           <path
-            d="M2 12L12 17L22 12"
-            className="fill-primary"
-            strokeWidth="2"
-            strokeLinecap="round"
-            strokeLinejoin="round"
+            d="M400 400H0L100 300H500L400 400Z"
+            fill="#ff0000"
+            opacity="0.6"
+            className="animate-pulse"
+          />
+          <path
+            d="M700 100H300L400 0H800L700 100Z"
+            fill="#ff0000"
+            opacity="0.4"
+            className="animate-pulse"
+          />
+          <path
+            d="M600 200L700 100H800L700 200H600Z"
+            fill="#4B5563"
+          />
+          <path
+            d="M500 300L600 200H700L600 300H500Z"
+            fill="#4B5563"
+          />
+          <path
+            d="M400 400L500 300H600L500 400H400Z"
+            fill="#4B5563"
           />
         </svg>
       ) : (
         <>
           <svg
             className="h-full w-auto"
-            viewBox="0 0 24 24"
+            viewBox="0 0 800 400"
             fill="none"
             xmlns="http://www.w3.org/2000/svg"
           >
             <path
-              d="M12 2L2 7L12 12L22 7L12 2Z"
-              className="fill-primary"
-              strokeWidth="2"
-              strokeLinecap="round"
-              strokeLinejoin="round"
+              d="M600 200H200L300 100H700L600 200Z"
+              fill="#ff0000"
+              className="animate-pulse"
             />
             <path
-              d="M2 17L12 22L22 17"
-              className="fill-primary"
-              strokeWidth="2"
-              strokeLinecap="round"
-              strokeLinejoin="round"
+              d="M500 300H100L200 200H600L500 300Z"
+              fill="#ff0000"
+              opacity="0.8"
+              className="animate-pulse"
             />
             <path
-              d="M2 12L12 17L22 12"
-              className="fill-primary"
-              strokeWidth="2"
-              strokeLinecap="round"
-              strokeLinejoin="round"
+              d="M400 400H0L100 300H500L400 400Z"
+              fill="#ff0000"
+              opacity="0.6"
+              className="animate-pulse"
+            />
+            <path
+              d="M700 100H300L400 0H800L700 100Z"
+              fill="#ff0000"
+              opacity="0.4"
+              className="animate-pulse"
+            />
+            <path
+              d="M600 200L700 100H800L700 200H600Z"
+              fill="#4B5563"
+            />
+            <path
+              d="M500 300L600 200H700L600 300H500Z"
+              fill="#4B5563"
+            />
+            <path
+              d="M400 400L500 300H600L500 400H400Z"
+              fill="#4B5563"
             />
           </svg>
           {variant !== "mobile" && (
-            <span className="text-2xl tracking-tight">TowTrace</span>
+            <span className="text-2xl tracking-tight">TowLogix</span>
           )}
         </>
       )}
