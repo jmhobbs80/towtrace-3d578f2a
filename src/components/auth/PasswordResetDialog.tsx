@@ -8,7 +8,6 @@ import {
   AlertDialogContent,
   AlertDialogHeader,
   AlertDialogTitle,
-  AlertDialogTrigger,
   AlertDialogDescription,
   AlertDialogFooter,
   AlertDialogCancel,
@@ -35,14 +34,6 @@ export function PasswordResetDialog({
 }: PasswordResetDialogProps) {
   return (
     <AlertDialog open={isOpen} onOpenChange={onOpenChange}>
-      <AlertDialogTrigger asChild>
-        <Button
-          variant="link"
-          className="text-sm text-[#7E69AB] hover:text-[#9b87f5] underline-offset-4"
-        >
-          Forgot password?
-        </Button>
-      </AlertDialogTrigger>
       <AlertDialogContent className="sm:max-w-md w-[95vw] mx-auto rounded-xl border-[#E5DEFF] p-6 bg-white shadow-xl">
         <AlertDialogHeader>
           <AlertDialogTitle className="text-[#1A1F2C] text-xl">Reset Password</AlertDialogTitle>
