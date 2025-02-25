@@ -299,30 +299,31 @@ export function SignInForm() {
       {showTotpSetup ? (
         <div className="space-y-6">
           <div className="text-center">
-            <h3 className="text-lg font-semibold">Set up Two-Factor Authentication</h3>
-            <p className="text-sm text-muted-foreground mt-2">
+            <h3 className="text-lg font-semibold text-[#1A1F2C]">Set up Two-Factor Authentication</h3>
+            <p className="text-sm text-[#7E69AB] mt-2">
               Scan the QR code with your authenticator app
             </p>
           </div>
           
           <div className="flex justify-center">
-            <img src={qrCodeUrl} alt="2FA QR Code" className="w-48 h-48" />
+            <img src={qrCodeUrl} alt="2FA QR Code" className="w-48 h-48 shadow-md rounded-lg" />
           </div>
 
           <div className="space-y-4">
             <div className="space-y-2">
-              <Label htmlFor="totpCode">Enter verification code</Label>
+              <Label htmlFor="totpCode" className="text-[#1A1F2C]">Enter verification code</Label>
               <Input
                 id="totpCode"
                 value={totpCode}
                 onChange={(e) => setTotpCode(e.target.value)}
                 placeholder="Enter 6-digit code"
                 maxLength={6}
+                className="text-center tracking-widest text-lg"
               />
             </div>
             <Button
               onClick={verifyTwoFactor}
-              className="w-full"
+              className="w-full bg-[#9b87f5] hover:bg-[#7E69AB] transition-colors"
             >
               Verify and Enable 2FA
             </Button>
@@ -332,25 +333,25 @@ export function SignInForm() {
         <>
           <form onSubmit={handleSubmit} className="space-y-6" onClick={updateActivity}>
             <div className="space-y-3">
-              <Label htmlFor="email" className="text-sm font-medium">Email</Label>
+              <Label htmlFor="email" className="text-sm font-medium text-[#1A1F2C]">Email</Label>
               <div className="relative">
-                <MailIcon className="absolute left-3 top-2.5 h-5 w-5 text-muted-foreground" />
+                <MailIcon className="absolute left-3 top-2.5 h-5 w-5 text-[#7E69AB]" />
                 <Input
                   id="email"
                   type="email"
                   placeholder="name@example.com"
                   value={email}
                   onChange={(e) => setEmail(e.target.value)}
-                  className="pl-10 h-11 text-base bg-white/5 backdrop-blur-sm border-white/10 hover:border-white/20 transition-colors"
+                  className="pl-10 h-11 text-base border-[#E5DEFF] focus:border-[#9b87f5] hover:border-[#9b87f5] rounded-lg shadow-sm"
                   required
                 />
               </div>
             </div>
 
             <div className="space-y-3">
-              <Label htmlFor="password" className="text-sm font-medium">Password</Label>
+              <Label htmlFor="password" className="text-sm font-medium text-[#1A1F2C]">Password</Label>
               <div className="relative">
-                <LockIcon className="absolute left-3 top-2.5 h-5 w-5 text-muted-foreground" />
+                <LockIcon className="absolute left-3 top-2.5 h-5 w-5 text-[#7E69AB]" />
                 <Input
                   id="password"
                   type={showPassword ? "text" : "password"}
@@ -360,13 +361,13 @@ export function SignInForm() {
                     setPassword(e.target.value);
                     setPasswordStrength(calculatePasswordStrength(e.target.value));
                   }}
-                  className="pl-10 pr-10 h-11 text-base bg-white/5 backdrop-blur-sm border-white/10 hover:border-white/20 transition-colors"
+                  className="pl-10 pr-10 h-11 text-base border-[#E5DEFF] focus:border-[#9b87f5] hover:border-[#9b87f5] rounded-lg shadow-sm"
                   required
                 />
                 <button
                   type="button"
                   onClick={() => setShowPassword(!showPassword)}
-                  className="absolute right-3 top-2.5 text-muted-foreground hover:text-foreground"
+                  className="absolute right-3 top-2.5 text-[#7E69AB] hover:text-[#9b87f5] focus:outline-none"
                 >
                   {showPassword ? (
                     <EyeOffIcon className="h-5 w-5" />
@@ -377,8 +378,15 @@ export function SignInForm() {
               </div>
               {password && (
                 <div className="space-y-2">
-                  <Progress value={passwordStrength} className="h-1" />
-                  <p className="text-xs text-muted-foreground">
+                  <Progress 
+                    value={passwordStrength} 
+                    className="h-1.5 bg-[#E5DEFF]"
+                    style={{
+                      '--progress-background': passwordStrength < 40 ? '#ff453a' :
+                                             passwordStrength < 80 ? '#ff9f0a' : '#30D158'
+                    } as React.CSSProperties}
+                  />
+                  <p className="text-xs text-[#7E69AB]">
                     Password must be at least 8 characters long and contain numbers, symbols, and both upper and lowercase letters
                   </p>
                 </div>
@@ -387,7 +395,7 @@ export function SignInForm() {
 
             <Button
               type="submit"
-              className="w-full h-11 text-base font-medium rounded-xl transition-all duration-300 hover:scale-[1.02]"
+              className="w-full h-12 text-base font-medium bg-[#9b87f5] hover:bg-[#7E69AB] transition-colors rounded-lg shadow-md"
               disabled={loading}
             >
               {loading ? "Signing in..." : "Sign In"}
@@ -399,30 +407,36 @@ export function SignInForm() {
               <AlertDialogTrigger asChild>
                 <Button
                   variant="link"
-                  className="text-sm text-muted-foreground hover:text-primary"
+                  className="text-sm text-[#7E69AB] hover:text-[#9b87f5] underline-offset-4"
                 >
                   Forgot password?
                 </Button>
               </AlertDialogTrigger>
-              <AlertDialogContent className="sm:max-w-md w-[95vw] mx-auto">
+              <AlertDialogContent className="sm:max-w-md w-[95vw] mx-auto rounded-xl border-[#E5DEFF] p-6">
                 <AlertDialogHeader>
-                  <AlertDialogTitle>Reset Password</AlertDialogTitle>
-                  <AlertDialogDescription>
+                  <AlertDialogTitle className="text-[#1A1F2C] text-xl">Reset Password</AlertDialogTitle>
+                  <AlertDialogDescription className="text-[#7E69AB]">
                     {resetStep === 1 && "Enter your email address to receive a password reset link."}
                     {resetStep === 2 && "Sending reset instructions..."}
                     {resetStep === 3 && "Reset link has been sent!"}
                   </AlertDialogDescription>
                 </AlertDialogHeader>
                 <div className="mb-4">
-                  <Progress value={resetStep * 33.33} className="h-1" />
-                  <p className="text-xs text-muted-foreground mt-2 text-center">
+                  <Progress 
+                    value={resetStep * 33.33} 
+                    className="h-1.5 bg-[#E5DEFF]"
+                    style={{
+                      '--progress-background': '#9b87f5'
+                    } as React.CSSProperties}
+                  />
+                  <p className="text-xs text-[#7E69AB] mt-2 text-center">
                     Step {resetStep} of 3
                   </p>
                 </div>
                 <form onSubmit={handlePasswordReset} className="space-y-4">
                   {resetStep === 1 && (
                     <div className="space-y-2">
-                      <Label htmlFor="resetEmail">Email</Label>
+                      <Label htmlFor="resetEmail" className="text-[#1A1F2C]">Email</Label>
                       <Input
                         id="resetEmail"
                         type="email"
@@ -430,14 +444,23 @@ export function SignInForm() {
                         onChange={(e) => setResetEmail(e.target.value)}
                         placeholder="name@example.com"
                         required
-                        className="h-11"
+                        className="h-11 border-[#E5DEFF] focus:border-[#9b87f5] hover:border-[#9b87f5] rounded-lg shadow-sm"
                       />
                     </div>
                   )}
                   <AlertDialogFooter className="sm:flex-row flex-col gap-2">
-                    <AlertDialogCancel type="button" className="sm:mt-0 mt-2">Cancel</AlertDialogCancel>
+                    <AlertDialogCancel 
+                      type="button" 
+                      className="sm:mt-0 mt-2 border-[#E5DEFF] text-[#7E69AB] hover:bg-[#E5DEFF]/10"
+                    >
+                      Cancel
+                    </AlertDialogCancel>
                     {resetStep === 1 && (
-                      <Button type="submit" disabled={isResetting} className="sm:ml-2 w-full sm:w-auto">
+                      <Button 
+                        type="submit" 
+                        disabled={isResetting} 
+                        className="sm:ml-2 w-full sm:w-auto bg-[#9b87f5] hover:bg-[#7E69AB] transition-colors"
+                      >
                         {isResetting ? "Sending..." : "Send Reset Link"}
                       </Button>
                     )}
