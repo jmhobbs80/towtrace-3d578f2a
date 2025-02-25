@@ -35,6 +35,10 @@ function isPriceRange(value: unknown): value is PriceRange {
   return typeof range.min === 'number' && typeof range.max === 'number';
 }
 
+function isStringArray(value: unknown): value is string[] {
+  return Array.isArray(value) && value.every(item => typeof item === 'string');
+}
+
 export default function LoadBoard() {
   const { toast } = useToast();
   const [isCreateDialogOpen, setIsCreateDialogOpen] = useState(false);
@@ -61,8 +65,8 @@ export default function LoadBoard() {
         ...load,
         pickup_location: load.pickup_location as { address: string },
         delivery_location: load.delivery_location as { address: string },
-        requirements: Array.isArray(load.requirements) ? load.requirements : [],
-        photos: Array.isArray(load.photos) ? load.photos : [],
+        requirements: isStringArray(load.requirements) ? load.requirements : [],
+        photos: isStringArray(load.photos) ? load.photos : [],
         dimensions: isDimensions(load.dimensions) ? load.dimensions : undefined,
         weight: typeof load.weight === 'number' ? load.weight : undefined,
         price_range: isPriceRange(load.price_range) ? load.price_range : undefined,
