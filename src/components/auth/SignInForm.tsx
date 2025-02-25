@@ -1,4 +1,3 @@
-
 import { useState, useEffect } from "react";
 import { useNavigate } from "react-router-dom";
 import { supabase } from "@/integrations/supabase/client";
@@ -230,6 +229,61 @@ export function SignInForm() {
     }
   }
 
+  const [sessionWarningShown, setSessionWarningShown] = useState(false);
+  const [lastActivity, setLastActivity] = useState<Date>(new Date());
+  const SESSION_TIMEOUT = 14 * 60 * 1000; // 14 minutes in milliseconds
+  const WARNING_THRESHOLD = 1 * 60 * 1000; // 1 minute before timeout
+
+  const updateActivity = () => {
+    setLastActivity(new Date());
+    setSessionWarningShown(false);
+  };
+
+  useEffect(() => {
+    const checkSession = () => {
+      const now = new Date();
+      const timeSinceLastActivity = now.getTime() - lastActivity.getTime();
+
+      // Show warning when 1 minute remains
+      if (timeSinceLastActivity >= SESSION_TIMEOUT - WARNING_THRESHOLD && !sessionWarningShown) {
+        setSessionWarningShown(true);
+        toast({
+          title: "Session Expiring Soon",
+          description: "Your session will expire in 1 minute. Please save your work.",
+          duration: 10000, // Show for 10 seconds
+        });
+      }
+
+      // Logout if session has expired
+      if (timeSinceLastActivity >= SESSION_TIMEOUT) {
+        supabase.auth.signOut();
+        navigate("/auth");
+        toast({
+          variant: "destructive",
+          title: "Session Expired",
+          description: "Your session has expired. Please sign in again.",
+        });
+      }
+    };
+
+    // Check every 30 seconds
+    const interval = setInterval(checkSession, 30000);
+
+    // Update activity on user interaction
+    const events = ['mousedown', 'keydown', 'scroll', 'mousemove'];
+    const handleUserActivity = () => updateActivity();
+    events.forEach(event => {
+      window.addEventListener(event, handleUserActivity);
+    });
+
+    return () => {
+      clearInterval(interval);
+      events.forEach(event => {
+        window.removeEventListener(event, handleUserActivity);
+      });
+    };
+  }, [lastActivity, sessionWarningShown, navigate]);
+
   useEffect(() => {
     if (lastResetAttempt) {
       const hoursSinceLastAttempt = (new Date().getTime() - lastResetAttempt.getTime()) / (1000 * 60 * 60);
@@ -275,7 +329,7 @@ export function SignInForm() {
         </div>
       ) : (
         <>
-          <form onSubmit={handleSubmit} className="space-y-6">
+          <form onSubmit={handleSubmit} className="space-y-6" onClick={updateActivity}>
             <div className="space-y-3">
               <Label htmlFor="email" className="text-sm font-medium">Email</Label>
               <div className="relative">
