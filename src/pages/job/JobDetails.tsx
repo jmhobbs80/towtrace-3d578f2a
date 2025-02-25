@@ -14,7 +14,13 @@ export default function JobDetails() {
     queryFn: async () => {
       const { data, error } = await supabase
         .from('tow_jobs')
-        .select('*, driver:driver_id(first_name, last_name)')
+        .select(`
+          *,
+          driver:driver_id (
+            first_name,
+            last_name
+          )
+        `)
         .eq('id', jobId)
         .single();
       
@@ -22,10 +28,16 @@ export default function JobDetails() {
 
       // Transform the data to match Job type
       const transformedJob: Job = {
-        ...data,
+        id: data.id,
         pickup_location: toLocation(data.pickup_location) || { address: 'Unknown location' },
         delivery_location: toLocation(data.delivery_location),
-        assigned_to: data.driver_id
+        assigned_to: data.driver_id,
+        status: data.status,
+        description: data.description,
+        driver: data.driver ? {
+          first_name: data.driver.first_name || '',
+          last_name: data.driver.last_name || ''
+        } : undefined
       };
 
       return transformedJob;

@@ -1,26 +1,26 @@
+
 import { createBrowserRouter, Navigate, Outlet } from "react-router-dom";
 import AuthPage from "@/pages/auth/AuthPage";
 import Dashboard from "@/pages/dashboard/Dashboard";
-import Index from "@/pages/Index";
 import ProtectedRoute from "@/components/auth/ProtectedRoute";
 import { AuthProvider } from "@/components/auth/AuthProvider";
 import { SidebarLayout } from "@/components/layouts/SidebarLayout";
 import { AnalyticsDashboard } from "@/pages/analytics/AnalyticsDashboard";
 import { DealerDashboard } from "@/pages/dashboard/DealerDashboard";
-import { TransporterDashboard } from "@/pages/dashboard/TransporterDashboard";
 import DispatchDashboard from "@/pages/dispatch/DispatchDashboard";
 import FleetManagement from "@/pages/fleet/FleetManagement";
+import VehicleDetails from "@/pages/fleet/VehicleDetails";
 import InventoryManagement from "@/pages/inventory/InventoryManagement";
 import RepairTracking from "@/pages/repairs/RepairTracking";
 import TransportRequests from "@/pages/transport/TransportRequests";
 import PreferredTransporters from "@/pages/transport/PreferredTransporters";
 import BillingDashboard from "@/pages/billing/BillingDashboard";
+import InvoiceList from "@/pages/billing/InvoiceList";
+import PayoutManagement from "@/pages/billing/PayoutManagement";
 import WholesaleVehicles from "@/pages/wholesale/WholesaleVehicles";
 import WholesaleAuctions from "@/pages/wholesale/WholesaleAuctions";
 import BulkTransport from "@/pages/wholesale/BulkTransport";
 import DealerTrades from "@/pages/dealer/DealerTrades";
-import type { UserRole } from "@/lib/types/auth";
-
 import ProfileSettings from "@/pages/profile/ProfileSettings";
 import NotificationCenter from "@/pages/notifications/NotificationCenter";
 import OrganizationDashboard from "@/pages/organization/OrganizationDashboard";
@@ -31,15 +31,13 @@ import DriverPortal from "@/pages/driver/DriverPortal";
 import CustomerPortal from "@/pages/customer/CustomerPortal";
 import BookingFlow from "@/pages/customer/BookingFlow";
 import PublicJobRequests from "@/pages/public/RequestTow";
-import InvoiceList from "@/pages/billing/InvoiceList";
-import PayoutManagement from "@/pages/billing/PayoutManagement";
 import AIDispatch from "@/pages/ai/AIDispatch";
 import AIReports from "@/pages/ai/AIReports";
 import ReportBuilder from "@/pages/analytics/ReportBuilder";
 import TermsOfService from "@/pages/legal/TermsOfService";
 import PrivacyPolicy from "@/pages/legal/PrivacyPolicy";
 import ComplianceInfo from "@/pages/legal/ComplianceInfo";
-import VehicleDetails from "@/pages/fleet/VehicleDetails";
+import type { UserRole } from "@/lib/types/auth";
 
 const ROLE_ACCESS = {
   ADMIN: ["admin", "super_admin", "overwatch_admin"] as UserRole[],
@@ -75,43 +73,58 @@ const protectedRoutes: RouteConfig[] = [
     allowedRoles: ROLE_ACCESS.ANALYTICS
   },
   {
+    path: "/analytics/reports",
+    element: <ReportBuilder />,
+    allowedRoles: ROLE_ACCESS.ANALYTICS
+  },
+  {
     path: "/fleet",
     element: <FleetManagement />,
     allowedRoles: ROLE_ACCESS.FLEET
   },
   {
-    path: "/inventory",
+    path: "/fleet/:vehicleId",
+    element: <VehicleDetails />,
+    allowedRoles: ROLE_ACCESS.FLEET
+  },
+  {
+    path: "/dealer/inventory",
     element: <InventoryManagement />,
-    allowedRoles: ROLE_ACCESS.INVENTORY
-  },
-  {
-    path: "/repairs",
-    element: <RepairTracking />,
-    allowedRoles: ROLE_ACCESS.INVENTORY
-  },
-  {
-    path: "/transport",
-    element: <TransportRequests />,
-    allowedRoles: ROLE_ACCESS.TRANSPORT
-  },
-  {
-    path: "/preferred",
-    element: <PreferredTransporters />,
-    allowedRoles: ROLE_ACCESS.TRANSPORT
-  },
-  {
-    path: "/billing",
-    element: <BillingDashboard />,
-    allowedRoles: ROLE_ACCESS.BILLING
-  },
-  {
-    path: "/dealer",
-    element: <DealerDashboard />,
     allowedRoles: ROLE_ACCESS.DEALER
   },
   {
-    path: "/wholesale",
+    path: "/dealer/repairs",
+    element: <RepairTracking />,
+    allowedRoles: ROLE_ACCESS.DEALER
+  },
+  {
+    path: "/dealer/transport-requests",
+    element: <TransportRequests />,
+    allowedRoles: ROLE_ACCESS.DEALER
+  },
+  {
+    path: "/dealer/preferred-transporters",
+    element: <PreferredTransporters />,
+    allowedRoles: ROLE_ACCESS.DEALER
+  },
+  {
+    path: "/dealer/billing",
+    element: <BillingDashboard />,
+    allowedRoles: ROLE_ACCESS.DEALER
+  },
+  {
+    path: "/wholesale/vehicles",
     element: <WholesaleVehicles />,
+    allowedRoles: ROLE_ACCESS.WHOLESALER
+  },
+  {
+    path: "/wholesale/auctions",
+    element: <WholesaleAuctions />,
+    allowedRoles: ROLE_ACCESS.WHOLESALER
+  },
+  {
+    path: "/wholesale/transport",
+    element: <BulkTransport />,
     allowedRoles: ROLE_ACCESS.WHOLESALER
   },
   {
@@ -120,17 +133,62 @@ const protectedRoutes: RouteConfig[] = [
     allowedRoles: ROLE_ACCESS.DISPATCH
   },
   {
-    path: "/dealer-trades",
-    element: <DealerTrades />,
-    allowedRoles: ROLE_ACCESS.DEALER
+    path: "/job/:jobId",
+    element: <JobDetails />,
+    allowedRoles: [...ROLE_ACCESS.DISPATCH, ...ROLE_ACCESS.DRIVER]
   },
   {
-    path: "/public",
+    path: "/reports/jobs",
+    element: <JobReports />,
+    allowedRoles: ROLE_ACCESS.ADMIN
+  },
+  {
+    path: "/driver",
+    element: <DriverPortal />,
+    allowedRoles: ROLE_ACCESS.DRIVER
+  },
+  {
+    path: "/customer",
+    element: <CustomerPortal />,
+    allowedRoles: ROLE_ACCESS.CUSTOMER
+  },
+  {
+    path: "/customer/book",
+    element: <BookingFlow />,
+    allowedRoles: ROLE_ACCESS.CUSTOMER
+  },
+  {
+    path: "/public/jobs",
     element: <PublicJobRequests />,
     allowedRoles: ROLE_ACCESS.PUBLIC
   },
   {
-    path: "/profile",
+    path: "/billing",
+    element: <BillingDashboard />,
+    allowedRoles: ROLE_ACCESS.BILLING
+  },
+  {
+    path: "/billing/invoices",
+    element: <InvoiceList />,
+    allowedRoles: ROLE_ACCESS.BILLING
+  },
+  {
+    path: "/billing/payouts",
+    element: <PayoutManagement />,
+    allowedRoles: ROLE_ACCESS.BILLING
+  },
+  {
+    path: "/ai/dispatch",
+    element: <AIDispatch />,
+    allowedRoles: ROLE_ACCESS.DISPATCH
+  },
+  {
+    path: "/ai/reports",
+    element: <AIReports />,
+    allowedRoles: ROLE_ACCESS.ANALYTICS
+  },
+  {
+    path: "/profile/:userId",
     element: <ProfileSettings />,
     allowedRoles: ROLE_ACCESS.ADMIN
   },
@@ -145,79 +203,24 @@ const protectedRoutes: RouteConfig[] = [
     allowedRoles: ROLE_ACCESS.ADMIN
   },
   {
-    path: "/overwatch",
+    path: "/admin",
     element: <OverwatchDashboard />,
     allowedRoles: ROLE_ACCESS.ADMIN
   },
   {
-    path: "/job-details",
-    element: <JobDetails />,
-    allowedRoles: ROLE_ACCESS.ADMIN
-  },
-  {
-    path: "/job-reports",
-    element: <JobReports />,
-    allowedRoles: ROLE_ACCESS.ADMIN
-  },
-  {
-    path: "/driver-portal",
-    element: <DriverPortal />,
-    allowedRoles: ROLE_ACCESS.DRIVER
-  },
-  {
-    path: "/customer-portal",
-    element: <CustomerPortal />,
-    allowedRoles: ROLE_ACCESS.CUSTOMER
-  },
-  {
-    path: "/booking-flow",
-    element: <BookingFlow />,
-    allowedRoles: ROLE_ACCESS.CUSTOMER
-  },
-  {
-    path: "/invoice-list",
-    element: <InvoiceList />,
-    allowedRoles: ROLE_ACCESS.ADMIN
-  },
-  {
-    path: "/payout-management",
-    element: <PayoutManagement />,
-    allowedRoles: ROLE_ACCESS.ADMIN
-  },
-  {
-    path: "/aidispatch",
-    element: <AIDispatch />,
-    allowedRoles: ROLE_ACCESS.ADMIN
-  },
-  {
-    path: "/ai-reports",
-    element: <AIReports />,
-    allowedRoles: ROLE_ACCESS.ADMIN
-  },
-  {
-    path: "/report-builder",
-    element: <ReportBuilder />,
-    allowedRoles: ROLE_ACCESS.ADMIN
-  },
-  {
-    path: "/terms-of-service",
+    path: "/legal/terms",
     element: <TermsOfService />,
-    allowedRoles: ROLE_ACCESS.ADMIN
+    allowedRoles: ROLE_ACCESS.PUBLIC
   },
   {
-    path: "/privacy-policy",
+    path: "/legal/privacy",
     element: <PrivacyPolicy />,
-    allowedRoles: ROLE_ACCESS.ADMIN
+    allowedRoles: ROLE_ACCESS.PUBLIC
   },
   {
-    path: "/compliance-info",
+    path: "/legal/compliance",
     element: <ComplianceInfo />,
-    allowedRoles: ROLE_ACCESS.ADMIN
-  },
-  {
-    path: "/vehicle-details",
-    element: <VehicleDetails />,
-    allowedRoles: ROLE_ACCESS.ADMIN
+    allowedRoles: ROLE_ACCESS.PUBLIC
   }
 ];
 
