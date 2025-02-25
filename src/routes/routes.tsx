@@ -1,4 +1,3 @@
-
 import { RouteObject } from "react-router-dom";
 import AuthPage from "@/pages/auth/AuthPage";
 import Index from "@/pages/Index";
@@ -19,6 +18,7 @@ import CreateRepairOrder from "@/pages/repairs/CreateRepairOrder";
 import CustomerPortal from "@/pages/impound/customer/CustomerPortal";
 import DealerTrades from "@/pages/dealer/DealerTrades";
 import { SidebarLayout } from "@/components/layouts/SidebarLayout";
+import PreferredTransporters from "@/pages/transport/PreferredTransporters";
 
 export const routes: RouteObject[] = [
   {
@@ -95,6 +95,10 @@ export const routes: RouteObject[] = [
       {
         path: "/dealer/trades",
         element: <DealerTrades />
+      },
+      {
+        path: "/transport/preferred",
+        element: <PreferredTransporters />,
       }
     ]
   }

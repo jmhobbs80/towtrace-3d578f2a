@@ -93,6 +93,16 @@ export const CreateJobModal = ({ open, onClose, onSuccess }: CreateJobModalProps
 
     setIsLoading(true);
     try {
+      // First, check for preferred transporters
+      const { data: preferredTransporters } = await supabase
+        .from('preferred_transporters')
+        .select('transporter_id')
+        .eq('organization_id', organization.id)
+        .eq('is_active', true)
+        .order('priority');
+
+      const preferredTransporterId = preferredTransporters?.[0]?.transporter_id;
+
       await supabase.functions.invoke('jobs', {
         method: 'POST',
         body: {
@@ -107,13 +117,14 @@ export const CreateJobModal = ({ open, onClose, onSuccess }: CreateJobModalProps
           } : undefined,
           description: formData.description,
           driver_id: formData.driverId || undefined,
-          status: formData.driverId ? 'assigned' : 'pending',
+          status: preferredTransporterId ? 'assigned' : 'pending',
+          assigned_to: preferredTransporterId,
         },
       });
 
       toast({
         title: "Success",
-        description: `Job created successfully${formData.driverId ? ' and assigned to driver' : ''}`,
+        description: `Job created successfully${preferredTransporterId ? ' and assigned to preferred transporter' : ''}`,
       });
       onSuccess();
       onClose();
@@ -198,4 +209,4 @@ export const CreateJobModal = ({ open, onClose, onSuccess }: CreateJobModalProps
       </DialogContent>
     </Dialog>
   );
-};
+}
