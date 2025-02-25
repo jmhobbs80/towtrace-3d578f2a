@@ -669,6 +669,158 @@ export type Database = {
           },
         ]
       }
+      load_bids: {
+        Row: {
+          amount: number
+          bidder_id: string
+          created_at: string
+          id: string
+          load_id: string
+          notes: string | null
+          organization_id: string
+          proposed_dates: Json | null
+          status: Database["public"]["Enums"]["bid_status"]
+          updated_at: string
+        }
+        Insert: {
+          amount: number
+          bidder_id: string
+          created_at?: string
+          id?: string
+          load_id: string
+          notes?: string | null
+          organization_id: string
+          proposed_dates?: Json | null
+          status?: Database["public"]["Enums"]["bid_status"]
+          updated_at?: string
+        }
+        Update: {
+          amount?: number
+          bidder_id?: string
+          created_at?: string
+          id?: string
+          load_id?: string
+          notes?: string | null
+          organization_id?: string
+          proposed_dates?: Json | null
+          status?: Database["public"]["Enums"]["bid_status"]
+          updated_at?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "load_bids_bidder_id_fkey"
+            columns: ["bidder_id"]
+            isOneToOne: false
+            referencedRelation: "profiles"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "load_bids_load_id_fkey"
+            columns: ["load_id"]
+            isOneToOne: false
+            referencedRelation: "loads"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "load_bids_organization_id_fkey"
+            columns: ["organization_id"]
+            isOneToOne: false
+            referencedRelation: "organizations"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      loads: {
+        Row: {
+          assigned_to: string | null
+          created_at: string
+          created_by: string
+          delivery_date: string
+          delivery_location: Json
+          description: string | null
+          dimensions: Json | null
+          id: string
+          load_type: Database["public"]["Enums"]["load_type"]
+          metadata: Json | null
+          organization_id: string
+          photos: string[] | null
+          pickup_date: string
+          pickup_location: Json
+          price_range: Json | null
+          requirements: Json | null
+          status: string
+          title: string
+          updated_at: string
+          weight: number | null
+        }
+        Insert: {
+          assigned_to?: string | null
+          created_at?: string
+          created_by: string
+          delivery_date: string
+          delivery_location: Json
+          description?: string | null
+          dimensions?: Json | null
+          id?: string
+          load_type?: Database["public"]["Enums"]["load_type"]
+          metadata?: Json | null
+          organization_id: string
+          photos?: string[] | null
+          pickup_date: string
+          pickup_location: Json
+          price_range?: Json | null
+          requirements?: Json | null
+          status?: string
+          title: string
+          updated_at?: string
+          weight?: number | null
+        }
+        Update: {
+          assigned_to?: string | null
+          created_at?: string
+          created_by?: string
+          delivery_date?: string
+          delivery_location?: Json
+          description?: string | null
+          dimensions?: Json | null
+          id?: string
+          load_type?: Database["public"]["Enums"]["load_type"]
+          metadata?: Json | null
+          organization_id?: string
+          photos?: string[] | null
+          pickup_date?: string
+          pickup_location?: Json
+          price_range?: Json | null
+          requirements?: Json | null
+          status?: string
+          title?: string
+          updated_at?: string
+          weight?: number | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "loads_assigned_to_fkey"
+            columns: ["assigned_to"]
+            isOneToOne: false
+            referencedRelation: "profiles"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "loads_created_by_fkey"
+            columns: ["created_by"]
+            isOneToOne: false
+            referencedRelation: "profiles"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "loads_organization_id_fkey"
+            columns: ["organization_id"]
+            isOneToOne: false
+            referencedRelation: "organizations"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       organization_addons: {
         Row: {
           addon_id: string | null
@@ -1873,6 +2025,7 @@ export type Database = {
         | "consumer"
         | "dealer"
         | "wholesaler"
+      bid_status: "pending" | "accepted" | "rejected" | "expired"
       impound_status:
         | "impounded"
         | "waiting_for_payment"
@@ -1897,6 +2050,7 @@ export type Database = {
         | "on_site"
         | "completed"
         | "cancelled"
+      load_type: "vehicle" | "cargo" | "equipment"
       organization_type: "dealer" | "wholesaler" | "transporter" | "hybrid"
       payment_method:
         | "cash"
