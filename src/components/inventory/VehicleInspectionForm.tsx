@@ -1,3 +1,4 @@
+
 import { useState } from "react";
 import { useQuery, useMutation } from "@tanstack/react-query";
 import { Button } from "@/components/ui/button";
@@ -124,7 +125,10 @@ export function VehicleInspectionForm({ vehicleId, inspectionId, onComplete }: P
   const handleItemStatus = async (itemName: string, status: InspectionChecklistItem['status']) => {
     try {
       if (!inspectionId) {
-        const newInspection = await createInspectionMutation.mutateAsync(vehicleId);
+        const newInspection = await createInspectionMutation.mutateAsync({
+          vehicleId,
+          type: 'pre_trip'
+        });
         const newItem = await addChecklistItemMutation.mutateAsync({
           inspection_id: newInspection.id,
           category: selectedCategory,
