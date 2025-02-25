@@ -1,11 +1,19 @@
 
-import { createBrowserRouter, Navigate } from "react-router-dom";
+import { createBrowserRouter, Navigate, Outlet } from "react-router-dom";
 import AuthPage from "@/pages/auth/AuthPage";
 import Dashboard from "@/pages/dashboard/Dashboard";
 import Index from "@/pages/Index";
 import ProtectedRoute from "@/components/auth/ProtectedRoute";
 import { AuthProvider } from "@/components/auth/AuthProvider";
-import { Outlet } from "react-router-dom";
+import { SidebarLayout } from "@/components/layouts/SidebarLayout";
+import { AnalyticsDashboard } from "@/pages/analytics/AnalyticsDashboard";
+import { DealerDashboard } from "@/pages/dashboard/DealerDashboard";
+import { TransporterDashboard } from "@/pages/dashboard/TransporterDashboard";
+import { FleetManagement } from "@/pages/fleet/FleetManagement";
+import { InventoryManagement } from "@/pages/inventory/InventoryManagement";
+import { BillingDashboard } from "@/pages/billing/BillingDashboard";
+import { ProfileSettings } from "@/pages/profile/ProfileSettings";
+import { OverwatchDashboard } from "@/pages/admin/OverwatchDashboard";
 
 const RootLayout = () => {
   return (
@@ -20,24 +28,77 @@ export const router = createBrowserRouter([
     element: <RootLayout />,
     children: [
       {
-        path: "/",
-        element: (
-          <ProtectedRoute>
-            <Index />
-          </ProtectedRoute>
-        ),
-      },
-      {
-        path: "/dashboard",
-        element: (
-          <ProtectedRoute>
-            <Dashboard />
-          </ProtectedRoute>
-        ),
-      },
-      {
         path: "/auth",
         element: <AuthPage />,
+      },
+      {
+        element: <SidebarLayout />,
+        children: [
+          {
+            path: "/",
+            element: (
+              <ProtectedRoute>
+                <Index />
+              </ProtectedRoute>
+            ),
+          },
+          {
+            path: "/dashboard",
+            element: (
+              <ProtectedRoute>
+                <Dashboard />
+              </ProtectedRoute>
+            ),
+          },
+          {
+            path: "/fleet",
+            element: (
+              <ProtectedRoute allowedRoles={["transporter"]}>
+                <FleetManagement />
+              </ProtectedRoute>
+            ),
+          },
+          {
+            path: "/inventory",
+            element: (
+              <ProtectedRoute allowedRoles={["dealer", "wholesaler"]}>
+                <InventoryManagement />
+              </ProtectedRoute>
+            ),
+          },
+          {
+            path: "/analytics",
+            element: (
+              <ProtectedRoute allowedRoles={["admin", "dealer", "wholesaler", "transporter"]}>
+                <AnalyticsDashboard />
+              </ProtectedRoute>
+            ),
+          },
+          {
+            path: "/billing",
+            element: (
+              <ProtectedRoute>
+                <BillingDashboard />
+              </ProtectedRoute>
+            ),
+          },
+          {
+            path: "/settings",
+            element: (
+              <ProtectedRoute>
+                <ProfileSettings />
+              </ProtectedRoute>
+            ),
+          },
+          {
+            path: "/admin",
+            element: (
+              <ProtectedRoute allowedRoles={["overwatch_admin"]}>
+                <OverwatchDashboard />
+              </ProtectedRoute>
+            ),
+          }
+        ],
       },
       {
         path: "*",
