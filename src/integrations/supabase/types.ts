@@ -1122,6 +1122,48 @@ export type Database = {
           },
         ]
       }
+      offline_sync_queue: {
+        Row: {
+          action: string
+          created_at: string | null
+          data: Json | null
+          entity_id: string | null
+          entity_type: string
+          error: string | null
+          id: string
+          retry_count: number | null
+          status: string | null
+          updated_at: string | null
+          user_id: string | null
+        }
+        Insert: {
+          action: string
+          created_at?: string | null
+          data?: Json | null
+          entity_id?: string | null
+          entity_type: string
+          error?: string | null
+          id?: string
+          retry_count?: number | null
+          status?: string | null
+          updated_at?: string | null
+          user_id?: string | null
+        }
+        Update: {
+          action?: string
+          created_at?: string | null
+          data?: Json | null
+          entity_id?: string | null
+          entity_type?: string
+          error?: string | null
+          id?: string
+          retry_count?: number | null
+          status?: string | null
+          updated_at?: string | null
+          user_id?: string | null
+        }
+        Relationships: []
+      }
       organization_addons: {
         Row: {
           addon_id: string | null
@@ -1942,6 +1984,56 @@ export type Database = {
         }
         Relationships: []
       }
+      route_optimizations: {
+        Row: {
+          created_at: string | null
+          driver_id: string | null
+          end_location: Json
+          estimated_distance: number | null
+          estimated_duration: number | null
+          id: string
+          job_id: string | null
+          optimization_score: number | null
+          start_location: Json
+          updated_at: string | null
+          waypoints: Json[] | null
+        }
+        Insert: {
+          created_at?: string | null
+          driver_id?: string | null
+          end_location: Json
+          estimated_distance?: number | null
+          estimated_duration?: number | null
+          id?: string
+          job_id?: string | null
+          optimization_score?: number | null
+          start_location: Json
+          updated_at?: string | null
+          waypoints?: Json[] | null
+        }
+        Update: {
+          created_at?: string | null
+          driver_id?: string | null
+          end_location?: Json
+          estimated_distance?: number | null
+          estimated_duration?: number | null
+          id?: string
+          job_id?: string | null
+          optimization_score?: number | null
+          start_location?: Json
+          updated_at?: string | null
+          waypoints?: Json[] | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "route_optimizations_job_id_fkey"
+            columns: ["job_id"]
+            isOneToOne: false
+            referencedRelation: "tow_jobs"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       subscription_addons: {
         Row: {
           created_at: string | null
@@ -2527,6 +2619,21 @@ export type Database = {
       [_ in never]: never
     }
     Functions: {
+      calculate_optimal_route: {
+        Args: {
+          p_start_lat: number
+          p_start_lng: number
+          p_end_lat: number
+          p_end_lng: number
+          p_driver_id: string
+        }
+        Returns: {
+          optimized_route: Json
+          estimated_duration: number
+          estimated_distance: number
+          optimization_score: number
+        }[]
+      }
       calculate_platform_fees: {
         Args: {
           organization_id: string
