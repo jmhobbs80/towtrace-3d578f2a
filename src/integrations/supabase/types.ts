@@ -1135,6 +1135,7 @@ export type Database = {
       organizations: {
         Row: {
           accounting_settings: Json | null
+          average_rating: number | null
           billing_details: Json | null
           billing_settings: Json | null
           created_at: string
@@ -1156,6 +1157,7 @@ export type Database = {
         }
         Insert: {
           accounting_settings?: Json | null
+          average_rating?: number | null
           billing_details?: Json | null
           billing_settings?: Json | null
           created_at?: string
@@ -1177,6 +1179,7 @@ export type Database = {
         }
         Update: {
           accounting_settings?: Json | null
+          average_rating?: number | null
           billing_details?: Json | null
           billing_settings?: Json | null
           created_at?: string
@@ -1252,6 +1255,51 @@ export type Database = {
           {
             foreignKeyName: "payments_organization_id_fkey"
             columns: ["organization_id"]
+            isOneToOne: false
+            referencedRelation: "organizations"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      preferred_transporters: {
+        Row: {
+          created_at: string | null
+          id: string
+          is_active: boolean | null
+          organization_id: string
+          priority: number | null
+          transporter_id: string
+          updated_at: string | null
+        }
+        Insert: {
+          created_at?: string | null
+          id?: string
+          is_active?: boolean | null
+          organization_id: string
+          priority?: number | null
+          transporter_id: string
+          updated_at?: string | null
+        }
+        Update: {
+          created_at?: string | null
+          id?: string
+          is_active?: boolean | null
+          organization_id?: string
+          priority?: number | null
+          transporter_id?: string
+          updated_at?: string | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "preferred_transporters_organization_id_fkey"
+            columns: ["organization_id"]
+            isOneToOne: false
+            referencedRelation: "organizations"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "preferred_transporters_transporter_id_fkey"
+            columns: ["transporter_id"]
             isOneToOne: false
             referencedRelation: "organizations"
             referencedColumns: ["id"]
@@ -1819,6 +1867,61 @@ export type Database = {
           },
         ]
       }
+      transporter_ratings: {
+        Row: {
+          comment: string | null
+          created_at: string | null
+          created_by: string
+          id: string
+          job_id: string
+          organization_id: string
+          rating: Database["public"]["Enums"]["provider_rating"]
+          transporter_id: string
+        }
+        Insert: {
+          comment?: string | null
+          created_at?: string | null
+          created_by: string
+          id?: string
+          job_id: string
+          organization_id: string
+          rating: Database["public"]["Enums"]["provider_rating"]
+          transporter_id: string
+        }
+        Update: {
+          comment?: string | null
+          created_at?: string | null
+          created_by?: string
+          id?: string
+          job_id?: string
+          organization_id?: string
+          rating?: Database["public"]["Enums"]["provider_rating"]
+          transporter_id?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "transporter_ratings_job_id_fkey"
+            columns: ["job_id"]
+            isOneToOne: false
+            referencedRelation: "tow_jobs"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "transporter_ratings_organization_id_fkey"
+            columns: ["organization_id"]
+            isOneToOne: false
+            referencedRelation: "organizations"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "transporter_ratings_transporter_id_fkey"
+            columns: ["transporter_id"]
+            isOneToOne: false
+            referencedRelation: "organizations"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       user_roles: {
         Row: {
           created_at: string
@@ -2268,6 +2371,7 @@ export type Database = {
         | "check"
         | "insurance"
         | "motor_club"
+      provider_rating: "1" | "2" | "3" | "4" | "5"
       repair_item_status: "pending" | "in_progress" | "completed" | "cancelled"
       service_type:
         | "tow"
