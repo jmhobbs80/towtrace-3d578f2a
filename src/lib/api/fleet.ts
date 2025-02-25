@@ -1,3 +1,4 @@
+
 import { supabase } from "@/integrations/supabase/client";
 import type { VehicleInTransit, FleetVehicle, Dealership, VehicleAssignment } from "../types/fleet";
 
@@ -126,4 +127,22 @@ export async function getDriverAssignments(
 
   if (error) throw error;
   return (data || []) as VehicleAssignment[];
+}
+
+export async function scheduleVehicleMaintenance(
+  vehicleId: string,
+  maintenanceDate: string
+): Promise<FleetVehicle> {
+  const { data, error } = await supabase
+    .from('fleet_vehicles')
+    .update({
+      status: 'maintenance',
+      next_maintenance_date: maintenanceDate
+    })
+    .eq('id', vehicleId)
+    .select()
+    .single();
+
+  if (error) throw error;
+  return data as FleetVehicle;
 }

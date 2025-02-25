@@ -60,6 +60,19 @@ export function VehicleAssignmentManager({ vehicleId, driverId }: VehicleAssignm
     },
   });
 
+  // Check for maintenance alerts
+  const isMaintenanceRequired = vehicle && 
+    vehicle.next_maintenance_date && 
+    new Date(vehicle.next_maintenance_date) <= new Date();
+
+  if (isMaintenanceRequired) {
+    toast({
+      variant: "destructive",
+      title: "Maintenance Required",
+      description: "This vehicle is due for maintenance. Please schedule service.",
+    });
+  }
+
   if (isLoadingVehicle || isLoadingAssignment) {
     return <div>Loading...</div>;
   }
@@ -75,9 +88,10 @@ export function VehicleAssignmentManager({ vehicleId, driverId }: VehicleAssignm
       {!activeAssignment && !showPreTrip && (
         <Button 
           onClick={() => assignMutation.mutate()}
-          disabled={assignMutation.isPending}
+          disabled={assignMutation.isPending || isMaintenanceRequired}
+          className={isMaintenanceRequired ? "bg-yellow-500" : ""}
         >
-          Assign Vehicle
+          {isMaintenanceRequired ? "Schedule Maintenance" : "Assign Vehicle"}
         </Button>
       )}
 

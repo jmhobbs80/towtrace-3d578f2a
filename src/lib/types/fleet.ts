@@ -61,4 +61,3 @@ export interface VehicleAssignment {
   created_at: string;
   updated_at: string;
 }
-
