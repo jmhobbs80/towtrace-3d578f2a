@@ -3,6 +3,7 @@ import { Navigate } from "react-router-dom";
 import { useAuth } from "@/components/auth/AuthProvider";
 import { UserRole } from "@/lib/types/auth";
 import { Loader2 } from "lucide-react";
+import { toast } from "sonner";
 
 interface ProtectedRouteProps {
   children: React.ReactNode;
@@ -22,11 +23,13 @@ const ProtectedRoute = ({ children, allowedRoles }: ProtectedRouteProps) => {
 
   // If we're not loading and there's no user, redirect to auth
   if (!user) {
+    toast.error('Please sign in to continue');
     return <Navigate to="/auth" replace />;
   }
 
   // If roles are specified and the user doesn't have the required role
   if (allowedRoles && userRole && !allowedRoles.includes(userRole)) {
+    toast.error('You do not have permission to access this page');
     return <Navigate to="/" replace />;
   }
 
