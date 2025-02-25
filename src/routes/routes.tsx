@@ -12,27 +12,31 @@ import { customerRoutes } from "./customer-routes";
 import { billingRoutes } from "./billing-routes";
 import { analyticsRoutes } from "./analytics-routes";
 import { legalRoutes } from "./legal-routes";
-import NotFound from "@/pages/NotFound";
 import Dashboard from "@/pages/dashboard/Dashboard";
+import NotFound from "@/pages/NotFound";
 import { UserRole } from "@/lib/types/auth";
 
 const protectedRoutes = [
   {
     path: "/",
     element: <Dashboard />,
-    allowedRoles: ["admin", "dealer", "dispatcher", "wholesaler"] as UserRole[]
+    allowedRoles: ["admin", "dealer", "dispatcher", "wholesaler", "transporter"] as UserRole[]
   },
-  ...adminRoutes,
-  ...dealerRoutes,
-  ...fleetRoutes,
-  ...dispatchRoutes,
-  ...customerRoutes,
-  ...billingRoutes,
-  ...analyticsRoutes,
+  ...adminRoutes,    // Admin dashboard, user management, system logs
+  ...dealerRoutes,   // Inventory, repairs, transport requests
+  ...fleetRoutes,    // Vehicle management, driver assignments
+  ...dispatchRoutes, // Job dispatch, route optimization
+  ...customerRoutes, // Customer portal, service requests
+  ...billingRoutes,  // Invoices, payments, billing dashboard
+  ...analyticsRoutes // Performance metrics, reports
 ];
 
 const publicRoutes = [
-  ...legalRoutes,
+  ...legalRoutes,    // Terms, privacy policy, compliance
+  {
+    path: "/customer/book",
+    element: <CustomerPortal />,
+  }
 ];
 
 const AppLayout = () => (
@@ -62,6 +66,7 @@ export const router = createBrowserRouter([
           )
         }))
       },
+      // Authentication redirects
       {
         path: "/login",
         element: <Navigate to="/auth" replace />,
