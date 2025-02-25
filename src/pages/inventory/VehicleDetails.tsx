@@ -1,3 +1,4 @@
+
 import { useEffect, useState } from "react";
 import { useParams } from "react-router-dom";
 import { getVehicleDetails } from "@/lib/api/vehicles";
@@ -7,6 +8,26 @@ import { useNavigate } from 'react-router-dom';
 import { DamageReportForm } from "@/components/inventory/DamageReportForm";
 import { RepairOrderForm } from "@/components/repair/RepairOrderForm";
 import { useToast } from "@/components/ui/use-toast";
+import type { Json } from "@/integrations/supabase/types";
+
+interface VehicleLocation {
+  name: string;
+  address: Json;
+}
+
+interface DamageReport {
+  id: string;
+  severity: string;
+  description?: string;
+  created_at: string;
+}
+
+interface TransitRecord {
+  id: string;
+  status: string;
+  pickup_date: string;
+  delivery_date?: string;
+}
 
 interface VehicleDetailsData {
   id: string;
@@ -16,14 +37,11 @@ interface VehicleDetailsData {
   year: number;
   status: string;
   condition: string;
-  location: {
-    name: string;
-    address: any;
-  } | null;
+  location: VehicleLocation | null;
   condition_logs: any[];
-  damage_reports: any[];
+  damage_reports: DamageReport[];
   inspections: any[];
-  transit_history: any[];
+  transit_history: TransitRecord[];
 }
 
 export default function VehicleDetails() {
@@ -43,7 +61,20 @@ export default function VehicleDetails() {
     const fetchVehicle = async () => {
       try {
         const vehicleData = await getVehicleDetails(vehicleId);
-        setVehicle(vehicleData);
+        setVehicle({
+          id: vehicleData.id,
+          vin: vehicleData.vin,
+          make: vehicleData.make,
+          model: vehicleData.model,
+          year: vehicleData.year,
+          status: vehicleData.status,
+          condition: vehicleData.condition,
+          location: vehicleData.location,
+          condition_logs: vehicleData.condition_logs || [],
+          damage_reports: vehicleData.damage_reports || [],
+          inspections: vehicleData.inspections || [],
+          transit_history: vehicleData.transit_history || []
+        });
       } catch (error) {
         console.error("Error fetching vehicle details:", error);
       }
@@ -86,11 +117,11 @@ export default function VehicleDetails() {
               <CardContent>
                 {vehicle.transit_history?.length > 0 ? (
                   <div className="space-y-4">
-                    {vehicle.transit_history.map((transit: any) => (
+                    {vehicle.transit_history.map((transit) => (
                       <div key={transit.id} className="border p-4 rounded">
                         <p>Status: {transit.status}</p>
-                        <p>Pickup Date: {new Date(transit.created_at).toLocaleDateString()}</p>
-                        <p>Delivery Date: {transit.updated_at ? new Date(transit.updated_at).toLocaleDateString() : 'Pending'}</p>
+                        <p>Pickup Date: {new Date(transit.pickup_date).toLocaleDateString()}</p>
+                        <p>Delivery Date: {transit.delivery_date ? new Date(transit.delivery_date).toLocaleDateString() : 'Pending'}</p>
                       </div>
                     ))}
                   </div>
@@ -107,7 +138,7 @@ export default function VehicleDetails() {
               <CardContent>
                 {vehicle.damage_reports?.length > 0 ? (
                   <div className="space-y-4">
-                    {vehicle.damage_reports.map((report: any) => (
+                    {vehicle.damage_reports.map((report) => (
                       <div key={report.id} className="border p-4 rounded">
                         <p>Severity: {report.severity}</p>
                         <p>Date: {new Date(report.created_at).toLocaleDateString()}</p>
@@ -135,7 +166,7 @@ export default function VehicleDetails() {
                 <p><strong>Status:</strong> {vehicle.status}</p>
                 <p><strong>Condition:</strong> {vehicle.condition}</p>
                 {vehicle.location && (
-                  <p><strong>Location:</strong> {vehicle.location.name}, {vehicle.location.address}</p>
+                  <p><strong>Location:</strong> {vehicle.location.name}</p>
                 )}
               </div>
             </CardContent>

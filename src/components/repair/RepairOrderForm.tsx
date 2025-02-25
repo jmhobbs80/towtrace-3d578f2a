@@ -1,3 +1,4 @@
+
 import { useState } from "react";
 import { useForm } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
@@ -13,6 +14,8 @@ import {
 import { Input } from "@/components/ui/input";
 import { Textarea } from "@/components/ui/textarea";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
+import { useQuery } from "@tanstack/react-query";
+import { supabase } from "@/integrations/supabase/client";
 
 const formSchema = z.object({
   vehicleId: z.string().uuid(),
@@ -28,6 +31,19 @@ interface RepairOrderFormProps {
 
 export function RepairOrderForm({ vehicleId, onSubmit }: RepairOrderFormProps) {
   const [isSubmitting, setIsSubmitting] = useState(false);
+
+  const { data: facilities } = useQuery({
+    queryKey: ['repair-facilities'],
+    queryFn: async () => {
+      const { data, error } = await supabase
+        .from('repair_facilities')
+        .select('*')
+        .order('name');
+      
+      if (error) throw error;
+      return data;
+    }
+  });
 
   const form = useForm<z.infer<typeof formSchema>>({
     resolver: zodResolver(formSchema),
@@ -64,7 +80,11 @@ export function RepairOrderForm({ vehicleId, onSubmit }: RepairOrderFormProps) {
                   </SelectTrigger>
                 </FormControl>
                 <SelectContent>
-                  {/* Facility options would be populated here */}
+                  {facilities?.map(facility => (
+                    <SelectItem key={facility.id} value={facility.id}>
+                      {facility.name}
+                    </SelectItem>
+                  ))}
                 </SelectContent>
               </Select>
             </FormItem>
