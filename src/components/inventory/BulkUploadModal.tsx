@@ -1,3 +1,4 @@
+
 import React, { useState, useRef } from 'react';
 import { X } from 'lucide-react';
 import Papa from 'papaparse';
@@ -31,6 +32,7 @@ interface BulkUploadModalProps {
   onClose: () => void;
   onSuccess: () => void;
   locationId?: string;
+  organizationId: string; // Added organizationId as a required prop
 }
 
 interface VehicleData {
@@ -49,7 +51,13 @@ interface ValidationError {
   error: string;
 }
 
-export function BulkUploadModal({ open, onClose, onSuccess, locationId }: BulkUploadModalProps) {
+export function BulkUploadModal({ 
+  open, 
+  onClose, 
+  onSuccess, 
+  locationId,
+  organizationId 
+}: BulkUploadModalProps) {
   const [isUploading, setIsUploading] = useState(false);
   const [progress, setProgress] = useState(0);
   const [validationErrors, setValidationErrors] = useState<ValidationError[]>([]);
@@ -137,13 +145,14 @@ export function BulkUploadModal({ open, onClose, onSuccess, locationId }: BulkUp
         const { error } = await supabase
           .from('inventory_vehicles')
           .insert({
+            organization_id: organizationId,
             vin: vehicle.vin,
             make: vehicle.make || '',
             model: vehicle.model || '',
             year: parseInt(vehicle.year || '0'),
-            color: vehicle.color,
+            color: vehicle.color || null,
             status: (vehicle.status as InventoryStatus) || 'pending_inspection',
-            location_id: locationId,
+            location_id: locationId || null
           });
 
         if (error) throw error;
