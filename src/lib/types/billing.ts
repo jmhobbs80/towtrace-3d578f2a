@@ -37,3 +37,14 @@ export interface Invoice {
   created_at: string;
   updated_at: string;
 }
+
+export interface SubscriptionPlan {
+  id: string;
+  name: string;
+  description?: string;
+  price: number;
+  interval: 'month' | 'year';
+  features: string[];
+  limits: Record<string, number>;
+  is_active: boolean;
+}

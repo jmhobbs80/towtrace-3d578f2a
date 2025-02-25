@@ -10,6 +10,20 @@ interface Organization {
   name: string;
   subscription_tier: string;
   subscription_status: string;
+  subscription_period_end?: string;
+  stripe_customer_id?: string;
+  subscription_plan_id?: string;
+  billing_details?: {
+    name?: string;
+    email?: string;
+    address?: {
+      line1?: string;
+      city?: string;
+      state?: string;
+      postal_code?: string;
+      country?: string;
+    };
+  };
 }
 
 interface AuthContextType {
@@ -96,7 +110,16 @@ export const AuthProvider = ({ children }: { children: React.ReactNode }) => {
     if (organizationMember?.organization_id) {
       const { data: org, error: orgError } = await supabase
         .from('organizations')
-        .select('*')
+        .select(`
+          id,
+          name,
+          subscription_tier,
+          subscription_status,
+          subscription_period_end,
+          stripe_customer_id,
+          subscription_plan_id,
+          billing_details
+        `)
         .eq('id', organizationMember.organization_id)
         .single();
 
