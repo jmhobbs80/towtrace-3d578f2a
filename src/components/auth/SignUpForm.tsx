@@ -6,6 +6,7 @@ import { Input } from "@/components/ui/input";
 import { cn } from "@/lib/utils";
 import { useSignUpForm } from "@/hooks/use-signup-form";
 import { PersonalInfoSection } from "./PersonalInfoSection";
+import { PasswordStrengthIndicator } from "./PasswordStrengthIndicator";
 
 export function SignUpForm() {
   const {
@@ -27,7 +28,8 @@ export function SignUpForm() {
     promoCodeMessage,
     validatePromoCode,
     loading,
-    handleSubmit
+    handleSubmit,
+    passwordStrength,
   } = useSignUpForm();
 
   const [isValidatingPromo, setIsValidatingPromo] = useState(false);
@@ -57,6 +59,12 @@ export function SignUpForm() {
           companyName={companyName}
           setCompanyName={setCompanyName}
         />
+
+        {password && (
+          <div className="space-y-2">
+            <PasswordStrengthIndicator strength={passwordStrength} />
+          </div>
+        )}
 
         <div className="space-y-2">
           <Label htmlFor="promoCode" className="font-medium flex items-center justify-between">

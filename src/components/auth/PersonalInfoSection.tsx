@@ -51,7 +51,7 @@ export function PersonalInfoSection({
             placeholder="Your Company Name"
             value={companyName}
             onChange={(e) => setCompanyName(e.target.value)}
-            className="pl-10"
+            className="pl-10 h-11"
             required
           />
         </div>
@@ -67,7 +67,8 @@ export function PersonalInfoSection({
               placeholder="John"
               value={firstName}
               onChange={(e) => setFirstName(e.target.value)}
-              className="pl-10"
+              className="pl-10 h-11"
+              required
             />
           </div>
         </div>
@@ -80,7 +81,8 @@ export function PersonalInfoSection({
               placeholder="Doe"
               value={lastName}
               onChange={(e) => setLastName(e.target.value)}
-              className="pl-10"
+              className="pl-10 h-11"
+              required
             />
           </div>
         </div>
@@ -89,7 +91,7 @@ export function PersonalInfoSection({
       <div className="space-y-2">
         <Label htmlFor="role">Role</Label>
         <Select value={role} onValueChange={(value) => setRole(value as UserRole)}>
-          <SelectTrigger>
+          <SelectTrigger className="h-11">
             <SelectValue placeholder="Select your role" />
           </SelectTrigger>
           <SelectContent>
@@ -111,7 +113,7 @@ export function PersonalInfoSection({
             placeholder="name@example.com"
             value={email}
             onChange={(e) => setEmail(e.target.value)}
-            className="pl-10"
+            className="pl-10 h-11"
             required
           />
         </div>
@@ -127,8 +129,9 @@ export function PersonalInfoSection({
             placeholder="••••••••"
             value={password}
             onChange={(e) => setPassword(e.target.value)}
-            className="pl-10"
+            className="pl-10 h-11"
             required
+            minLength={8}
           />
         </div>
       </div>
