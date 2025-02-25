@@ -38,13 +38,13 @@ const storeApiResponse = async (request, response) => {
   // Don't cache error responses
   if (!response.ok) {
     console.log(`Not caching error response for ${request.url}`);
-    return response;
+    return response.clone();
   }
 
   // Don't cache non-GET requests
   if (request.method !== 'GET') {
     console.log(`Not caching ${request.method} request for ${request.url}`);
-    return response;
+    return response.clone();
   }
 
   try {
@@ -63,12 +63,13 @@ const storeApiResponse = async (request, response) => {
       return response;
     }
     
-    // Don't cache other content types
+    // Don't cache other content types but return the original response
     console.log(`Not caching ${contentType} response for ${request.url}`);
-    return response;
+    return response.clone();
   } catch (error) {
     console.error('Error caching response:', error);
-    return response;
+    // Return a cloned response on error to ensure the original can still be used
+    return response.clone();
   }
 };
 
