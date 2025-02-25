@@ -1,4 +1,3 @@
-
 import { supabase } from "@/integrations/supabase/client";
 import type { Auction, AuctionItem, AuctionBid } from "../types/auction";
 
@@ -74,6 +73,37 @@ export async function getAuctionDetails(auctionId: string) {
     `)
     .eq('id', auctionId)
     .single();
+
+  if (error) throw error;
+  return data;
+}
+
+export async function subscribeToBids(auctionItemId: string, callback: (bid: AuctionBid) => void) {
+  return supabase
+    .channel('auction-bids')
+    .on(
+      'postgres_changes',
+      {
+        event: 'INSERT',
+        schema: 'public',
+        table: 'auction_bids',
+        filter: `auction_item_id=eq.${auctionItemId}`
+      },
+      callback
+    )
+    .subscribe();
+}
+
+export async function getAuctionAnalytics(auctionId: string) {
+  const { data, error } = await supabase
+    .from('auction_results')
+    .select(`
+      *,
+      buyer:profiles!buyer_id(*),
+      seller:profiles!seller_id(*),
+      vehicle:inventory_vehicles(*)
+    `)
+    .eq('auction_id', auctionId);
 
   if (error) throw error;
   return data;

@@ -36,6 +36,10 @@ type DatabaseJob = {
   notes?: string;
   service_type?: string;
   priority?: number;
+  profiles?: {
+    first_name: string | null;
+    last_name: string | null;
+  } | null;
 }
 
 interface DriverProfile {
@@ -52,7 +56,6 @@ export default function AIDispatch() {
   const [manualOverride, setManualOverride] = useState(false);
   const { toast } = useToast();
 
-  // Fetch active jobs
   const { data: jobs, isLoading: isLoadingJobs, refetch: refetchJobs } = useQuery({
     queryKey: ['ai-dispatch-jobs'],
     queryFn: async () => {
@@ -68,7 +71,7 @@ export default function AIDispatch() {
       if (error) throw error;
       if (!data) return [];
 
-      return (data as DatabaseJobWithDriver[]).map(job => ({
+      return data.map((job: DatabaseJob) => ({
         ...job,
         pickup_location: toLocation(job.pickup_location) || { address: 'Unknown' },
         delivery_location: job.delivery_location ? toLocation(job.delivery_location) : undefined,
@@ -80,7 +83,6 @@ export default function AIDispatch() {
     }
   });
 
-  // Fetch available drivers
   const { data: availableDrivers } = useQuery({
     queryKey: ['available-drivers'],
     queryFn: async () => {
@@ -95,7 +97,6 @@ export default function AIDispatch() {
     }
   });
 
-  // Optimize routes mutation
   const optimizeRoutesMutation = useMutation({
     mutationFn: async (jobId: string) => {
       const response = await supabase.functions.invoke('optimize-route', {
