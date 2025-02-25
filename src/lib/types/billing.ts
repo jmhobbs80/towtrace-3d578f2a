@@ -114,3 +114,12 @@ export interface JobEarnings {
   created_at: string;
   status: 'pending' | 'processed' | 'cancelled';
 }
+
+export interface Organization {
+  id: string;
+  name: string;
+  billing_exempt: boolean;
+  subscription_status: string;
+  subscription_tier: string;
+  // ... other organization fields
+}

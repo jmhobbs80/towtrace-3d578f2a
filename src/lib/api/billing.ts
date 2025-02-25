@@ -10,6 +10,34 @@ export const createPayment = async (data: {
   reference_number?: string;
   notes?: string;
 }): Promise<Payment> => {
+  // Check if organization is billing exempt
+  const { data: org, error: orgError } = await supabase
+    .from('organizations')
+    .select('billing_exempt')
+    .eq('id', data.organization_id)
+    .single();
+
+  if (orgError) throw orgError;
+
+  // If organization is billing exempt, create a $0 processed payment
+  if (org.billing_exempt) {
+    const { data: payment, error } = await supabase
+      .from('payments')
+      .insert({
+        ...data,
+        amount: 0,
+        status: 'processed',
+        processed_at: new Date().toISOString(),
+        notes: `${data.notes || ''} (Billing Exempt Organization)`.trim()
+      })
+      .select('*')
+      .single();
+
+    if (error) throw error;
+    return payment;
+  }
+
+  // Normal payment processing for non-exempt organizations
   const { data: payment, error } = await supabase
     .from('payments')
     .insert(data)
@@ -165,6 +193,34 @@ export const createCheckoutSession = async ({
   successUrl: string;
   cancelUrl: string;
 }) => {
+  // Check if organization is billing exempt
+  const { data: org, error: orgError } = await supabase
+    .from('organizations')
+    .select('billing_exempt')
+    .eq('id', organizationId)
+    .single();
+
+  if (orgError) throw orgError;
+
+  // If organization is billing exempt, update their subscription directly
+  if (org.billing_exempt) {
+    const { error: updateError } = await supabase
+      .from('organizations')
+      .update({
+        subscription_plan_id: planId,
+        subscription_status: 'active',
+        subscription_tier: 'enterprise', // Billing exempt orgs get enterprise features
+        trial_end: null // No trial needed for exempt orgs
+      })
+      .eq('id', organizationId);
+
+    if (updateError) throw updateError;
+
+    // Redirect to success URL directly
+    return { url: successUrl };
+  }
+
+  // Normal checkout process for non-exempt organizations
   const { data, error } = await supabase.functions.invoke('create-checkout-session', {
     body: { organizationId, planId, additionalRoles, successUrl, cancelUrl }
   });
