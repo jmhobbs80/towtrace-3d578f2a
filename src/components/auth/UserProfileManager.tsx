@@ -20,11 +20,10 @@ export const useUserProfileManager = () => {
       }
 
       if (data?.role) {
-        const role = data.role as UserRole;
         if (['admin', 'dispatcher', 'driver', 'dealer', 'wholesaler', 
              'overwatch_admin', 'super_admin', 'support_agent', 
-             'billing_manager'].includes(role)) {
-          setUserRole(role);
+             'billing_manager'].includes(data.role)) {
+          setUserRole(data.role as UserRole);
         }
       }
     } catch (error) {

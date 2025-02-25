@@ -26,11 +26,13 @@ export function RoleSwitcher() {
         .eq('user_id', user.id);
 
       if (roles) {
-        const validRoles = roles.map(r => r.role).filter((role): role is UserRole => {
-          return ['admin', 'dispatcher', 'driver', 'dealer', 'wholesaler', 
-                 'overwatch_admin', 'super_admin', 'support_agent', 
-                 'billing_manager'].includes(role as string);
-        });
+        const validRoles = roles
+          .map(r => r.role)
+          .filter((role) => {
+            return ['admin', 'dispatcher', 'driver', 'dealer', 'wholesaler', 
+                   'overwatch_admin', 'super_admin', 'support_agent', 
+                   'billing_manager'].includes(role);
+          }) as UserRole[];
         setAvailableRoles(validRoles);
       }
     };

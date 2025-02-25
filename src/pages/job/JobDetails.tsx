@@ -17,7 +17,7 @@ export default function JobDetails() {
         .from('tow_jobs')
         .select(`
           *,
-          driver:profiles!tow_jobs_driver_id_fkey(
+          driver:driver_id(
             first_name,
             last_name
           )
