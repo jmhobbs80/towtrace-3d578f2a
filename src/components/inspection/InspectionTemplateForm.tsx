@@ -24,42 +24,64 @@ import {
 import { toast } from '@/components/ui/use-toast';
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
 import { supabase } from '@/integrations/supabase/client';
+import type { CreateInspectionTemplateInput } from '@/lib/types/inspection';
 
 const templateSchema = z.object({
   name: z.string().min(1, 'Template name is required'),
   description: z.string().optional(),
-  category: z.string().min(1, 'Category is required'),
+  category: z.enum(['general', 'mechanical', 'body', 'safety']),
   checklist_items: z.array(z.object({
     item_name: z.string(),
     category: z.string(),
     required: z.boolean(),
-  })),
+  })).default([]),
+  organization_id: z.string().uuid(),
 });
 
-type InspectionTemplate = z.infer<typeof templateSchema>;
+type FormData = z.infer<typeof templateSchema>;
 
 export function InspectionTemplateForm() {
   const queryClient = useQueryClient();
-  const form = useForm<InspectionTemplate>({
-    resolver: zodResolver(templateSchema),
-    defaultValues: {
-      name: '',
-      description: '',
-      category: '',
-      checklist_items: [],
-    },
-  });
 
-  const { mutate: createTemplate, isLoading } = useMutation({
-    mutationFn: async (template: InspectionTemplate) => {
+  // Get user's organization ID
+  const { data: orgData } = useQuery({
+    queryKey: ['userOrganization'],
+    queryFn: async () => {
+      const { data: { user } } = await supabase.auth.getUser();
+      if (!user) throw new Error('Not authenticated');
+
       const { data, error } = await supabase
-        .from('inspection_templates')
-        .insert(template)
-        .select()
+        .from('organization_members')
+        .select('organization_id')
+        .eq('user_id', user.id)
         .single();
 
       if (error) throw error;
       return data;
+    },
+  });
+
+  const form = useForm<FormData>({
+    resolver: zodResolver(templateSchema),
+    defaultValues: {
+      name: '',
+      description: '',
+      category: 'general',
+      checklist_items: [],
+      organization_id: orgData?.organization_id || '',
+    },
+  });
+
+  const { mutate: createTemplate, isPending } = useMutation({
+    mutationFn: async (data: FormData) => {
+      const { data: result, error } = await supabase
+        .from('inspection_templates')
+        .insert(data)
+        .select()
+        .single();
+
+      if (error) throw error;
+      return result;
     },
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ['inspectionTemplates'] });
@@ -78,8 +100,20 @@ export function InspectionTemplateForm() {
     },
   });
 
-  const onSubmit = (data: InspectionTemplate) => {
-    createTemplate(data);
+  const onSubmit = (data: FormData) => {
+    if (!orgData?.organization_id) {
+      toast({
+        variant: "destructive",
+        title: "Error",
+        description: "Organization ID is required",
+      });
+      return;
+    }
+
+    createTemplate({
+      ...data,
+      organization_id: orgData.organization_id,
+    });
   };
 
   return (
@@ -140,8 +174,8 @@ export function InspectionTemplateForm() {
           )}
         />
 
-        <Button type="submit" disabled={isLoading}>
-          {isLoading ? "Creating..." : "Create Template"}
+        <Button type="submit" disabled={isPending}>
+          {isPending ? "Creating..." : "Create Template"}
         </Button>
       </form>
     </Form>

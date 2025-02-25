@@ -182,6 +182,47 @@ export type Database = {
           },
         ]
       }
+      inspection_templates: {
+        Row: {
+          category: Database["public"]["Enums"]["template_category"]
+          checklist_items: Json
+          created_at: string
+          description: string | null
+          id: string
+          name: string
+          organization_id: string
+          updated_at: string
+        }
+        Insert: {
+          category: Database["public"]["Enums"]["template_category"]
+          checklist_items?: Json
+          created_at?: string
+          description?: string | null
+          id?: string
+          name: string
+          organization_id: string
+          updated_at?: string
+        }
+        Update: {
+          category?: Database["public"]["Enums"]["template_category"]
+          checklist_items?: Json
+          created_at?: string
+          description?: string | null
+          id?: string
+          name?: string
+          organization_id?: string
+          updated_at?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "inspection_templates_organization_id_fkey"
+            columns: ["organization_id"]
+            isOneToOne: false
+            referencedRelation: "organizations"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       inventory_locations: {
         Row: {
           address: Json
@@ -1068,6 +1109,7 @@ export type Database = {
         | "tire_change"
         | "winch_out"
         | "transport"
+      template_category: "general" | "mechanical" | "body" | "safety"
       vehicle_condition:
         | "excellent"
         | "good"

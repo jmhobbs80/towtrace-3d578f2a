@@ -20,6 +20,7 @@ import {
   DialogTitle,
   DialogTrigger,
 } from '@/components/ui/dialog';
+import type { InspectionTemplate } from '@/lib/types/inspection';
 
 export default function InspectionTemplates() {
   const [isOpen, setIsOpen] = useState(false);
@@ -33,7 +34,7 @@ export default function InspectionTemplates() {
         .order('created_at', { ascending: false });
 
       if (error) throw error;
-      return data;
+      return data as InspectionTemplate[];
     },
   });
 
