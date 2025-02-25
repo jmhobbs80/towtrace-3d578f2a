@@ -3,6 +3,7 @@ import { Outlet } from "react-router-dom";
 import { SidebarProvider, Sidebar, SidebarInset } from "@/components/ui/sidebar";
 import { Logo } from "@/components/branding/Logo";
 import { PageTransition } from "@/components/ui/page-transition";
+import { PageBreadcrumbs } from "@/components/ui/navigation/PageBreadcrumbs";
 import ProtectedRoute from "@/components/auth/ProtectedRoute";
 
 export function SidebarLayout() {
@@ -16,9 +17,12 @@ export function SidebarLayout() {
               <Logo variant="mobile" size="sm" />
             </div>
             <SidebarInset>
-              <PageTransition>
-                <Outlet />
-              </PageTransition>
+              <div className="px-6 py-4">
+                <PageBreadcrumbs />
+                <PageTransition>
+                  <Outlet />
+                </PageTransition>
+              </div>
             </SidebarInset>
           </div>
         </div>

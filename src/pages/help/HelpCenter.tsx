@@ -1,6 +1,6 @@
 
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
-import { MessageSquareQuestion, Book, FileQuestion, Phone } from "lucide-react";
+import { HelpCircle, Book, FileQuestion, Phone } from "lucide-react";
 
 export default function HelpCenter() {
   return (
@@ -11,7 +11,7 @@ export default function HelpCenter() {
         <Card>
           <CardHeader>
             <CardTitle className="flex items-center gap-2">
-              <MessageSquareQuestion className="h-5 w-5" />
+              <HelpCircle className="h-5 w-5" />
               Frequently Asked Questions
             </CardTitle>
           </CardHeader>
