@@ -4,10 +4,11 @@ import { cn } from "@/lib/utils";
 
 interface LocalImageProps extends React.ImgHTMLAttributes<HTMLImageElement> {
   src: string;
+  priority?: boolean;
 }
 
 const Image = forwardRef<HTMLImageElement, LocalImageProps>(
-  ({ src, alt, className, ...props }, ref) => {
+  ({ src, alt, className, priority, ...props }, ref) => {
     return (
       <img
         ref={ref}

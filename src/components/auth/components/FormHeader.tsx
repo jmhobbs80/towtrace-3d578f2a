@@ -11,7 +11,7 @@ export function FormHeader() {
           width={200}
           height={48}
           className="w-full h-full object-contain transition-opacity hover:opacity-90"
-          priority
+          priority={true}
         />
       </div>
       <div className="text-center space-y-2">
