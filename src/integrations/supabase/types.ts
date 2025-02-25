@@ -410,8 +410,14 @@ export type Database = {
           id: string
           name: string
           settings: Json | null
+          stripe_customer_id: string | null
+          stripe_subscription_id: string | null
+          subscription_period_end: string | null
+          subscription_period_start: string | null
+          subscription_plan_id: string | null
           subscription_status: string
           subscription_tier: string
+          trial_end: string | null
           updated_at: string
         }
         Insert: {
@@ -422,8 +428,14 @@ export type Database = {
           id?: string
           name: string
           settings?: Json | null
+          stripe_customer_id?: string | null
+          stripe_subscription_id?: string | null
+          subscription_period_end?: string | null
+          subscription_period_start?: string | null
+          subscription_plan_id?: string | null
           subscription_status?: string
           subscription_tier?: string
+          trial_end?: string | null
           updated_at?: string
         }
         Update: {
@@ -434,8 +446,14 @@ export type Database = {
           id?: string
           name?: string
           settings?: Json | null
+          stripe_customer_id?: string | null
+          stripe_subscription_id?: string | null
+          subscription_period_end?: string | null
+          subscription_period_start?: string | null
+          subscription_plan_id?: string | null
           subscription_status?: string
           subscription_tier?: string
+          trial_end?: string | null
           updated_at?: string
         }
         Relationships: []
@@ -553,6 +571,86 @@ export type Database = {
           user_id?: string
         }
         Relationships: []
+      }
+      subscription_plans: {
+        Row: {
+          created_at: string | null
+          description: string | null
+          features: Json | null
+          id: string
+          interval: string
+          is_active: boolean | null
+          limits: Json | null
+          name: string
+          price: number
+          updated_at: string | null
+        }
+        Insert: {
+          created_at?: string | null
+          description?: string | null
+          features?: Json | null
+          id: string
+          interval: string
+          is_active?: boolean | null
+          limits?: Json | null
+          name: string
+          price: number
+          updated_at?: string | null
+        }
+        Update: {
+          created_at?: string | null
+          description?: string | null
+          features?: Json | null
+          id?: string
+          interval?: string
+          is_active?: boolean | null
+          limits?: Json | null
+          name?: string
+          price?: number
+          updated_at?: string | null
+        }
+        Relationships: []
+      }
+      subscription_usage: {
+        Row: {
+          created_at: string | null
+          feature_name: string
+          id: string
+          organization_id: string | null
+          period_end: string
+          period_start: string
+          updated_at: string | null
+          usage_count: number | null
+        }
+        Insert: {
+          created_at?: string | null
+          feature_name: string
+          id?: string
+          organization_id?: string | null
+          period_end: string
+          period_start: string
+          updated_at?: string | null
+          usage_count?: number | null
+        }
+        Update: {
+          created_at?: string | null
+          feature_name?: string
+          id?: string
+          organization_id?: string | null
+          period_end?: string
+          period_start?: string
+          updated_at?: string | null
+          usage_count?: number | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "subscription_usage_organization_id_fkey"
+            columns: ["organization_id"]
+            isOneToOne: false
+            referencedRelation: "organizations"
+            referencedColumns: ["id"]
+          },
+        ]
       }
       tow_jobs: {
         Row: {
@@ -817,6 +915,13 @@ export type Database = {
       [_ in never]: never
     }
     Functions: {
+      check_subscription_limit: {
+        Args: {
+          org_id: string
+          limit_name: string
+        }
+        Returns: boolean
+      }
       get_user_organizations: {
         Args: Record<PropertyKey, never>
         Returns: string[]
@@ -826,6 +931,13 @@ export type Database = {
           required_role: Database["public"]["Enums"]["app_role"]
         }
         Returns: boolean
+      }
+      increment_subscription_usage: {
+        Args: {
+          org_id: string
+          feature: string
+        }
+        Returns: undefined
       }
       is_org_admin: {
         Args: {
