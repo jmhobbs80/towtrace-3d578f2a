@@ -73,10 +73,19 @@ export function InspectionTemplateForm() {
   });
 
   const { mutate: createTemplate, isPending } = useMutation({
-    mutationFn: async (data: FormData) => {
+    mutationFn: async (formData: FormData) => {
+      // Ensure all required fields are present and properly typed
+      const templateData: CreateInspectionTemplateInput = {
+        name: formData.name,
+        description: formData.description,
+        category: formData.category,
+        checklist_items: formData.checklist_items,
+        organization_id: formData.organization_id,
+      };
+
       const { data: result, error } = await supabase
         .from('inspection_templates')
-        .insert(data)
+        .insert(templateData)
         .select()
         .single();
 
@@ -110,10 +119,15 @@ export function InspectionTemplateForm() {
       return;
     }
 
-    createTemplate({
+    // Ensure all required fields are present
+    const submissionData: FormData = {
       ...data,
       organization_id: orgData.organization_id,
-    });
+      category: data.category || 'general', // Ensure category is never undefined
+      checklist_items: data.checklist_items || [], // Ensure checklist_items is never undefined
+    };
+
+    createTemplate(submissionData);
   };
 
   return (
