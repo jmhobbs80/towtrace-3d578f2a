@@ -1,9 +1,8 @@
-
 import { useState } from "react";
 import { 
   Menu, X, Home, Truck, Users, FileText, Settings, LogOut, 
   Building, Wrench, CarFront, ArrowLeftRight, Banknote,
-  BarChart2, Tool, ShoppingCart, Gavel
+  BarChart2, ShoppingCart, Gavel
 } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { cn } from "@/lib/utils";
@@ -36,7 +35,7 @@ export const Sidebar = () => {
     },
     { 
       name: "Repairs", 
-      icon: Tool, 
+      icon: Wrench, 
       href: "/dealer/repairs",
       orgTypes: ['dealer']
     },
