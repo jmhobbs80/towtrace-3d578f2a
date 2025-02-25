@@ -14,6 +14,7 @@ import InventoryManagement from "@/pages/inventory/InventoryManagement";
 import BillingDashboard from "@/pages/billing/BillingDashboard";
 import ProfileSettings from "@/pages/profile/ProfileSettings";
 import OverwatchDashboard from "@/pages/admin/OverwatchDashboard";
+import { UserRole } from "@/lib/types/auth";
 
 const RootLayout = () => {
   return (
@@ -53,7 +54,7 @@ export const router = createBrowserRouter([
           {
             path: "/fleet",
             element: (
-              <ProtectedRoute allowedRoles={["transporter" as const]}>
+              <ProtectedRoute allowedRoles={["dispatcher" as UserRole]}>
                 <FleetManagement />
               </ProtectedRoute>
             ),
@@ -61,7 +62,7 @@ export const router = createBrowserRouter([
           {
             path: "/inventory",
             element: (
-              <ProtectedRoute allowedRoles={["dealer", "wholesaler"]}>
+              <ProtectedRoute allowedRoles={["dealer" as UserRole, "wholesaler" as UserRole]}>
                 <InventoryManagement />
               </ProtectedRoute>
             ),
@@ -69,7 +70,7 @@ export const router = createBrowserRouter([
           {
             path: "/analytics",
             element: (
-              <ProtectedRoute allowedRoles={["admin", "dealer", "wholesaler", "transporter" as const]}>
+              <ProtectedRoute allowedRoles={["admin" as UserRole, "dealer" as UserRole, "wholesaler" as UserRole, "dispatcher" as UserRole]}>
                 <AnalyticsDashboard />
               </ProtectedRoute>
             ),
@@ -93,7 +94,7 @@ export const router = createBrowserRouter([
           {
             path: "/admin",
             element: (
-              <ProtectedRoute allowedRoles={["overwatch_admin"]}>
+              <ProtectedRoute allowedRoles={["overwatch_admin" as UserRole]}>
                 <OverwatchDashboard />
               </ProtectedRoute>
             ),
