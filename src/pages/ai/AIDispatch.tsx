@@ -1,3 +1,4 @@
+
 import { useState, useCallback } from "react";
 import { useQuery, useMutation } from "@tanstack/react-query";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
@@ -11,14 +12,34 @@ import { Brain, AlertTriangle, Truck } from "lucide-react";
 import type { Job } from "@/lib/types/job";
 import { toLocation } from "@/lib/types/job";
 
-interface JobWithDriver extends Omit<Job, 'driver'> {
-  driver?: {
-    first_name: string;
-    last_name: string;
-  };
-  driver_profile?: {
-    first_name: string;
-    last_name: string;
+interface RawJob {
+  id: string;
+  pickup_location: any;
+  delivery_location?: any;
+  status: string;
+  description?: string;
+  charge_amount?: number;
+  completed_at?: string;
+  created_at: string;
+  updated_at?: string;
+  customer_id?: string;
+  dispatcher_id?: string;
+  driver_id?: string;
+  driver_notes?: string;
+  eta?: number;
+  mileage?: number;
+  organization_id: string;
+  payment_status?: string;
+  photos?: string[];
+  scheduled_time?: string;
+  signature_url?: string;
+  vehicle_id?: string;
+  notes?: string;
+  service_type?: string;
+  priority?: number;
+  driver: {
+    first_name: string | null;
+    last_name: string | null;
   } | null;
 }
 
@@ -34,31 +55,8 @@ export default function AIDispatch() {
       const { data: rawJobs, error } = await supabase
         .from('tow_jobs')
         .select(`
-          id,
-          pickup_location,
-          delivery_location,
-          status,
-          description,
-          charge_amount,
-          completed_at,
-          created_at,
-          updated_at,
-          customer_id,
-          dispatcher_id,
-          driver_id,
-          driver_notes,
-          eta,
-          mileage,
-          organization_id,
-          payment_status,
-          photos,
-          scheduled_time,
-          signature_url,
-          vehicle_id,
-          notes,
-          service_type,
-          priority,
-          driver_profile:profiles!driver_id(first_name, last_name)
+          *,
+          driver:profiles(first_name, last_name)
         `)
         .in('status', ['pending', 'assigned', 'en_route'])
         .order('priority', { ascending: false });
@@ -66,13 +64,13 @@ export default function AIDispatch() {
       if (error) throw error;
       if (!rawJobs) return [];
 
-      return (rawJobs as JobWithDriver[]).map(job => ({
+      return (rawJobs as RawJob[]).map(job => ({
         ...job,
         pickup_location: toLocation(job.pickup_location) || { address: 'Unknown' },
         delivery_location: job.delivery_location ? toLocation(job.delivery_location) : undefined,
-        driver: job.driver_profile ? {
-          first_name: job.driver_profile.first_name,
-          last_name: job.driver_profile.last_name
+        driver: job.driver ? {
+          first_name: job.driver.first_name || '',
+          last_name: job.driver.last_name || ''
         } : undefined
       })) as Job[];
     }
