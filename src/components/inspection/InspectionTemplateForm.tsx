@@ -79,7 +79,11 @@ export function InspectionTemplateForm() {
         name: formData.name,
         description: formData.description,
         category: formData.category,
-        checklist_items: formData.checklist_items,
+        checklist_items: formData.checklist_items.map(item => ({
+          item_name: item.item_name || '',
+          category: item.category || '',
+          required: item.required || false,
+        })),
         organization_id: formData.organization_id,
       };
 
@@ -124,7 +128,11 @@ export function InspectionTemplateForm() {
       ...data,
       organization_id: orgData.organization_id,
       category: data.category || 'general', // Ensure category is never undefined
-      checklist_items: data.checklist_items || [], // Ensure checklist_items is never undefined
+      checklist_items: data.checklist_items.map(item => ({
+        item_name: item.item_name || '',
+        category: item.category || '',
+        required: item.required || false,
+      })), // Ensure all checklist item fields are defined
     };
 
     createTemplate(submissionData);
