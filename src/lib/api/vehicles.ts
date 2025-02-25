@@ -1,6 +1,6 @@
 
 import { supabase } from "@/integrations/supabase/client";
-import type { Vehicle, VehicleDetails, VehicleSearchFilters, VehicleStatus } from "../types/vehicles";
+import type { Vehicle, VehicleDetails, VehicleSearchFilters, VehicleStatus, VehicleDamageReport } from "../types/vehicles";
 import type { VehicleInspection } from "../types/inspection";
 import type { VehicleInTransit } from "../types/fleet";
 import type { VINScannerHardware } from "./scanner-types";
@@ -61,7 +61,7 @@ export async function getVehicleDetails(vehicleId: string): Promise<VehicleDetai
 
   // Fetch damage reports
   const { data: damageReports, error: damageError } = await supabase
-    .from('vehicle_condition_logs')
+    .from('vehicle_damage_reports')
     .select('*')
     .eq('vehicle_id', vehicleId)
     .order('created_at', { ascending: false });
@@ -72,20 +72,32 @@ export async function getVehicleDetails(vehicleId: string): Promise<VehicleDetai
     ...vehicle,
     inspections: inspections as VehicleInspection[],
     transitHistory: transitHistory as VehicleInTransit[],
-    damageReports
+    damageReports: damageReports as VehicleDamageReport[]
   };
 }
 
 export async function updateVehicleStatus(
   vehicleId: string, 
-  status: VehicleStatus
+  status: VehicleStatus,
+  updates: Partial<Vehicle> = {}
 ): Promise<void> {
   const { error } = await supabase
     .from('inventory_vehicles')
-    .update({ status })
+    .update({ status, ...updates })
     .eq('id', vehicleId);
 
   if (error) throw error;
+}
+
+export async function createDamageReport(report: Omit<VehicleDamageReport, 'id' | 'created_at' | 'updated_at'>): Promise<VehicleDamageReport> {
+  const { data, error } = await supabase
+    .from('vehicle_damage_reports')
+    .insert(report)
+    .select()
+    .single();
+
+  if (error) throw error;
+  return data;
 }
 
 // VIN validation and scanning functionality
@@ -95,18 +107,46 @@ export function validateVIN(vin: string): boolean {
 }
 
 export async function decodeVIN(vin: string): Promise<any> {
-  // Simplified VIN decoding mock
+  // VIN decoding implementation
+  const response = await fetch(`https://vpic.nhtsa.dot.gov/api/vehicles/decodevin/${vin}?format=json`);
+  const data = await response.json();
+  
+  if (!response.ok) {
+    throw new Error('Failed to decode VIN');
+  }
+
   return {
-    make: "Unknown",
-    model: "Unknown",
-    year: 0,
-    trim: "Unknown",
-    bodyClass: "Unknown",
-    engineSize: 0,
-    engineCylinders: 0,
-    fuelType: "Unknown",
-    plantCountry: "Unknown"
+    make: data.Results.find((item: any) => item.Variable === "Make")?.Value || "Unknown",
+    model: data.Results.find((item: any) => item.Variable === "Model")?.Value || "Unknown",
+    year: Number(data.Results.find((item: any) => item.Variable === "ModelYear")?.Value) || 0,
+    trim: data.Results.find((item: any) => item.Variable === "Trim")?.Value || "Unknown",
+    bodyClass: data.Results.find((item: any) => item.Variable === "BodyClass")?.Value || "Unknown",
+    engineSize: data.Results.find((item: any) => item.Variable === "EngineSize")?.Value || 0,
+    engineCylinders: data.Results.find((item: any) => item.Variable === "EngineCylinders")?.Value || 0,
+    fuelType: data.Results.find((item: any) => item.Variable === "FuelType")?.Value || "Unknown",
+    plantCountry: data.Results.find((item: any) => item.Variable === "PlantCountry")?.Value || "Unknown"
   };
+}
+
+export async function uploadVehiclePhotos(vehicleId: string, files: File[]): Promise<string[]> {
+  const uploadPromises = files.map(async (file) => {
+    const fileExt = file.name.split('.').pop();
+    const filePath = `${vehicleId}/${crypto.randomUUID()}.${fileExt}`;
+    
+    const { error: uploadError } = await supabase.storage
+      .from('vehicle-photos')
+      .upload(filePath, file);
+
+    if (uploadError) throw uploadError;
+
+    const { data } = supabase.storage
+      .from('vehicle-photos')
+      .getPublicUrl(filePath);
+
+    return data.publicUrl;
+  });
+
+  return Promise.all(uploadPromises);
 }
 
 export async function createVINScanner(): Promise<VINScannerHardware> {

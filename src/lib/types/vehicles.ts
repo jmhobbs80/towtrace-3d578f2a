@@ -3,6 +3,8 @@ import type { VehicleInspection } from "./inspection";
 import type { VehicleInTransit } from "./fleet";
 
 export type VehicleStatus = 'available' | 'in_transit' | 'pending_inspection' | 'sold' | 'auction_ready' | 'maintenance';
+export type VehicleDamageSeverity = 'none' | 'minor' | 'moderate' | 'severe';
+export type VehicleInspectionResult = 'pass' | 'fail' | 'needs_repair';
 
 export interface Vehicle {
   id: string;
@@ -14,6 +16,11 @@ export interface Vehicle {
   status: VehicleStatus;
   organization_id: string;
   location_id?: string;
+  vin_scan_data?: any;
+  last_inspection_date?: string;
+  next_inspection_due?: string;
+  inspection_interval?: string;
+  maintenance_history?: any[];
   created_at: string;
   updated_at: string;
 }
@@ -21,17 +28,20 @@ export interface Vehicle {
 export interface VehicleDetails extends Vehicle {
   inspections: VehicleInspection[];
   transitHistory: VehicleInTransit[];
-  damageReports: VehicleConditionReport[];
+  damageReports: VehicleDamageReport[];
 }
 
-export interface VehicleConditionReport {
+export interface VehicleDamageReport {
   id: string;
   vehicle_id: string;
-  condition: 'excellent' | 'good' | 'fair' | 'poor' | 'damaged' | 'salvage';
-  notes: string;
-  photos: string[];
   inspector_id: string;
+  damage_locations: Record<string, any>;
+  severity: VehicleDamageSeverity;
+  description?: string;
+  repair_estimate?: number;
+  photos: string[];
   created_at: string;
+  updated_at: string;
 }
 
 export interface VehicleSearchFilters {
@@ -40,3 +50,4 @@ export interface VehicleSearchFilters {
   model?: string;
   status?: VehicleStatus;
 }
+
