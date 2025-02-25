@@ -1,5 +1,4 @@
 
-import { Link } from "react-router-dom";
 import { PasswordResetDialog } from "../PasswordResetDialog";
 
 interface AuthLinksProps {
@@ -39,14 +38,6 @@ export function AuthLinks({
       >
         Forgot your password?
       </button>
-      <div className="w-full text-center">
-        <Link 
-          to="/auth/signup" 
-          className="text-sm text-primary hover:text-primary/80 transition-colors duration-200"
-        >
-          Sign up now
-        </Link>
-      </div>
     </div>
   );
 }
