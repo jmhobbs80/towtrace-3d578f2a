@@ -70,16 +70,16 @@ export function SignInForm() {
 
   async function setupTwoFactor() {
     try {
-      const { data: { id, secret, qr }, error } = await supabase.auth.mfa.enroll({
+      const { data, error } = await supabase.auth.mfa.enroll({
         factorType: 'totp'
       });
       
       if (error) throw error;
       
-      if (id && secret && qr) {
-        setFactorId(id);
-        setTotpSecret(secret);
-        setQrCodeUrl(qr);
+      if (data && data.id && data.totp) {
+        setFactorId(data.id);
+        setTotpSecret(data.totp.secret);
+        setQrCodeUrl(data.totp.qr_code);
         setShowTotpSetup(true);
       }
     } catch (error) {
