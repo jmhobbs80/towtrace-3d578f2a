@@ -12,7 +12,7 @@ import { Brain, AlertTriangle, Truck } from "lucide-react";
 import type { Job } from "@/lib/types/job";
 import { toLocation } from "@/lib/types/job";
 
-interface RawJob {
+type DatabaseJob = {
   id: string;
   pickup_location: any;
   delivery_location?: any;
@@ -37,10 +37,11 @@ interface RawJob {
   notes?: string;
   service_type?: string;
   priority?: number;
-  driver: {
-    first_name: string | null;
-    last_name: string | null;
-  } | null;
+}
+
+type DriverProfile = {
+  first_name: string | null;
+  last_name: string | null;
 }
 
 export default function AIDispatch() {
@@ -52,19 +53,19 @@ export default function AIDispatch() {
   const { data: jobs, isLoading: isLoadingJobs, refetch: refetchJobs } = useQuery({
     queryKey: ['ai-dispatch-jobs'],
     queryFn: async () => {
-      const { data: rawJobs, error } = await supabase
+      const { data, error } = await supabase
         .from('tow_jobs')
         .select(`
           *,
-          driver:profiles(first_name, last_name)
+          driver:profiles!driver_id(first_name, last_name)
         `)
         .in('status', ['pending', 'assigned', 'en_route'])
         .order('priority', { ascending: false });
 
       if (error) throw error;
-      if (!rawJobs) return [];
+      if (!data) return [];
 
-      return (rawJobs as RawJob[]).map(job => ({
+      const transformedJobs = data.map((job: DatabaseJob & { driver: DriverProfile | null }) => ({
         ...job,
         pickup_location: toLocation(job.pickup_location) || { address: 'Unknown' },
         delivery_location: job.delivery_location ? toLocation(job.delivery_location) : undefined,
@@ -73,6 +74,8 @@ export default function AIDispatch() {
           last_name: job.driver.last_name || ''
         } : undefined
       })) as Job[];
+
+      return transformedJobs;
     }
   });
 
