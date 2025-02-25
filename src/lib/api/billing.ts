@@ -1,7 +1,7 @@
 
 import { supabase } from "@/integrations/supabase/client";
 import type { Payment, PaymentMethod, SubscriptionPlan } from "../types/billing";
-import type { Json } from "@/integrations/supabase/types";
+import type { OrganizationType } from "../types/billing";
 
 export const createPayment = async (data: {
   job_id: string;
@@ -44,43 +44,34 @@ export const updatePaymentStatus = async (paymentId: string, status: string): Pr
   return data;
 };
 
-export const fetchSubscriptionPlans = async (): Promise<SubscriptionPlan[]> => {
+export const fetchSubscriptionPlans = async (organizationType: OrganizationType): Promise<SubscriptionPlan[]> => {
   const { data: rawData, error } = await supabase
     .from('subscription_plans')
     .select('*')
     .eq('is_active', true)
-    .order('price', { ascending: true });
+    .eq('organization_type', organizationType)
+    .order('base_price', { ascending: true });
 
   if (error) throw error;
   
-  // Transform the raw data to match the SubscriptionPlan type
-  const plans: SubscriptionPlan[] = (rawData || []).map(plan => {
-    // Ensure features is an array of strings
-    const features = Array.isArray(plan.features) 
-      ? plan.features.map(f => String(f))
-      : [];
-
-    // Ensure limits is a Record<string, number>
-    const limits: Record<string, number> = {};
-    if (typeof plan.limits === 'object' && plan.limits !== null) {
-      Object.entries(plan.limits).forEach(([key, value]) => {
-        if (typeof value === 'number') {
-          limits[key] = value;
-        }
-      });
-    }
-
-    return {
-      id: plan.id,
-      name: plan.name,
-      description: plan.description || undefined,
-      price: plan.price,
-      interval: plan.interval as 'month' | 'year',
-      features,
-      limits,
-      is_active: Boolean(plan.is_active)
-    };
-  });
+  const plans: SubscriptionPlan[] = rawData.map(plan => ({
+    id: plan.id,
+    name: plan.name,
+    description: plan.description || undefined,
+    organization_type: plan.organization_type,
+    base_price: plan.base_price,
+    per_user_price: plan.per_user_price || 0,
+    per_vehicle_price: plan.per_vehicle_price || 0,
+    interval: plan.interval as 'month' | 'year',
+    tier: plan.tier || 'standard',
+    features: Array.isArray(plan.features) ? plan.features.map(String) : [],
+    limits: plan.limits as Record<string, number>,
+    volume_discount: plan.volume_discount as Array<{
+      threshold: number;
+      discount_percentage: number;
+    }> || undefined,
+    is_active: Boolean(plan.is_active)
+  }));
 
   return plans;
 };

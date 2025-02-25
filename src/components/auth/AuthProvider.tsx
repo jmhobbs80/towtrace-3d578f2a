@@ -1,4 +1,3 @@
-
 import { createContext, useContext, useEffect, useState } from "react";
 import { supabase } from "@/integrations/supabase/client";
 import { User } from "@supabase/supabase-js";
@@ -13,6 +12,8 @@ interface Organization {
   subscription_period_end?: string;
   stripe_customer_id?: string;
   subscription_plan_id?: string;
+  member_count?: number;
+  vehicle_count?: number;
   billing_details?: {
     name?: string;
     email?: string;
@@ -118,6 +119,8 @@ export const AuthProvider = ({ children }: { children: React.ReactNode }) => {
           subscription_period_end,
           stripe_customer_id,
           subscription_plan_id,
+          member_count,
+          vehicle_count,
           billing_details
         `)
         .eq('id', organizationMember.organization_id)
@@ -138,6 +141,8 @@ export const AuthProvider = ({ children }: { children: React.ReactNode }) => {
           subscription_period_end: org.subscription_period_end,
           stripe_customer_id: org.stripe_customer_id,
           subscription_plan_id: org.subscription_plan_id,
+          member_count: org.member_count,
+          vehicle_count: org.vehicle_count,
           billing_details: org.billing_details as Organization['billing_details']
         };
         setOrganization(formattedOrg);
