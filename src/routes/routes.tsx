@@ -1,4 +1,3 @@
-
 import { createBrowserRouter, Navigate, Outlet } from "react-router-dom";
 import AuthPage from "@/pages/auth/AuthPage";
 import Dashboard from "@/pages/dashboard/Dashboard";
@@ -10,7 +9,7 @@ import { AnalyticsDashboard } from "@/pages/analytics/AnalyticsDashboard";
 import { DealerDashboard } from "@/pages/dashboard/DealerDashboard";
 import { TransporterDashboard } from "@/pages/dashboard/TransporterDashboard";
 import DispatchDashboard from "@/pages/dispatch/DispatchDashboard";
-import FleetDashboard from "@/pages/fleet/FleetDashboard";
+import FleetDashboard from "@/pages/fleet/FleetManagement";
 import FleetManagement from "@/pages/fleet/FleetManagement";
 import InventoryManagement from "@/pages/inventory/InventoryManagement";
 import BillingDashboard from "@/pages/billing/BillingDashboard";
@@ -23,6 +22,7 @@ import OrganizationDashboard from "@/pages/organization/OrganizationDashboard";
 import DriverPortal from "@/pages/driver/DriverPortal";
 import DealerTrades from "@/pages/dealer/DealerTrades";
 import { UserRole } from "@/lib/types/auth";
+import { DealerAnalyticsDashboard } from "@/pages/analytics/DealerAnalyticsDashboard";
 
 // Define allowed roles for each protected route
 const ROLE_ACCESS = {
@@ -109,7 +109,7 @@ const protectedRoutes: RouteConfig[] = [
   {
     path: "/analytics",
     allowedRoles: ROLE_ACCESS.ANALYTICS,
-    element: <AnalyticsDashboard />
+    element: <DealerAnalyticsDashboard />
   },
   // Billing section
   {

@@ -1,6 +1,9 @@
 
 import { useState } from "react";
-import { Menu, X, Home, Truck, Users, FileText, Settings, LogOut, Building, Wrench, CarFront, ArrowLeftRight } from "lucide-react";
+import { 
+  Menu, X, Home, Truck, Users, FileText, Settings, LogOut, 
+  Building, Wrench, CarFront, ArrowLeftRight, BarChart2 
+} from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { cn } from "@/lib/utils";
 import { useAuth } from "@/components/auth/AuthProvider";
@@ -57,6 +60,12 @@ export const Sidebar = () => {
       name: "Dealer Trades",
       icon: ArrowLeftRight,
       href: "/dealer/trades",
+      orgTypes: ['dealer', 'wholesaler']
+    },
+    { 
+      name: "Analytics",
+      icon: BarChart2,
+      href: "/analytics",
       orgTypes: ['dealer', 'wholesaler']
     },
     { 
