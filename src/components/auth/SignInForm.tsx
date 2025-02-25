@@ -1,6 +1,6 @@
 
 import { useState } from "react";
-import { useNavigate } from "react-router-dom";
+import { useNavigate, Link } from "react-router-dom";
 import { supabase } from "@/integrations/supabase/client";
 import { Label } from "@/components/ui/label";
 import { useToast } from "@/hooks/use-toast";
@@ -171,7 +171,7 @@ export function SignInForm() {
         <SubmitButton loading={loading} />
       </form>
 
-      <div className="text-center">
+      <div className="text-center space-y-4">
         <PasswordResetDialog
           isOpen={isDialogOpen}
           onOpenChange={setIsDialogOpen}
@@ -181,22 +181,22 @@ export function SignInForm() {
           isResetting={isResetting}
           onSubmit={handleResetSubmit}
         />
-        <div className="text-sm flex flex-col space-y-2">
-          <button
-            type="button"
-            onClick={() => setIsDialogOpen(true)}
-            className="text-primary hover:text-primary/80 transition-colors duration-200"
-          >
-            Forgot password?
-          </button>
-          <p>
-            <span className="text-muted-foreground">Don't have an account? </span>
-            <a 
-              href="/auth/signup" 
-              className="text-primary hover:text-primary/80 transition-colors duration-200"
+        <button
+          type="button"
+          onClick={() => setIsDialogOpen(true)}
+          className="text-sm font-medium text-primary hover:text-primary/80 transition-colors duration-200"
+        >
+          Forgot your password?
+        </button>
+        <div className="pt-2 border-t border-border">
+          <p className="text-sm text-muted-foreground">
+            Don't have an account?{" "}
+            <Link 
+              to="/auth/signup" 
+              className="font-medium text-primary hover:text-primary/80 transition-colors duration-200"
             >
-              Sign up
-            </a>
+              Sign up now
+            </Link>
           </p>
         </div>
       </div>
