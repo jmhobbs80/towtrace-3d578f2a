@@ -1,4 +1,3 @@
-
 import React, { useState, useRef } from 'react';
 import { X } from 'lucide-react';
 import Papa from 'papaparse';
@@ -32,7 +31,7 @@ interface BulkUploadModalProps {
   onClose: () => void;
   onSuccess: () => void;
   locationId?: string;
-  organizationId: string; // Added organizationId as a required prop
+  organizationId: string;
 }
 
 interface VehicleData {
@@ -95,17 +94,15 @@ export function BulkUploadModal({
           processedCount++;
           setProgress((processedCount / results.data.length) * 100);
 
-          // Validate VIN
           if (!vehicle.vin || !validateVIN(vehicle.vin)) {
             errors.push({
-              row: index + 2, // +2 because of header row and 0-based index
+              row: index + 2,
               vin: vehicle.vin || 'Missing',
               error: 'Invalid VIN',
             });
             continue;
           }
 
-          // Check for required fields
           if (!vehicle.make || !vehicle.model || !vehicle.year) {
             errors.push({
               row: index + 2,
@@ -181,10 +178,7 @@ export function BulkUploadModal({
   };
 
   const handleDownloadTemplate = () => {
-    downloadTemplate([
-      'vin,make,model,year,color,status,location',
-      'SAMPLE1234567890,Toyota,Camry,2023,Silver,available,Lot A',
-    ].join('\n'), 'vehicle_upload_template.csv');
+    downloadTemplate('vehicle_upload_template.csv');
   };
 
   return (
