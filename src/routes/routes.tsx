@@ -9,6 +9,8 @@ import { SidebarLayout } from "@/components/layouts/SidebarLayout";
 import { AnalyticsDashboard } from "@/pages/analytics/AnalyticsDashboard";
 import { DealerDashboard } from "@/pages/dashboard/DealerDashboard";
 import { TransporterDashboard } from "@/pages/dashboard/TransporterDashboard";
+import DispatchDashboard from "@/pages/dispatch/DispatchDashboard";
+import FleetDashboard from "@/pages/fleet/FleetDashboard";
 import FleetManagement from "@/pages/fleet/FleetManagement";
 import InventoryManagement from "@/pages/inventory/InventoryManagement";
 import BillingDashboard from "@/pages/billing/BillingDashboard";
@@ -27,12 +29,15 @@ const ROLE_ACCESS = {
   ADMIN: ["overwatch_admin", "super_admin"] as UserRole[],
   BILLING: ["billing_manager", "admin", "super_admin"] as UserRole[],
   CUSTOMER: ["customer", "admin", "super_admin"] as UserRole[],
+  DISPATCH: ["dispatcher", "admin", "super_admin"] as UserRole[],
+  DRIVER: ["driver", "admin", "super_admin"] as UserRole[],
 } as const;
 
 interface RouteConfig {
   path: string;
   allowedRoles?: UserRole[];
   element: React.ReactNode;
+  children?: RouteConfig[];
 }
 
 const RootLayout = () => {
@@ -43,7 +48,7 @@ const RootLayout = () => {
   );
 };
 
-// Protected routes configuration
+// Protected routes configuration with hierarchy
 const protectedRoutes: RouteConfig[] = [
   {
     path: "/",
@@ -53,44 +58,65 @@ const protectedRoutes: RouteConfig[] = [
     path: "/dashboard",
     element: <Dashboard />
   },
+  // Fleet section
   {
     path: "/fleet",
     allowedRoles: ROLE_ACCESS.FLEET,
-    element: <FleetManagement />
+    element: <FleetDashboard />,
+    children: [
+      {
+        path: "management",
+        element: <FleetManagement />
+      }
+    ]
   },
+  // Dispatch section
+  {
+    path: "/dispatch",
+    allowedRoles: ROLE_ACCESS.DISPATCH,
+    element: <DispatchDashboard />
+  },
+  // Inventory section
   {
     path: "/inventory",
     allowedRoles: ROLE_ACCESS.INVENTORY,
     element: <InventoryManagement />
   },
+  // Analytics section
   {
     path: "/analytics",
     allowedRoles: ROLE_ACCESS.ANALYTICS,
     element: <AnalyticsDashboard />
   },
+  // Billing section
   {
     path: "/billing",
     allowedRoles: ROLE_ACCESS.BILLING,
     element: <BillingDashboard />
   },
+  // Settings section
   {
     path: "/settings",
     element: <ProfileSettings />
   },
+  // Admin section
   {
     path: "/admin",
     allowedRoles: ROLE_ACCESS.ADMIN,
     element: <OverwatchDashboard />
   },
+  // Customer section
   {
     path: "/customer",
     allowedRoles: ROLE_ACCESS.CUSTOMER,
     element: <CustomerPortal />
   },
+  // Help section
   {
     path: "/help",
     element: <HelpCenter />
   },
+  // Legal section with nested routes
   {
     path: "/legal",
     element: <LegalHub />
@@ -113,7 +139,15 @@ export const router = createBrowserRouter([
             <ProtectedRoute allowedRoles={route.allowedRoles}>
               {route.element}
             </ProtectedRoute>
-          )
+          ),
+          children: route.children?.map(child => ({
+            path: route.path + "/" + child.path,
+            element: (
+              <ProtectedRoute allowedRoles={route.allowedRoles}>
+                {child.element}
+              </ProtectedRoute>
+            )
+          }))
         }))
       },
       {
