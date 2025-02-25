@@ -1,3 +1,4 @@
+
 import { BluetoothVINScanner } from './scanners/bluetooth-scanner';
 import { WebcamVINScanner } from './scanners/webcam-scanner';
 import { supabase } from "@/integrations/supabase/client";
@@ -38,7 +39,18 @@ export interface VehicleLocation {
   address: Json;
 }
 
-export async function createVINScanner(): Promise<VINScannerHardware> {
+interface VehicleTransitData {
+  id: string;
+  delivery_status: string;
+  pickup_status: string;
+  pickup_confirmation: string | null;
+  delivery_confirmation: string | null;
+  created_at: string;
+  make: string;
+  model: string;
+}
+
+async function createVINScanner(): Promise<VINScannerHardware> {
   const bluetoothScanner = new BluetoothVINScanner();
   if (await bluetoothScanner.isAvailable()) {
     console.log('Using Bluetooth VIN scanner');
@@ -54,11 +66,11 @@ export async function createVINScanner(): Promise<VINScannerHardware> {
   throw new Error('No VIN scanner hardware available');
 }
 
-export function validateVIN(vin: string): boolean {
+function validateVIN(vin: string): boolean {
   return vin.length === 17 && /^[A-HJ-NP-TV-Z0-9]{17}$/.test(vin);
 }
 
-export async function decodeVIN(vin: string): Promise<any> {
+async function decodeVIN(vin: string): Promise<any> {
   try {
     const { data, error } = await supabase.functions.invoke('decode-vin', {
       body: { vin }
@@ -119,11 +131,11 @@ export async function getVehicleDetails(vehicleId: string) {
 
   if (transitError) throw transitError;
 
-  const transitHistory: TransitRecord[] = (transitData || []).map(record => ({
+  const transitHistory: TransitRecord[] = (transitData || []).map((record: VehicleTransitData) => ({
     id: record.id,
     status: record.delivery_status || record.pickup_status,
     pickup_date: record.pickup_confirmation || record.created_at,
-    delivery_date: record.delivery_confirmation,
+    delivery_date: record.delivery_confirmation || undefined,
     vehicle_id: vehicleId
   }));
 
