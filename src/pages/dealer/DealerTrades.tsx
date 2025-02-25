@@ -1,5 +1,5 @@
 
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { useQuery } from "@tanstack/react-query";
 import { useAuth } from "@/components/auth/AuthProvider";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
@@ -14,6 +14,8 @@ import {
 } from "@/components/ui/table";
 import { CarFront, Building2, ArrowLeftRight } from "lucide-react";
 import { supabase } from "@/integrations/supabase/client";
+import { useNavigate } from "react-router-dom";
+import { useToast } from "@/hooks/use-toast";
 
 type TradeStatus = 'pending' | 'accepted' | 'rejected' | 'completed';
 
@@ -35,8 +37,38 @@ interface Trade {
 }
 
 export default function DealerTrades() {
-  const { organization } = useAuth();
+  const { organization, user } = useAuth();
+  const navigate = useNavigate();
+  const { toast } = useToast();
   const [selectedVehicle, setSelectedVehicle] = useState<string | null>(null);
+
+  // Check if user has dealer role
+  useEffect(() => {
+    const checkDealerRole = async () => {
+      if (!user?.id) {
+        navigate("/auth");
+        return;
+      }
+
+      const { data, error } = await supabase
+        .from('organization_roles')
+        .select('role_type')
+        .eq('organization_id', organization?.id)
+        .single();
+
+      if (error || data?.role_type !== 'dealer') {
+        toast({
+          variant: "destructive",
+          title: "Access Denied",
+          description: "You must be a dealer to access this page."
+        });
+        navigate("/");
+        return;
+      }
+    };
+
+    checkDealerRole();
+  }, [user, organization, navigate, toast]);
 
   const { data: trades, isLoading } = useQuery({
     queryKey: ['dealer-trades', organization?.id],
@@ -64,7 +96,11 @@ export default function DealerTrades() {
         .or(`source_dealer.eq.${organization.id},destination_dealer.eq.${organization.id}`);
 
       if (error) {
-        console.error('Error fetching trades:', error);
+        toast({
+          variant: "destructive",
+          title: "Error",
+          description: "Failed to fetch trades. Please try again later."
+        });
         return [];
       }
 
@@ -85,7 +121,11 @@ export default function DealerTrades() {
         .eq('status', 'available');
 
       if (error) {
-        console.error('Error fetching vehicles:', error);
+        toast({
+          variant: "destructive",
+          title: "Error",
+          description: "Failed to fetch available vehicles. Please try again later."
+        });
         return [];
       }
 
@@ -106,7 +146,17 @@ export default function DealerTrades() {
       });
 
     if (error) {
-      console.error('Error initiating trade:', error);
+      toast({
+        variant: "destructive",
+        title: "Error",
+        description: "Failed to initiate trade. Please try again later."
+      });
+    } else {
+      toast({
+        title: "Success",
+        description: "Trade initiated successfully."
+      });
+      setSelectedVehicle(null);
     }
   };
 
