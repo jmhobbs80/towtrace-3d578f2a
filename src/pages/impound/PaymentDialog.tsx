@@ -41,14 +41,13 @@ export function PaymentDialog({ impoundId, currentFees, onPaymentComplete }: Pay
       // First create a dummy job for the payment record since job_id is required
       const { data: job, error: jobError } = await supabase
         .from('tow_jobs')
-        .insert({
-          organization_id: organization.id,
-          service_type: 'impound',
+        .insert([{
+          service_type: 'transport',
           pickup_location: {},
           charge_amount: data.amount,
           payment_status: 'completed',
           status: 'completed'
-        })
+        }])
         .select()
         .single();
 
