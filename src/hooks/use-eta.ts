@@ -1,21 +1,19 @@
 
 import { useState, useCallback } from 'react';
-import type { Position } from '@capacitor/geolocation';
+import { Position } from '@capacitor/geolocation';
 
-interface Destination {
-  lat: number;
-  lng: number;
-}
-
-export const useETA = (destination?: Destination) => {
+export const useETA = () => {
   const [eta, setEta] = useState<number | null>(null);
 
   const calculateETA = useCallback((position: Position) => {
-    if (!destination || !position.coords.speed || position.coords.speed === 0) {
+    if (!position.coords.speed || position.coords.speed === 0) {
       setEta(null);
       return;
     }
 
+    // TODO: Replace with actual destination coordinates from job
+    const destination = { lat: 0, lng: 0 };
+    
     // Calculate distance in meters using Haversine formula
     const R = 6371e3;
     const φ1 = position.coords.latitude * Math.PI / 180;
@@ -31,10 +29,7 @@ export const useETA = (destination?: Destination) => {
 
     const etaMinutes = Math.round(distance / (position.coords.speed * 3.6) / 60);
     setEta(etaMinutes);
-  }, [destination]);
+  }, []);
 
-  return {
-    eta,
-    calculateETA
-  };
+  return { eta, calculateETA };
 };
