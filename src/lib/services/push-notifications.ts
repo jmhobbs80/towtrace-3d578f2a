@@ -47,7 +47,6 @@ export class PushNotificationService {
       const subscription = await this.swRegistration.pushManager.getSubscription();
       if (subscription) {
         console.log('Existing push subscription found');
-        // Update the subscription in the database
         await this.updateSubscriptionInDatabase(subscription);
       }
     } catch (error) {
@@ -103,7 +102,7 @@ export class PushNotificationService {
     };
   }
 
-  async subscribe() {
+  async subscribe(notificationTypes: string[] = ['jobs', 'billing', 'system']) {
     const permission = await this.requestPermission();
     if (permission !== 'granted') {
       throw new Error('Notification permission not granted');
@@ -124,7 +123,16 @@ export class PushNotificationService {
         throw new Error('User not authenticated');
       }
 
-      await this.updateSubscriptionInDatabase(subscription);
+      // Update subscription with notification preferences
+      await supabase
+        .from('push_subscriptions')
+        .upsert({
+          user_id: userId,
+          subscription: this.serializeSubscription(subscription),
+          notification_types: notificationTypes,
+          updated_at: new Date().toISOString()
+        });
+
       return subscription;
     } catch (error) {
       console.error('Failed to subscribe to push notifications:', error);
@@ -157,6 +165,45 @@ export class PushNotificationService {
       }
     } catch (error) {
       console.error('Error unsubscribing from push notifications:', error);
+      throw error;
+    }
+  }
+
+  async updateNotificationPreferences(preferences: {
+    push?: boolean;
+    sms?: boolean;
+    email?: boolean;
+    types?: string[];
+    phone?: string;
+  }) {
+    const userId = (await supabase.auth.getUser()).data.user?.id;
+    if (!userId) return;
+
+    try {
+      await supabase
+        .from('notification_preferences')
+        .upsert({
+          user_id: userId,
+          push_enabled: preferences.push,
+          sms_enabled: preferences.sms,
+          email_enabled: preferences.email,
+          notification_types: preferences.types,
+          phone_number: preferences.phone,
+          updated_at: new Date().toISOString()
+        });
+
+      if (preferences.push) {
+        await this.subscribe(preferences.types);
+      } else {
+        await this.unsubscribe();
+      }
+
+      toast({
+        title: "Preferences Updated",
+        description: "Your notification preferences have been saved."
+      });
+    } catch (error) {
+      console.error('Error updating notification preferences:', error);
       throw error;
     }
   }
