@@ -1,4 +1,3 @@
-
 import { useState } from "react";
 import { useNavigate, Link } from "react-router-dom";
 import { supabase } from "@/integrations/supabase/client";
@@ -171,7 +170,7 @@ export function SignInForm() {
         <SubmitButton loading={loading} />
       </form>
 
-      <div className="text-center space-y-4">
+      <div className="flex flex-col items-center space-y-6 pt-4">
         <PasswordResetDialog
           isOpen={isDialogOpen}
           onOpenChange={setIsDialogOpen}
@@ -184,20 +183,17 @@ export function SignInForm() {
         <button
           type="button"
           onClick={() => setIsDialogOpen(true)}
-          className="text-sm font-medium text-primary hover:text-primary/80 transition-colors duration-200"
+          className="text-sm text-primary hover:text-primary/80 transition-colors duration-200"
         >
           Forgot your password?
         </button>
-        <div className="pt-2 border-t border-border">
-          <p className="text-sm text-muted-foreground">
-            Don't have an account?{" "}
-            <Link 
-              to="/auth/signup" 
-              className="font-medium text-primary hover:text-primary/80 transition-colors duration-200"
-            >
-              Sign up now
-            </Link>
-          </p>
+        <div className="w-full text-center">
+          <Link 
+            to="/auth/signup" 
+            className="text-sm text-primary hover:text-primary/80 transition-colors duration-200"
+          >
+            Sign up now
+          </Link>
         </div>
       </div>
     </div>
