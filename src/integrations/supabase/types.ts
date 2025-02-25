@@ -1510,6 +1510,50 @@ export type Database = {
         }
         Relationships: []
       }
+      payment_notifications: {
+        Row: {
+          created_at: string | null
+          id: string
+          last_attempted: string | null
+          metadata: Json | null
+          notification_type: string
+          organization_id: string
+          payment_id: string
+          retry_count: number | null
+          status: string
+        }
+        Insert: {
+          created_at?: string | null
+          id?: string
+          last_attempted?: string | null
+          metadata?: Json | null
+          notification_type: string
+          organization_id: string
+          payment_id: string
+          retry_count?: number | null
+          status?: string
+        }
+        Update: {
+          created_at?: string | null
+          id?: string
+          last_attempted?: string | null
+          metadata?: Json | null
+          notification_type?: string
+          organization_id?: string
+          payment_id?: string
+          retry_count?: number | null
+          status?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "payment_notifications_organization_id_fkey"
+            columns: ["organization_id"]
+            isOneToOne: false
+            referencedRelation: "organizations"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       payments: {
         Row: {
           amount: number
@@ -2955,7 +2999,24 @@ export type Database = {
       }
     }
     Views: {
-      [_ in never]: never
+      fleet_analytics: {
+        Row: {
+          active_assignments: number | null
+          active_vehicles: number | null
+          in_maintenance: number | null
+          organization_id: string | null
+          total_vehicles: number | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "fleet_vehicles_organization_id_fkey"
+            columns: ["organization_id"]
+            isOneToOne: false
+            referencedRelation: "organizations"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
     }
     Functions: {
       calculate_optimal_route: {
@@ -3202,6 +3263,7 @@ export type Database = {
         | "super_admin"
         | "support_agent"
         | "billing_manager"
+        | "fleet_manager"
       auction_status: "draft" | "scheduled" | "live" | "ended" | "canceled"
       bid_status: "pending" | "accepted" | "rejected" | "expired"
       feature_category:
