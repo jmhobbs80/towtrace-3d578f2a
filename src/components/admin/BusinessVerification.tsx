@@ -15,7 +15,7 @@ export function BusinessVerification({
   const queryClient = useQueryClient();
 
   const handlePromoCodeCreated = () => {
-    queryClient.invalidateQueries(["promo-codes"]);
+    queryClient.invalidateQueries({ queryKey: ["promo-codes"] });
   };
 
   return (
