@@ -6,11 +6,14 @@ import { useToast } from "@/components/ui/use-toast";
 import { Clock, Truck, Check } from "lucide-react";
 import type { Job } from "@/lib/types/job";
 import { toLocation } from "@/lib/types/job";
+import type { Database } from "@/integrations/supabase/types";
 
 interface TowDetailsProps {
   jobId: string;
   onComplete: () => void;
 }
+
+type TowJobRow = Database["public"]["Tables"]["tow_jobs"]["Row"];
 
 export function TowDetails({ jobId, onComplete }: TowDetailsProps) {
   const [job, setJob] = useState<Job | null>(null);
@@ -30,7 +33,7 @@ export function TowDetails({ jobId, onComplete }: TowDetailsProps) {
           filter: `id=eq.${jobId}`,
         },
         (payload) => {
-          const rawJob = payload.new;
+          const rawJob = payload.new as TowJobRow;
           
           if (!rawJob) return;
           
