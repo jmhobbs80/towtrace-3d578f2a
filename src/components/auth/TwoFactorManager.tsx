@@ -16,24 +16,77 @@ export function TwoFactorManager() {
   const [qrCodeUrl, setQrCodeUrl] = useState("");
   const [totpCode, setTotpCode] = useState("");
   const [factorId, setFactorId] = useState("");
+  const [isOverwatchAdmin, setIsOverwatchAdmin] = useState(false);
+  const [backupCodes, setBackupCodes] = useState<string[]>([]);
+  const [failedAttempts, setFailedAttempts] = useState(0);
   const { user } = useAuth();
   const { toast } = useToast();
 
   useEffect(() => {
     checkTwoFactorStatus();
+    checkUserRole();
   }, []);
+
+  const checkUserRole = async () => {
+    try {
+      const { data, error } = await supabase
+        .from('user_roles')
+        .select('role')
+        .eq('user_id', user?.id)
+        .single();
+
+      if (error) throw error;
+      setIsOverwatchAdmin(data?.role === 'overwatch_admin');
+    } catch (error) {
+      console.error("Error checking user role:", error);
+    }
+  };
 
   const checkTwoFactorStatus = async () => {
     try {
       const { data: factors } = await supabase.auth.mfa.listFactors();
       setIsEnabled(factors?.totp?.length > 0);
       setIsLoading(false);
+
+      // Show warning for Overwatch Admins without 2FA
+      if (isOverwatchAdmin && !factors?.totp?.length) {
+        toast({
+          variant: "destructive",
+          title: "2FA Required",
+          description: "As an Overwatch Admin, you must enable two-factor authentication.",
+          duration: 0 // Non-dismissible
+        });
+      }
     } catch (error) {
       console.error("Error checking 2FA status:", error);
       toast({
         variant: "destructive",
         title: "Error",
         description: "Failed to check 2FA status"
+      });
+    }
+  };
+
+  const generateBackupCodes = async () => {
+    try {
+      const codes = Array.from({ length: 5 }, () => 
+        Math.random().toString(36).substring(2, 8).toUpperCase()
+      );
+      
+      await supabase.from('profiles')
+        .update({ two_factor_backup_codes: codes })
+        .eq('id', user?.id);
+
+      setBackupCodes(codes);
+      toast({
+        title: "Success",
+        description: "New backup codes have been generated. Save them in a secure location."
+      });
+    } catch (error) {
+      toast({
+        variant: "destructive",
+        title: "Error",
+        description: "Failed to generate backup codes"
       });
     }
   };
@@ -50,6 +103,7 @@ export function TwoFactorManager() {
         setFactorId(data.id);
         setQrCodeUrl(data.totp.qr_code);
         setShowSetup(true);
+        await generateBackupCodes();
       }
     } catch (error) {
       console.error("Error enabling 2FA:", error);
@@ -73,11 +127,34 @@ export function TwoFactorManager() {
           code: totpCode
         });
         
-        if (verifyError) throw verifyError;
+        if (verifyError) {
+          setFailedAttempts(prev => {
+            const newCount = prev + 1;
+            if (newCount >= 3) {
+              supabase.rpc('log_admin_action', {
+                action_type: 'failed_2fa_attempts',
+                entity_type: 'auth',
+                metadata: { attempts: newCount }
+              });
+            }
+            return newCount;
+          });
+          throw verifyError;
+        }
 
         await supabase.from('profiles')
-          .update({ two_factor_enabled: true })
+          .update({ 
+            two_factor_enabled: true,
+            last_two_factor_verification: new Date().toISOString()
+          })
           .eq('id', user?.id);
+
+        // Log successful 2FA setup
+        await supabase.rpc('log_admin_action', {
+          action_type: '2fa_enabled',
+          entity_type: 'auth',
+          metadata: { setup_type: 'totp' }
+        });
 
         toast({
           title: "Success",
@@ -85,6 +162,7 @@ export function TwoFactorManager() {
         });
         setShowSetup(false);
         setIsEnabled(true);
+        setFailedAttempts(0);
       }
     } catch (error) {
       toast({
@@ -96,13 +174,31 @@ export function TwoFactorManager() {
   };
 
   const handleDisable2FA = async () => {
+    if (isOverwatchAdmin) {
+      toast({
+        variant: "destructive",
+        title: "Action Not Allowed",
+        description: "Overwatch Admins cannot disable 2FA"
+      });
+      return;
+    }
+
     try {
       const { data, error } = await supabase.auth.mfa.unenroll({ factorId });
       if (error) throw error;
 
       await supabase.from('profiles')
-        .update({ two_factor_enabled: false })
+        .update({ 
+          two_factor_enabled: false,
+          two_factor_backup_codes: null 
+        })
         .eq('id', user?.id);
+
+      // Log 2FA disabled
+      await supabase.rpc('log_admin_action', {
+        action_type: '2fa_disabled',
+        entity_type: 'auth'
+      });
 
       toast({
         title: "Success",
@@ -149,15 +245,18 @@ export function TwoFactorManager() {
               <AlertTitle>2FA is enabled</AlertTitle>
               <AlertDescription>
                 Your account is protected with two-factor authentication.
+                {isOverwatchAdmin && " This is required for your role."}
               </AlertDescription>
             </Alert>
-            <Button
-              variant="destructive"
-              onClick={handleDisable2FA}
-              className="w-full"
-            >
-              Disable 2FA
-            </Button>
+            {!isOverwatchAdmin && (
+              <Button
+                variant="destructive"
+                onClick={handleDisable2FA}
+                className="w-full"
+              >
+                Disable 2FA
+              </Button>
+            )}
           </>
         ) : (
           <>
@@ -165,7 +264,9 @@ export function TwoFactorManager() {
               <AlertTriangle className="h-4 w-4" />
               <AlertTitle>2FA is not enabled</AlertTitle>
               <AlertDescription>
-                Enable two-factor authentication for additional security.
+                {isOverwatchAdmin 
+                  ? "As an Overwatch Admin, you must enable two-factor authentication to continue."
+                  : "Enable two-factor authentication for additional security."}
               </AlertDescription>
             </Alert>
             <Button 
