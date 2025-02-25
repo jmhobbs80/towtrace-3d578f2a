@@ -11,7 +11,7 @@ export function useSignUpForm() {
   const [firstName, setFirstName] = useState("");
   const [lastName, setLastName] = useState("");
   const [phoneNumber, setPhoneNumber] = useState("");
-  const [role, setRole] = useState<UserRole>("driver");
+  const [role, setRole] = useState<UserRole>("provider");  // Changed from 'driver' to 'provider'
   const [loading, setLoading] = useState(false);
   const [preferPush, setPreferPush] = useState(false);
   const [preferSMS, setPreferSMS] = useState(false);

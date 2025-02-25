@@ -11,7 +11,7 @@ export default function ProfileSettings() {
   const [lastName, setLastName] = useState("");
   const [email, setEmail] = useState(user?.email || "");
   const [password, setPassword] = useState("");
-  const [role, setRole] = useState<UserRole>("driver");
+  const [role, setRole] = useState<UserRole>("provider");  // Changed from 'driver' to 'provider'
   const [companyName, setCompanyName] = useState("");
 
   return (
