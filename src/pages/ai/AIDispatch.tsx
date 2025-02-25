@@ -1,4 +1,3 @@
-
 import { useState, useCallback } from "react";
 import { useQuery, useMutation } from "@tanstack/react-query";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
@@ -39,9 +38,13 @@ type DatabaseJob = {
   priority?: number;
 }
 
-type DriverProfile = {
+interface DriverProfile {
   first_name: string | null;
   last_name: string | null;
+}
+
+interface DatabaseJobWithDriver extends DatabaseJob {
+  profiles: DriverProfile | null;
 }
 
 export default function AIDispatch() {
@@ -57,7 +60,7 @@ export default function AIDispatch() {
         .from('tow_jobs')
         .select(`
           *,
-          driver:profiles!driver_id(first_name, last_name)
+          profiles:profiles(first_name, last_name)
         `)
         .in('status', ['pending', 'assigned', 'en_route'])
         .order('priority', { ascending: false });
@@ -65,17 +68,15 @@ export default function AIDispatch() {
       if (error) throw error;
       if (!data) return [];
 
-      const transformedJobs = data.map((job: DatabaseJob & { driver: DriverProfile | null }) => ({
+      return (data as DatabaseJobWithDriver[]).map(job => ({
         ...job,
         pickup_location: toLocation(job.pickup_location) || { address: 'Unknown' },
         delivery_location: job.delivery_location ? toLocation(job.delivery_location) : undefined,
-        driver: job.driver ? {
-          first_name: job.driver.first_name || '',
-          last_name: job.driver.last_name || ''
+        driver: job.profiles ? {
+          first_name: job.profiles.first_name || '',
+          last_name: job.profiles.last_name || ''
         } : undefined
       })) as Job[];
-
-      return transformedJobs;
     }
   });
 
