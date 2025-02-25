@@ -1,21 +1,7 @@
 
 import { Button } from "@/components/ui/button";
-import { Input } from "@/components/ui/input";
-import { Label } from "@/components/ui/label";
 import { useSignUpForm } from "@/hooks/use-signup-form";
-import { FormHeader } from "@/components/auth/components/FormHeader";
-import { EmailInput } from "@/components/auth/components/EmailInput";
-import { PasswordInput } from "@/components/auth/components/PasswordInput";
-import { 
-  Select,
-  SelectContent,
-  SelectItem,
-  SelectTrigger,
-  SelectValue,
-} from "@/components/ui/select";
-import { UserRole } from "@/lib/types/auth";
-import { useState } from "react";
-import { cn } from "@/lib/utils";
+import { PersonalInfoSection } from "./PersonalInfoSection";
 
 export function SignUpForm() {
   const {
@@ -52,110 +38,21 @@ export function SignUpForm() {
 
   return (
     <div className="w-full max-w-md mx-auto space-y-6">
-      <FormHeader />
       <form onSubmit={handleSubmit} className="space-y-6 animate-fade-in">
-        <div className="grid grid-cols-2 gap-4">
-          <div className="space-y-2">
-            <Label htmlFor="firstName" className="font-medium">First Name</Label>
-            <Input
-              id="firstName"
-              value={firstName}
-              onChange={(e) => setFirstName(e.target.value)}
-              className={cn(
-                "h-11 transition-all duration-200 hover:border-primary/50 focus:border-primary",
-                !firstName && "border-input"
-              )}
-              placeholder="John"
-              required
-            />
-          </div>
-          <div className="space-y-2">
-            <Label htmlFor="lastName" className="font-medium">Last Name</Label>
-            <Input
-              id="lastName"
-              value={lastName}
-              onChange={(e) => setLastName(e.target.value)}
-              className={cn(
-                "h-11 transition-all duration-200 hover:border-primary/50 focus:border-primary",
-                !lastName && "border-input"
-              )}
-              placeholder="Doe"
-              required
-            />
-          </div>
-        </div>
-
-        <div className="space-y-2">
-          <Label htmlFor="email" className="font-medium">Email</Label>
-          <EmailInput
-            value={email}
-            onChange={setEmail}
-          />
-        </div>
-
-        <div className="space-y-2">
-          <Label htmlFor="password" className="font-medium">Password</Label>
-          <PasswordInput
-            value={password}
-            onChange={setPassword}
-          />
-        </div>
-
-        <div className="space-y-2">
-          <Label htmlFor="companyName" className="font-medium">Company Name</Label>
-          <Input
-            id="companyName"
-            value={companyName}
-            onChange={(e) => setCompanyName(e.target.value)}
-            className={cn(
-              "h-11 transition-all duration-200 hover:border-primary/50 focus:border-primary",
-              !companyName && "border-input"
-            )}
-            placeholder="Your Company"
-            required
-          />
-        </div>
-
-        <div className="space-y-2">
-          <Label htmlFor="role" className="font-medium">Role</Label>
-          <Select value={role} onValueChange={(value) => setRole(value as UserRole)}>
-            <SelectTrigger className="h-11 transition-all duration-200 hover:border-primary/50 focus:border-primary">
-              <SelectValue placeholder="Select your role" />
-            </SelectTrigger>
-            <SelectContent className="max-h-[280px]">
-              <SelectItem value="dealer" className="py-3">
-                <div className="space-y-1">
-                  <div className="font-medium">Dealer</div>
-                  <div className="text-xs text-muted-foreground">For automotive dealerships managing vehicle inventory</div>
-                </div>
-              </SelectItem>
-              <SelectItem value="dispatcher" className="py-3">
-                <div className="space-y-1">
-                  <div className="font-medium">Dispatcher</div>
-                  <div className="text-xs text-muted-foreground">For managing tow truck operations and assignments</div>
-                </div>
-              </SelectItem>
-              <SelectItem value="driver" className="py-3">
-                <div className="space-y-1">
-                  <div className="font-medium">Driver</div>
-                  <div className="text-xs text-muted-foreground">For tow truck operators and field personnel</div>
-                </div>
-              </SelectItem>
-              <SelectItem value="wholesaler" className="py-3">
-                <div className="space-y-1">
-                  <div className="font-medium">Wholesaler</div>
-                  <div className="text-xs text-muted-foreground">For wholesale vehicle buyers and sellers</div>
-                </div>
-              </SelectItem>
-              <SelectItem value="overwatch_admin" className="py-3">
-                <div className="space-y-1">
-                  <div className="font-medium">Overwatch Admin</div>
-                  <div className="text-xs text-muted-foreground">For system administrators and oversight</div>
-                </div>
-              </SelectItem>
-            </SelectContent>
-          </Select>
-        </div>
+        <PersonalInfoSection
+          firstName={firstName}
+          setFirstName={setFirstName}
+          lastName={lastName}
+          setLastName={setLastName}
+          email={email}
+          setEmail={setEmail}
+          password={password}
+          setPassword={setPassword}
+          role={role}
+          setRole={setRole}
+          companyName={companyName}
+          setCompanyName={setCompanyName}
+        />
 
         <div className="space-y-2">
           <Label htmlFor="promoCode" className="font-medium flex items-center justify-between">

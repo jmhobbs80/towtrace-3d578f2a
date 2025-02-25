@@ -15,6 +15,5 @@ export const authRoutes: RouteConfig[] = [
     path: "/notifications",
     element: <NotificationCenter />,
     allowedRoles: ROLE_ACCESS.PUBLIC
-  },
-  // Profile and settings routes will be added here
+  }
 ];
