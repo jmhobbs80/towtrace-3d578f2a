@@ -1,10 +1,11 @@
+
 import { useQuery } from "@tanstack/react-query";
 import { supabase } from "@/integrations/supabase/client";
-import { toLocation } from "@/lib/utils";
+import { toLocation } from "@/lib/types/job";
 
 interface Location {
   address: string;
-  // Add other location properties as needed
+  coordinates?: [number, number];
 }
 
 interface DatabaseJob {
@@ -51,7 +52,7 @@ export default function AIDispatch() {
   const { data: jobs = [], isLoading } = useQuery({
     queryKey: ['active-jobs'],
     queryFn: async () => {
-      const { data, error } = await supabase
+      const { data: jobData, error } = await supabase
         .from('tow_jobs')
         .select(`
           *,
@@ -61,9 +62,9 @@ export default function AIDispatch() {
         .order('priority', { ascending: false });
 
       if (error) throw error;
-      if (!data) return [];
+      if (!jobData) return [];
 
-      return data.map((job: DatabaseJob) => ({
+      return jobData.map((job: DatabaseJob) => ({
         ...job,
         pickup_location: toLocation(job.pickup_location) || { address: 'Unknown' },
         delivery_location: job.delivery_location ? toLocation(job.delivery_location) : undefined,
