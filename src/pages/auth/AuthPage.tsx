@@ -4,25 +4,23 @@ import { supabase } from "@/integrations/supabase/client";
 import { useToast } from "@/hooks/use-toast";
 import { SignInForm } from "@/components/auth/SignInForm";
 import { SignUpForm } from "@/components/auth/SignUpForm";
+import TowTraceLogo from "@/assets/towtrace-logo.png"; // Ensure correct logo import
 
 export default function AuthPage() {
   const [isSignUp, setIsSignUp] = useState(false);
   const [searchParams] = useSearchParams();
   const navigate = useNavigate();
   const { toast } = useToast();
-  const [loading, setLoading] = useState(true); // Prevents premature navigation
+  const [loading, setLoading] = useState(true);
 
   useEffect(() => {
     const checkSession = async () => {
       try {
         setLoading(true);
-
-        // Fetch the current session
         const { data: { session }, error } = await supabase.auth.getSession();
         if (error) throw error;
 
         if (session) {
-          // Fetch user role for redirection
           const { data: roleData, error: roleError } = await supabase
             .from("user_roles")
             .select("role")
@@ -31,7 +29,6 @@ export default function AuthPage() {
 
           if (roleError) throw roleError;
 
-          // Role-based redirect logic
           switch (roleData?.role) {
             case "admin":
             case "overwatch_admin":
@@ -55,18 +52,14 @@ export default function AuthPage() {
           description: "Failed to check authentication status",
         });
       } finally {
-        setLoading(false); // Ensure loading state is removed
+        setLoading(false);
       }
     };
 
-    // Listen for auth state changes
     const { data: authListener } = supabase.auth.onAuthStateChange((_event, session) => {
-      if (session) {
-        checkSession();
-      }
+      if (session) checkSession();
     });
 
-    // Handle password reset confirmation
     if (searchParams.get("type") === "recovery") {
       toast({
         title: "Reset Password",
@@ -86,7 +79,18 @@ export default function AuthPage() {
   }, [searchParams]);
 
   return (
-    <div className="min-h-screen flex items-center justify-center bg-gray-50 py-12 px-4 sm:px-6 lg:px-8">
+    <div className="min-h-screen flex flex-col items-center justify-center bg-gray-50 py-12 px-4 sm:px-6 lg:px-8">
+      {/* ✅ Fix 1: Ensure TowTrace Logo is Visible */}
+      <img src={TowTraceLogo} alt="TowTrace" className="w-32 mb-4" />
+
+      {/* ✅ Fix 2: Add Pre-Sign-Up Text */}
+      {isSignUp ? (
+        <p className="text-gray-700 text-sm mb-2">Create an account to manage your fleet with TowTrace.</p>
+      ) : (
+        <p className="text-gray-700 text-sm mb-2">Sign in to continue managing your fleet.</p>
+      )}
+
+      {/* ✅ Fix 3: Remove Extra Forgot Password Links - They Are Handled in SignInForm.tsx */}
       {loading ? (
         <div className="text-gray-500 text-sm">Checking authentication...</div>
       ) : isSignUp ? (
