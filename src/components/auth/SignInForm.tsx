@@ -1,3 +1,4 @@
+
 import { useState, useEffect } from "react";
 import { useNavigate } from "react-router-dom";
 import { supabase } from "@/integrations/supabase/client";
@@ -44,6 +45,8 @@ export function SignInForm() {
   const [showTotpSetup, setShowTotpSetup] = useState(false);
   const [totpSecret, setTotpSecret] = useState("");
   const [qrCodeUrl, setQrCodeUrl] = useState("");
+  const [factorId, setFactorId] = useState<string>("");
+  const [challengeId, setChallengeId] = useState<string>("");
   const navigate = useNavigate();
   const { toast } = useToast();
 
@@ -67,8 +70,14 @@ export function SignInForm() {
 
   async function setupTwoFactor() {
     try {
-      const { data: { secret, qr } } = await supabase.auth.mfa.enroll();
-      if (secret && qr) {
+      const { data: { id, secret, qr }, error } = await supabase.auth.mfa.enroll({
+        factorType: 'totp'
+      });
+      
+      if (error) throw error;
+      
+      if (id && secret && qr) {
+        setFactorId(id);
         setTotpSecret(secret);
         setQrCodeUrl(qr);
         setShowTotpSetup(true);
@@ -85,14 +94,27 @@ export function SignInForm() {
 
   async function verifyTwoFactor() {
     try {
-      const { error } = await supabase.auth.mfa.verify({ code: totpCode });
-      if (error) throw error;
+      // First create a challenge
+      const { data: challenge, error: challengeError } = await supabase.auth.mfa.challenge({ factorId });
+      if (challengeError) throw challengeError;
       
-      toast({
-        title: "2FA Verified",
-        description: "Two-factor authentication has been enabled",
-      });
-      setShowTotpSetup(false);
+      if (challenge) {
+        // Then verify with the challenge
+        const { error: verifyError } = await supabase.auth.mfa.verify({
+          factorId,
+          challengeId: challenge.id,
+          code: totpCode
+        });
+        
+        if (verifyError) throw verifyError;
+
+        toast({
+          title: "2FA Verified",
+          description: "Two-factor authentication has been enabled",
+        });
+        setShowTotpSetup(false);
+        navigate("/");
+      }
     } catch (error) {
       toast({
         variant: "destructive",
