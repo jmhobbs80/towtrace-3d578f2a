@@ -7,7 +7,7 @@ import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { Textarea } from "@/components/ui/textarea";
-import { useToast } from "@/components/ui/use-toast";
+import { useToast } from "@/hooks/use-toast";
 import { useAuth } from "@/components/auth/AuthProvider";
 import { useQuery } from "@tanstack/react-query";
 import { supabase } from "@/integrations/supabase/client";
@@ -48,7 +48,7 @@ export function AddImpoundedVehicleDialog() {
     if (!organization?.id) return;
 
     try {
-      // First create the vehicle record
+      // First create the vehicle record with a valid status
       const { data: vehicleData, error: vehicleError } = await supabase
         .from('inventory_vehicles')
         .insert({
@@ -57,7 +57,7 @@ export function AddImpoundedVehicleDialog() {
           model: data.model,
           year: parseInt(data.year),
           organization_id: organization.id,
-          status: 'impounded'
+          status: 'maintenance' // Using a valid status since 'impounded' isn't in the enum
         })
         .select()
         .single();
