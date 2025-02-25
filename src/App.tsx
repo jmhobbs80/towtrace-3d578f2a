@@ -16,6 +16,8 @@ import VehicleDetails from './pages/inventory/VehicleDetails';
 import VehiclesInTransit from './pages/transport/VehiclesInTransit';
 import FleetManagement from './pages/fleet/FleetManagement';
 import ProfileSettings from './pages/profile/ProfileSettings';
+import RepairDashboard from './pages/repairs/RepairDashboard';
+import RepairFacilityManagement from './pages/repairs/RepairFacilityManagement';
 
 function App() {
   return (
@@ -174,6 +176,32 @@ function App() {
                   <Sidebar />
                   <SidebarInset>
                     <ProfileSettings />
+                  </SidebarInset>
+                </SidebarProvider>
+              </ProtectedRoute>
+            }
+          />
+          <Route
+            path="/repairs"
+            element={
+              <ProtectedRoute>
+                <SidebarProvider>
+                  <Sidebar />
+                  <SidebarInset>
+                    <RepairDashboard />
+                  </SidebarInset>
+                </SidebarProvider>
+              </ProtectedRoute>
+            }
+          />
+          <Route
+            path="/repairs/facilities"
+            element={
+              <ProtectedRoute>
+                <SidebarProvider>
+                  <Sidebar />
+                  <SidebarInset>
+                    <RepairFacilityManagement />
                   </SidebarInset>
                 </SidebarProvider>
               </ProtectedRoute>
