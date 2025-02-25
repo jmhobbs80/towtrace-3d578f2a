@@ -20,9 +20,11 @@ export function PromoCodeForm({ onSuccess }: PromoCodeFormProps) {
   const [loading, setLoading] = useState(false);
 
   const generateUniqueCode = () => {
+    // Using timestamp + random for better uniqueness
+    const timestamp = Date.now().toString(36);
+    const randomPart = Math.random().toString(36).substring(2, 5).toUpperCase();
     const prefix = "TRIAL";
-    const randomStr = Math.random().toString(36).substring(2, 7).toUpperCase();
-    setNewCode(`${prefix}${randomStr}`);
+    setNewCode(`${prefix}${timestamp.slice(-3)}${randomPart}`);
   };
 
   const createPromoCode = async () => {
