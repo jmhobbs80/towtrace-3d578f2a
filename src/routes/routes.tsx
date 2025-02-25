@@ -19,6 +19,7 @@ import CustomerPortal from "@/pages/impound/customer/CustomerPortal";
 import DealerTrades from "@/pages/dealer/DealerTrades";
 import { SidebarLayout } from "@/components/layouts/SidebarLayout";
 import PreferredTransporters from "@/pages/transport/PreferredTransporters";
+import RequestTow from "@/pages/public/RequestTow";
 
 export const routes: RouteObject[] = [
   {
@@ -99,6 +100,10 @@ export const routes: RouteObject[] = [
       {
         path: "/transport/preferred",
         element: <PreferredTransporters />,
+      },
+      {
+        path: "/request-tow",
+        element: <RequestTow />,
       }
     ]
   }
