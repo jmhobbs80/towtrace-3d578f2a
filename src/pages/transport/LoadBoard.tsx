@@ -19,6 +19,22 @@ import { MapPin, Calendar, Package } from "lucide-react";
 import type { Load, Dimensions, PriceRange } from "@/lib/types/load";
 import { CreateLoadDialog } from "@/components/transport/CreateLoadDialog";
 
+// Type guard functions
+function isDimensions(value: unknown): value is Dimensions {
+  if (!value || typeof value !== 'object') return false;
+  const dims = value as Partial<Dimensions>;
+  return typeof dims.length === 'number' 
+    && typeof dims.width === 'number' 
+    && typeof dims.height === 'number' 
+    && (dims.unit === 'ft' || dims.unit === 'm');
+}
+
+function isPriceRange(value: unknown): value is PriceRange {
+  if (!value || typeof value !== 'object') return false;
+  const range = value as Partial<PriceRange>;
+  return typeof range.min === 'number' && typeof range.max === 'number';
+}
+
 export default function LoadBoard() {
   const { toast } = useToast();
   const [isCreateDialogOpen, setIsCreateDialogOpen] = useState(false);
@@ -45,11 +61,11 @@ export default function LoadBoard() {
         ...load,
         pickup_location: load.pickup_location as { address: string },
         delivery_location: load.delivery_location as { address: string },
-        requirements: (load.requirements as string[]) || [],
-        photos: (load.photos as string[]) || [],
-        dimensions: (load.dimensions as Dimensions | undefined) || undefined,
-        weight: load.weight || undefined,
-        price_range: (load.price_range as PriceRange | undefined) || undefined,
+        requirements: Array.isArray(load.requirements) ? load.requirements : [],
+        photos: Array.isArray(load.photos) ? load.photos : [],
+        dimensions: isDimensions(load.dimensions) ? load.dimensions : undefined,
+        weight: typeof load.weight === 'number' ? load.weight : undefined,
+        price_range: isPriceRange(load.price_range) ? load.price_range : undefined,
         assigned_to: load.assigned_to || undefined,
         description: load.description || undefined
       }));
