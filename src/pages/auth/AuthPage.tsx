@@ -1,4 +1,3 @@
-
 import { useEffect, useState } from "react";
 import { useNavigate, useSearchParams } from "react-router-dom";
 import { supabase } from "@/integrations/supabase/client";
@@ -127,11 +126,8 @@ export default function AuthPage() {
   return (
     <div className="min-h-screen flex flex-col items-center justify-center bg-background py-12 px-4 sm:px-6 lg:px-8">
       <div className="w-full max-w-md mb-8">
-        <div className="flex flex-col items-center justify-center space-y-4">
+        <div className="flex justify-center">
           <Logo size="lg" className="animate-fade-in" />
-          <h2 className="mt-2 text-center text-2xl font-semibold tracking-tight text-foreground animate-fade-in">
-            Welcome to TowTrace
-          </h2>
         </div>
       </div>
       {renderAuthContent()}
