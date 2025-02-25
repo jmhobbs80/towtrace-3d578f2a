@@ -22,7 +22,7 @@ import {
 } from "@/components/ui/form";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import { useForm } from "react-hook-form";
-import { ImageIcon, Loader2 } from "lucide-react";
+import { ImageIcon, Loader2, KeyIcon, MailIcon } from "lucide-react";
 
 interface ProfileFormData {
   first_name: string;
@@ -49,6 +49,10 @@ export default function ProfileSettings() {
   const { toast } = useToast();
   const [isLoading, setIsLoading] = useState(false);
   const [isUploading, setIsUploading] = useState(false);
+  const [isChangingPassword, setIsChangingPassword] = useState(false);
+  const [isSendingVerification, setIsSendingVerification] = useState(false);
+  const [newPassword, setNewPassword] = useState("");
+  const [confirmPassword, setConfirmPassword] = useState("");
   
   const form = useForm<ProfileFormData>({
     defaultValues: async () => {
@@ -108,19 +112,16 @@ export default function ProfileSettings() {
       const fileExt = file.name.split('.').pop();
       const filePath = `${user.id}/avatar.${fileExt}`;
 
-      // Upload the file to Supabase storage
       const { error: uploadError, data } = await supabase.storage
         .from('avatars')
         .upload(filePath, file, { upsert: true });
 
       if (uploadError) throw uploadError;
 
-      // Get the public URL
       const { data: { publicUrl } } = supabase.storage
         .from('avatars')
         .getPublicUrl(filePath);
 
-      // Update the profile with the new avatar URL
       const { error: updateError } = await supabase
         .from('profiles')
         .update({ avatar_url: publicUrl })
@@ -128,7 +129,6 @@ export default function ProfileSettings() {
 
       if (updateError) throw updateError;
 
-      // Update the form
       form.setValue('avatar_url', publicUrl);
 
       toast({
@@ -146,6 +146,73 @@ export default function ProfileSettings() {
     }
   }
 
+  async function handlePasswordChange() {
+    if (!user) return;
+    
+    try {
+      setIsChangingPassword(true);
+
+      if (newPassword !== confirmPassword) {
+        toast({
+          title: "Error",
+          description: "Passwords do not match.",
+          variant: "destructive",
+        });
+        return;
+      }
+
+      const { error } = await supabase.auth.updateUser({
+        password: newPassword
+      });
+
+      if (error) throw error;
+
+      toast({
+        title: "Password updated",
+        description: "Your password has been successfully changed.",
+      });
+
+      setNewPassword("");
+      setConfirmPassword("");
+    } catch (error) {
+      toast({
+        title: "Error",
+        description: "Failed to update password. Please try again.",
+        variant: "destructive",
+      });
+    } finally {
+      setIsChangingPassword(false);
+    }
+  }
+
+  async function sendVerificationEmail() {
+    if (!user?.email) return;
+
+    try {
+      setIsSendingVerification(true);
+
+      const { error } = await supabase.auth.resend({
+        type: 'signup',
+        email: user.email,
+      });
+
+      if (error) throw error;
+
+      toast({
+        title: "Verification email sent",
+        description: "Please check your email to verify your account.",
+      });
+    } catch (error) {
+      toast({
+        title: "Error",
+        description: "Failed to send verification email. Please try again.",
+        variant: "destructive",
+      });
+    } finally {
+      setIsSendingVerification(false);
+    }
+  }
+
   if (!user) return null;
 
   return (
@@ -157,7 +224,7 @@ export default function ProfileSettings() {
             Manage your profile information and preferences
           </CardDescription>
         </CardHeader>
-        <CardContent>
+        <CardContent className="space-y-6">
           <div className="mb-6 flex flex-col items-center space-y-4">
             <Avatar className="h-20 w-20">
               <AvatarImage src={form.watch("avatar_url")} />
@@ -230,7 +297,22 @@ export default function ProfileSettings() {
                   <FormItem>
                     <FormLabel>Email</FormLabel>
                     <FormControl>
-                      <Input type="email" placeholder="john@example.com" {...field} />
+                      <div className="flex space-x-2">
+                        <Input type="email" placeholder="john@example.com" {...field} />
+                        <Button
+                          type="button"
+                          variant="outline"
+                          onClick={sendVerificationEmail}
+                          disabled={isSendingVerification}
+                        >
+                          {isSendingVerification ? (
+                            <Loader2 className="mr-2 h-4 w-4 animate-spin" />
+                          ) : (
+                            <MailIcon className="mr-2 h-4 w-4" />
+                          )}
+                          Verify Email
+                        </Button>
+                      </div>
                     </FormControl>
                     <FormMessage />
                   </FormItem>
@@ -285,6 +367,43 @@ export default function ProfileSettings() {
               </Button>
             </form>
           </Form>
+
+          <div className="space-y-4 border-t pt-6">
+            <h3 className="text-lg font-medium">Change Password</h3>
+            <div className="space-y-4">
+              <div>
+                <FormLabel>New Password</FormLabel>
+                <Input
+                  type="password"
+                  value={newPassword}
+                  onChange={(e) => setNewPassword(e.target.value)}
+                  placeholder="Enter new password"
+                />
+              </div>
+              <div>
+                <FormLabel>Confirm Password</FormLabel>
+                <Input
+                  type="password"
+                  value={confirmPassword}
+                  onChange={(e) => setConfirmPassword(e.target.value)}
+                  placeholder="Confirm new password"
+                />
+              </div>
+              <Button
+                type="button"
+                variant="outline"
+                onClick={handlePasswordChange}
+                disabled={isChangingPassword || !newPassword || !confirmPassword}
+              >
+                {isChangingPassword ? (
+                  <Loader2 className="mr-2 h-4 w-4 animate-spin" />
+                ) : (
+                  <KeyIcon className="mr-2 h-4 w-4" />
+                )}
+                Update Password
+              </Button>
+            </div>
+          </div>
         </CardContent>
       </Card>
     </div>

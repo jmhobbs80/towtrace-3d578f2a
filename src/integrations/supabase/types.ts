@@ -566,8 +566,10 @@ export type Database = {
           company: string | null
           created_at: string
           email: string | null
+          email_verified: boolean | null
           first_name: string | null
           id: string
+          last_email_verification_sent: string | null
           last_name: string | null
           last_seen: string | null
           notification_preferences: Json | null
@@ -582,8 +584,10 @@ export type Database = {
           company?: string | null
           created_at?: string
           email?: string | null
+          email_verified?: boolean | null
           first_name?: string | null
           id: string
+          last_email_verification_sent?: string | null
           last_name?: string | null
           last_seen?: string | null
           notification_preferences?: Json | null
@@ -598,8 +602,10 @@ export type Database = {
           company?: string | null
           created_at?: string
           email?: string | null
+          email_verified?: boolean | null
           first_name?: string | null
           id?: string
+          last_email_verification_sent?: string | null
           last_name?: string | null
           last_seen?: string | null
           notification_preferences?: Json | null
