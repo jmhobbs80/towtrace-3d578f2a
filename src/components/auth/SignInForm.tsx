@@ -9,6 +9,7 @@ import { EmailInput } from "./components/EmailInput";
 import { PasswordInput } from "./components/PasswordInput";
 import { SubmitButton } from "./components/SubmitButton";
 import { isValidEmail } from "./utils/validation";
+import { Logo } from "@/components/branding/Logo";
 
 export function SignInForm() {
   const [email, setEmail] = useState("");
@@ -145,7 +146,8 @@ export function SignInForm() {
 
   return (
     <div className="w-full max-w-md mx-auto space-y-8">
-      <div className="text-center space-y-2">
+      <div className="flex flex-col items-center space-y-6">
+        <Logo size="lg" className="w-auto" />
         <h1 className="text-2xl font-semibold text-foreground">
           Sign in to your account
         </h1>
