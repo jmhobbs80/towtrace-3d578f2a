@@ -25,7 +25,17 @@ const pathNames: Record<string, string> = {
   legal: "Legal",
   "legal/terms": "Terms of Service",
   "legal/privacy": "Privacy Policy",
-  "legal/compliance": "Compliance"
+  "legal/compliance": "Compliance",
+  "dealer/inventory": "Inventory Management",
+  "dealer/repairs": "Repair Tracking",
+  "dealer/repairs/create": "Create Repair Order",
+  "dealer/repairs/dashboard": "Repair Dashboard",
+  "dealer/repairs/facilities": "Repair Facilities",
+  "dealer/transport-requests": "Transport Requests",
+  "dealer/vehicles-in-transit": "Vehicles in Transit",
+  "dealer/preferred-transporters": "Preferred Transporters",
+  "dealer/inventory/inspections": "Inspection History",
+  "dealer/inventory/templates": "Inspection Templates",
 };
 
 export function PageBreadcrumbs() {

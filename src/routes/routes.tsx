@@ -11,8 +11,15 @@ import DispatchDashboard from "@/pages/dispatch/DispatchDashboard";
 import FleetManagement from "@/pages/fleet/FleetManagement";
 import VehicleDetails from "@/pages/fleet/VehicleDetails";
 import InventoryManagement from "@/pages/inventory/InventoryManagement";
+import VehicleInspectionDetails from "@/pages/inventory/InspectionDetails";
+import InspectionHistoryDashboard from "@/pages/inventory/InspectionHistoryDashboard";
+import InspectionTemplates from "@/pages/inventory/InspectionTemplates";
 import RepairTracking from "@/pages/repairs/RepairTracking";
+import CreateRepairOrder from "@/pages/repairs/CreateRepairOrder";
+import RepairDashboard from "@/pages/repairs/RepairDashboard";
+import RepairFacilityManagement from "@/pages/repairs/RepairFacilityManagement";
 import TransportRequests from "@/pages/transport/TransportRequests";
+import VehiclesInTransit from "@/pages/transport/VehiclesInTransit";
 import PreferredTransporters from "@/pages/transport/PreferredTransporters";
 import BillingDashboard from "@/pages/billing/BillingDashboard";
 import InvoiceList from "@/pages/billing/InvoiceList";
@@ -54,52 +61,68 @@ const ROLE_ACCESS = {
   PUBLIC: [] as UserRole[],
 } as const;
 
-interface RouteConfig {
-  path: string;
-  element: React.ReactNode;
-  allowedRoles: UserRole[];
-  children?: RouteConfig[];
-}
-
-const protectedRoutes: RouteConfig[] = [
+const protectedRoutes = [
   {
     path: "/dashboard",
     element: <Dashboard />,
     allowedRoles: ROLE_ACCESS.ADMIN
   },
-  {
-    path: "/analytics",
-    element: <AnalyticsDashboard />,
-    allowedRoles: ROLE_ACCESS.ANALYTICS
-  },
-  {
-    path: "/analytics/reports",
-    element: <ReportBuilder />,
-    allowedRoles: ROLE_ACCESS.ANALYTICS
-  },
-  {
-    path: "/fleet",
-    element: <FleetManagement />,
-    allowedRoles: ROLE_ACCESS.FLEET
-  },
-  {
-    path: "/fleet/:vehicleId",
-    element: <VehicleDetails />,
-    allowedRoles: ROLE_ACCESS.FLEET
-  },
+  // Dealer Vehicle Management Routes
   {
     path: "/dealer/inventory",
     element: <InventoryManagement />,
     allowedRoles: ROLE_ACCESS.DEALER
   },
   {
+    path: "/dealer/inventory/:vehicleId",
+    element: <VehicleDetails />,
+    allowedRoles: ROLE_ACCESS.DEALER
+  },
+  {
+    path: "/dealer/inventory/inspections",
+    element: <InspectionHistoryDashboard />,
+    allowedRoles: ROLE_ACCESS.DEALER
+  },
+  {
+    path: "/dealer/inventory/inspections/:inspectionId",
+    element: <VehicleInspectionDetails />,
+    allowedRoles: ROLE_ACCESS.DEALER
+  },
+  {
+    path: "/dealer/inventory/templates",
+    element: <InspectionTemplates />,
+    allowedRoles: ROLE_ACCESS.DEALER
+  },
+  // Repair Tracking Routes
+  {
     path: "/dealer/repairs",
     element: <RepairTracking />,
     allowedRoles: ROLE_ACCESS.DEALER
   },
   {
+    path: "/dealer/repairs/create",
+    element: <CreateRepairOrder />,
+    allowedRoles: ROLE_ACCESS.DEALER
+  },
+  {
+    path: "/dealer/repairs/dashboard",
+    element: <RepairDashboard />,
+    allowedRoles: ROLE_ACCESS.DEALER
+  },
+  {
+    path: "/dealer/repairs/facilities",
+    element: <RepairFacilityManagement />,
+    allowedRoles: ROLE_ACCESS.DEALER
+  },
+  // Transport Routes
+  {
     path: "/dealer/transport-requests",
     element: <TransportRequests />,
+    allowedRoles: ROLE_ACCESS.DEALER
+  },
+  {
+    path: "/dealer/vehicles-in-transit",
+    element: <VehiclesInTransit />,
     allowedRoles: ROLE_ACCESS.DEALER
   },
   {
@@ -246,15 +269,7 @@ export const router = createBrowserRouter([
             <ProtectedRoute allowedRoles={route.allowedRoles}>
               {route.element}
             </ProtectedRoute>
-          ),
-          children: route.children?.map(child => ({
-            path: route.path + "/" + child.path,
-            element: (
-              <ProtectedRoute allowedRoles={route.allowedRoles}>
-                {child.element}
-              </ProtectedRoute>
-            )
-          }))
+          )
         }))
       },
       {
