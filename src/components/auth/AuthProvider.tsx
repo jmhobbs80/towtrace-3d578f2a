@@ -6,6 +6,7 @@ import type { UserRole } from "@/lib/types/auth";
 import { useSessionManager } from "./SessionManager";
 import { useOrganizationManager, Organization } from "./OrganizationManager";
 import { useUserProfileManager } from "./UserProfileManager";
+import { useIsMobile } from "@/hooks/use-mobile";
 
 interface AuthContextType {
   user: User | null;
@@ -27,6 +28,8 @@ const AuthContext = createContext<AuthContextType>({
 
 export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children }) => {
   const navigate = useNavigate();
+  const isMobile = useIsMobile();
+  
   const { 
     user, 
     loading, 
@@ -68,7 +71,14 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
       switchOrganization 
     }}>
       {isReconnecting && (
-        <div className="fixed top-0 left-0 right-0 bg-primary/90 text-white py-2 text-center text-sm">
+        <div 
+          className={`
+            fixed top-0 left-0 right-0 
+            bg-primary/90 text-white 
+            ${isMobile ? 'py-1 text-xs' : 'py-2 text-sm'}
+            text-center transition-all duration-300
+          `}
+        >
           Attempting to restore your session... {reconnectAttempts}/{maxReconnectAttempts}
         </div>
       )}
