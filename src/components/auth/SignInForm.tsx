@@ -1,14 +1,12 @@
+
 import { useState } from "react";
-import { useNavigate, Link } from "react-router-dom";
+import { useNavigate } from "react-router-dom";
 import { supabase } from "@/integrations/supabase/client";
-import { Label } from "@/components/ui/label";
 import { useToast } from "@/hooks/use-toast";
-import { PasswordResetDialog } from "./PasswordResetDialog";
-import { EmailInput } from "./components/EmailInput";
-import { PasswordInput } from "./components/PasswordInput";
-import { SubmitButton } from "./components/SubmitButton";
 import { isValidEmail } from "./utils/validation";
-import { Logo } from "@/components/branding/Logo";
+import { FormHeader } from "./components/FormHeader";
+import { SignInFields } from "./components/SignInFields";
+import { AuthLinks } from "./components/AuthLinks";
 
 export function SignInForm() {
   const [email, setEmail] = useState("");
@@ -145,57 +143,24 @@ export function SignInForm() {
 
   return (
     <div className="w-full max-w-md mx-auto space-y-8">
-      <div className="flex flex-col items-center space-y-6">
-        <Logo size="lg" className="w-auto" />
-        <h1 className="text-2xl font-semibold text-foreground">
-          Sign in to your account
-        </h1>
-      </div>
-
-      <form onSubmit={handleSubmit} className="space-y-6">
-        <div className="space-y-2">
-          <Label htmlFor="email" className="text-sm font-medium text-foreground">
-            Email
-          </Label>
-          <EmailInput value={email} onChange={setEmail} />
-        </div>
-
-        <div className="space-y-2">
-          <Label htmlFor="password" className="text-sm font-medium text-foreground">
-            Password
-          </Label>
-          <PasswordInput value={password} onChange={setPassword} />
-        </div>
-
-        <SubmitButton loading={loading} />
-      </form>
-
-      <div className="flex flex-col items-center space-y-6 pt-4">
-        <PasswordResetDialog
-          isOpen={isDialogOpen}
-          onOpenChange={setIsDialogOpen}
-          resetEmail={resetEmail}
-          onResetEmailChange={setResetEmail}
-          resetStep={resetStep}
-          isResetting={isResetting}
-          onSubmit={handleResetSubmit}
-        />
-        <button
-          type="button"
-          onClick={() => setIsDialogOpen(true)}
-          className="text-sm text-primary hover:text-primary/80 transition-colors duration-200"
-        >
-          Forgot your password?
-        </button>
-        <div className="w-full text-center">
-          <Link 
-            to="/auth/signup" 
-            className="text-sm text-primary hover:text-primary/80 transition-colors duration-200"
-          >
-            Sign up now
-          </Link>
-        </div>
-      </div>
+      <FormHeader />
+      <SignInFields
+        email={email}
+        setEmail={setEmail}
+        password={password}
+        setPassword={setPassword}
+        loading={loading}
+        onSubmit={handleSubmit}
+      />
+      <AuthLinks
+        isDialogOpen={isDialogOpen}
+        onOpenChange={setIsDialogOpen}
+        resetEmail={resetEmail}
+        onResetEmailChange={setResetEmail}
+        resetStep={resetStep}
+        isResetting={isResetting}
+        onResetSubmit={handleResetSubmit}
+      />
     </div>
   );
 }
