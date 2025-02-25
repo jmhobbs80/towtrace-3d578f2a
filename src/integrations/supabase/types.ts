@@ -182,6 +182,66 @@ export type Database = {
           },
         ]
       }
+      impound_notifications: {
+        Row: {
+          created_at: string | null
+          id: string
+          impound_id: string | null
+          message: string
+          metadata: Json | null
+          organization_id: string | null
+          recipient_email: string | null
+          recipient_phone: string | null
+          sent_at: string | null
+          status: string | null
+          title: string
+          type: string
+        }
+        Insert: {
+          created_at?: string | null
+          id?: string
+          impound_id?: string | null
+          message: string
+          metadata?: Json | null
+          organization_id?: string | null
+          recipient_email?: string | null
+          recipient_phone?: string | null
+          sent_at?: string | null
+          status?: string | null
+          title: string
+          type: string
+        }
+        Update: {
+          created_at?: string | null
+          id?: string
+          impound_id?: string | null
+          message?: string
+          metadata?: Json | null
+          organization_id?: string | null
+          recipient_email?: string | null
+          recipient_phone?: string | null
+          sent_at?: string | null
+          status?: string | null
+          title?: string
+          type?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "impound_notifications_impound_id_fkey"
+            columns: ["impound_id"]
+            isOneToOne: false
+            referencedRelation: "impounded_vehicles"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "impound_notifications_organization_id_fkey"
+            columns: ["organization_id"]
+            isOneToOne: false
+            referencedRelation: "organizations"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       impounded_vehicles: {
         Row: {
           created_at: string | null
