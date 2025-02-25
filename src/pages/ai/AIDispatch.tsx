@@ -1,4 +1,3 @@
-
 import { useState, useCallback } from "react";
 import { useQuery, useMutation } from "@tanstack/react-query";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
@@ -11,6 +10,17 @@ import { supabase } from "@/integrations/supabase/client";
 import { Brain, AlertTriangle, Truck } from "lucide-react";
 import type { Job } from "@/lib/types/job";
 import { toLocation } from "@/lib/types/job";
+
+interface JobWithDriver extends Omit<Job, 'driver'> {
+  driver?: {
+    first_name: string;
+    last_name: string;
+  };
+  driver_profile?: {
+    first_name: string;
+    last_name: string;
+  } | null;
+}
 
 export default function AIDispatch() {
   const [isOptimizing, setIsOptimizing] = useState(false);
@@ -48,7 +58,7 @@ export default function AIDispatch() {
           notes,
           service_type,
           priority,
-          driver:profiles(first_name, last_name)
+          driver_profile:profiles!driver_id(first_name, last_name)
         `)
         .in('status', ['pending', 'assigned', 'en_route'])
         .order('priority', { ascending: false });
@@ -56,13 +66,13 @@ export default function AIDispatch() {
       if (error) throw error;
       if (!rawJobs) return [];
 
-      return rawJobs.map(job => ({
+      return (rawJobs as JobWithDriver[]).map(job => ({
         ...job,
         pickup_location: toLocation(job.pickup_location) || { address: 'Unknown' },
         delivery_location: job.delivery_location ? toLocation(job.delivery_location) : undefined,
-        driver: job.driver ? {
-          first_name: job.driver.first_name,
-          last_name: job.driver.last_name
+        driver: job.driver_profile ? {
+          first_name: job.driver_profile.first_name,
+          last_name: job.driver_profile.last_name
         } : undefined
       })) as Job[];
     }
