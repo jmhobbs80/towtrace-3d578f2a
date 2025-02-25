@@ -1,4 +1,3 @@
-
 import { useState } from "react";
 import { supabase } from "@/integrations/supabase/client";
 import { useToast } from "@/hooks/use-toast";
@@ -11,7 +10,7 @@ export function useSignUpForm() {
   const [firstName, setFirstName] = useState("");
   const [lastName, setLastName] = useState("");
   const [phoneNumber, setPhoneNumber] = useState("");
-  const [role, setRole] = useState<UserRole>("provider");  // Changed from 'driver' to 'provider'
+  const [role, setRole] = useState<UserRole>("provider");
   const [loading, setLoading] = useState(false);
   const [preferPush, setPreferPush] = useState(false);
   const [preferSMS, setPreferSMS] = useState(false);
@@ -29,7 +28,6 @@ export function useSignUpForm() {
       return null;
     }
 
-    // Get the promo code details directly from the table
     const { data: promoData, error: promoError } = await supabase
       .from('promo_codes')
       .select('*')
@@ -43,14 +41,12 @@ export function useSignUpForm() {
       return null;
     }
 
-    // Check usage limits
     if (promoData.max_uses && promoData.times_used >= promoData.max_uses) {
       setPromoCodeValid(false);
       setPromoCodeMessage("This promo code has reached its usage limit");
       return null;
     }
 
-    // Check expiration
     if (promoData.expires_at && new Date(promoData.expires_at) < new Date()) {
       setPromoCodeValid(false);
       setPromoCodeMessage("This promo code has expired");
@@ -83,29 +79,31 @@ export function useSignUpForm() {
     return true;
   }
 
+  const validateSignUpData = () => {
+    if (!email || !password || !firstName || !lastName || !role || !companyName) {
+      throw new Error("Please fill in all required fields");
+    }
+
+    if (!preferPush && !preferSMS) {
+      throw new Error("Please enable either push notifications or SMS");
+    }
+
+    if (preferSMS && !phoneNumber) {
+      throw new Error("Phone number is required for SMS notifications");
+    }
+
+    if (password.length < 6) {
+      throw new Error("Password must be at least 6 characters long");
+    }
+  };
+
   async function handleSubmit(e: React.FormEvent) {
     e.preventDefault();
     setLoading(true);
 
     try {
-      // Validation
-      if (!email || !password || !firstName || !lastName || !role || !companyName) {
-        throw new Error("Please fill in all required fields");
-      }
+      validateSignUpData();
 
-      if (!preferPush && !preferSMS) {
-        throw new Error("Please enable either push notifications or SMS");
-      }
-
-      if (preferSMS && !phoneNumber) {
-        throw new Error("Phone number is required for SMS notifications");
-      }
-
-      if (password.length < 6) {
-        throw new Error("Password must be at least 6 characters long");
-      }
-
-      // Sign up
       const { error: signUpError, data: signUpData } = await supabase.auth.signUp({
         email,
         password,
@@ -123,13 +121,11 @@ export function useSignUpForm() {
 
       if (signUpError) throw signUpError;
 
-      // Set up notifications
       const notificationSetupSuccess = await setupNotifications();
       if (!notificationSetupSuccess && !preferSMS) {
         throw new Error("Failed to set up notifications");
       }
 
-      // Update profile with notification preferences
       const { error: profileError } = await supabase
         .from('profiles')
         .update({
