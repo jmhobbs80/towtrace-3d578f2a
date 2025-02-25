@@ -5,6 +5,7 @@ import { Input } from "@/components/ui/input";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { useToast } from "@/components/ui/use-toast";
 import { placeBid, subscribeToBids } from '@/lib/api/auctions';
+import { supabase } from "@/integrations/supabase/client";
 import type { AuctionItem, AuctionBid } from '@/lib/types/auction';
 
 interface BiddingInterfaceProps {
@@ -29,9 +30,9 @@ export function BiddingInterface({ item, onBidPlaced }: BiddingInterfaceProps) {
     });
 
     return () => {
-      subscription.then(channel => supabase.removeChannel(channel));
+      subscription.then(channel => channel && supabase.removeChannel(channel));
     };
-  }, [item.id, onBidPlaced]);
+  }, [item.id, onBidPlaced, toast]);
 
   const handleSubmitBid = async () => {
     try {

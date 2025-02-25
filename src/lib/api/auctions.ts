@@ -1,3 +1,4 @@
+import { RealtimeChannel } from '@supabase/supabase-js';
 import { supabase } from "@/integrations/supabase/client";
 import type { Auction, AuctionItem, AuctionBid } from "../types/auction";
 
@@ -78,9 +79,9 @@ export async function getAuctionDetails(auctionId: string) {
   return data;
 }
 
-export async function subscribeToBids(auctionItemId: string, callback: (bid: AuctionBid) => void) {
+export async function subscribeToBids(auctionItemId: string, callback: (bid: AuctionBid) => void): Promise<RealtimeChannel> {
   return supabase
-    .channel('auction-bids')
+    .channel(`auction-bids-${auctionItemId}`)
     .on(
       'postgres_changes',
       {
@@ -89,7 +90,7 @@ export async function subscribeToBids(auctionItemId: string, callback: (bid: Auc
         table: 'auction_bids',
         filter: `auction_item_id=eq.${auctionItemId}`
       },
-      callback
+      (payload) => callback(payload.new as AuctionBid)
     )
     .subscribe();
 }
