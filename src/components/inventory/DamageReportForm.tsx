@@ -1,4 +1,3 @@
-
 import { useState } from "react";
 import { useForm } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
@@ -22,7 +21,7 @@ import {
 } from "@/components/ui/select";
 import { PhotoPreview } from "./PhotoPreview";
 import { createDamageReport, uploadVehiclePhotos } from "@/lib/api/vehicles";
-import type { VehicleDamageSeverity } from "@/lib/types/vehicles";
+import type { CreateDamageReport, VehicleDamageSeverity } from "@/lib/api/vehicles";
 
 const formSchema = z.object({
   severity: z.enum(['none', 'minor', 'moderate', 'severe'] as const),
@@ -53,20 +52,19 @@ export function DamageReportForm({ vehicleId, onSuccess }: DamageReportFormProps
     try {
       setIsSubmitting(true);
       
-      // Upload photos first
       const photoUrls = photos.length > 0 
         ? await uploadVehiclePhotos(vehicleId, photos)
         : [];
 
-      // Create damage report
-      await createDamageReport(vehicleId, {
+      const reportData: CreateDamageReport = {
         severity: values.severity as VehicleDamageSeverity,
         description: values.description,
         repair_estimate: values.repair_estimate,
         damage_locations: values.damage_locations,
         photos: photoUrls,
-      });
+      };
 
+      await createDamageReport(vehicleId, reportData);
       onSuccess();
     } catch (error) {
       console.error('Error creating damage report:', error);

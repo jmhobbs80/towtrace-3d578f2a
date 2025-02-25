@@ -4,18 +4,23 @@ import { supabase } from "@/integrations/supabase/client";
 import type { VINScannerHardware } from './scanner-types';
 import type { Json } from '@/integrations/supabase/types';
 
+export type { VINScannerHardware };
+
 export type VehicleDamageSeverity = 'none' | 'minor' | 'moderate' | 'severe';
 export type VehicleCondition = 'excellent' | 'good' | 'fair' | 'poor' | 'damaged' | 'salvage';
 
-export interface DamageReport {
-  id: string;
-  vehicle_id: string;
-  inspector_id: string;
-  damage_locations: Json;
+export interface CreateDamageReport {
   severity: VehicleDamageSeverity;
   description?: string;
   repair_estimate?: number;
+  damage_locations: Json;
   photos: string[];
+}
+
+export interface DamageReport extends CreateDamageReport {
+  id: string;
+  vehicle_id: string;
+  inspector_id: string;
   created_at: string;
   updated_at: string;
 }
@@ -117,7 +122,14 @@ export async function getVehicleDetails(vehicleId: string) {
 
   const { data: transitData, error: transitError } = await supabase
     .from('vehicles_in_transit')
-    .select('*')
+    .select(`
+      id,
+      delivery_status,
+      pickup_confirmation,
+      delivery_confirmation,
+      created_at,
+      vehicle_id
+    `)
     .eq('vehicle_id', vehicleId);
 
   if (transitError) throw transitError;
@@ -158,7 +170,7 @@ export async function updateVehicleStatus(
   return data;
 }
 
-export async function createDamageReport(vehicleId: string, report: DamageReport) {
+export async function createDamageReport(vehicleId: string, report: CreateDamageReport): Promise<DamageReport> {
   const { data, error } = await supabase
     .from('vehicle_damage_reports')
     .insert({
