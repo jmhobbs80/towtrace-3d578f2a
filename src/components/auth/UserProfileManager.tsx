@@ -3,6 +3,10 @@ import { useState, useCallback } from "react";
 import { supabase } from "@/integrations/supabase/client";
 import type { UserRole } from "@/lib/types/auth";
 
+const VALID_ROLES = ['admin', 'dispatcher', 'driver', 'dealer', 'wholesaler', 
+                     'overwatch_admin', 'super_admin', 'support_agent', 
+                     'billing_manager'] as const;
+
 export const useUserProfileManager = () => {
   const [userRole, setUserRole] = useState<UserRole | null>(null);
 
@@ -19,12 +23,9 @@ export const useUserProfileManager = () => {
         return;
       }
 
-      if (data?.role) {
-        if (['admin', 'dispatcher', 'driver', 'dealer', 'wholesaler', 
-             'overwatch_admin', 'super_admin', 'support_agent', 
-             'billing_manager'].includes(data.role)) {
-          setUserRole(data.role as UserRole);
-        }
+      const role = data?.role;
+      if (role && VALID_ROLES.includes(role as UserRole)) {
+        setUserRole(role as UserRole);
       }
     } catch (error) {
       console.error('Failed to fetch user role:', error);

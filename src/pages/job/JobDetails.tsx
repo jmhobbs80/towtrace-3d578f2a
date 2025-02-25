@@ -13,49 +13,58 @@ export default function JobDetails() {
   const { data: job, isLoading, error } = useQuery({
     queryKey: ['job', jobId],
     queryFn: async () => {
-      const { data, error } = await supabase
+      // First, get the job details
+      const { data: jobData, error: jobError } = await supabase
         .from('tow_jobs')
-        .select(`
-          *,
-          driver:driver_id(
-            first_name,
-            last_name
-          )
-        `)
+        .select('*')
         .eq('id', jobId)
         .single();
       
-      if (error) throw error;
+      if (jobError) throw jobError;
+
+      // Then, if there's a driver_id, get the driver details
+      let driverData = null;
+      if (jobData.driver_id) {
+        const { data: driver, error: driverError } = await supabase
+          .from('profiles')
+          .select('first_name, last_name')
+          .eq('id', jobData.driver_id)
+          .single();
+
+        if (!driverError) {
+          driverData = driver;
+        }
+      }
 
       const transformedJob: Job = {
-        id: data.id,
-        pickup_location: toLocation(data.pickup_location) || { address: 'Unknown location' },
-        delivery_location: toLocation(data.delivery_location),
-        assigned_to: data.driver_id,
-        status: data.status,
-        description: data.description,
-        charge_amount: data.charge_amount,
-        completed_at: data.completed_at,
-        created_at: data.created_at,
-        updated_at: data.updated_at,
-        customer_id: data.customer_id,
-        dispatcher_id: data.dispatcher_id,
-        driver_id: data.driver_id,
-        driver_notes: data.driver_notes,
-        eta: data.eta,
-        mileage: data.mileage,
-        organization_id: data.organization_id,
-        payment_status: data.payment_status,
-        photos: data.photos,
-        scheduled_time: data.scheduled_time,
-        signature_url: data.signature_url,
-        vehicle_id: data.vehicle_id,
-        service_type: data.service_type,
-        priority: data.priority,
-        notes: data.notes,
-        driver: data.driver ? {
-          first_name: data.driver.first_name,
-          last_name: data.driver.last_name
+        id: jobData.id,
+        pickup_location: toLocation(jobData.pickup_location) || { address: 'Unknown location' },
+        delivery_location: toLocation(jobData.delivery_location),
+        assigned_to: jobData.driver_id,
+        status: jobData.status,
+        description: jobData.description,
+        charge_amount: jobData.charge_amount,
+        completed_at: jobData.completed_at,
+        created_at: jobData.created_at,
+        updated_at: jobData.updated_at,
+        customer_id: jobData.customer_id,
+        dispatcher_id: jobData.dispatcher_id,
+        driver_id: jobData.driver_id,
+        driver_notes: jobData.driver_notes,
+        eta: jobData.eta,
+        mileage: jobData.mileage,
+        organization_id: jobData.organization_id,
+        payment_status: jobData.payment_status,
+        photos: jobData.photos,
+        scheduled_time: jobData.scheduled_time,
+        signature_url: jobData.signature_url,
+        vehicle_id: jobData.vehicle_id,
+        service_type: jobData.service_type,
+        priority: jobData.priority,
+        notes: jobData.notes,
+        driver: driverData ? {
+          first_name: driverData.first_name,
+          last_name: driverData.last_name
         } : undefined
       };
 
