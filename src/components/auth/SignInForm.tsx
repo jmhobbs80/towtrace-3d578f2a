@@ -1,4 +1,3 @@
-
 import { useState } from "react";
 import { useNavigate } from "react-router-dom";
 import { supabase } from "@/integrations/supabase/client";
@@ -52,7 +51,6 @@ export function SignInForm() {
         description: "Check your email for the password reset link",
       });
       
-      // Close dialog after successful reset
       setTimeout(() => {
         setIsDialogOpen(false);
         setResetStep(1);
@@ -100,7 +98,6 @@ export function SignInForm() {
         throw new Error("No session returned from authentication");
       }
 
-      // Get user role for redirection
       const { data: roleData, error: roleError } = await supabase
         .from('user_roles')
         .select('role')
@@ -112,7 +109,6 @@ export function SignInForm() {
         throw new Error("Could not fetch user role");
       }
 
-      // Role-based redirect
       switch (roleData.role) {
         case 'admin':
         case 'overwatch_admin':
@@ -167,7 +163,7 @@ export function SignInForm() {
               placeholder="name@example.com"
               value={email}
               onChange={(e) => setEmail(e.target.value)}
-              className="pl-10 h-11 text-base border-[#E5DEFF] focus:border-[#9b87f5] hover:border-[#9b87f5] rounded-lg shadow-sm"
+              className="pl-10 h-11 text-base border-[#E5DEFF] focus:border-[#9b87f5] hover:border-[#9b87f5] rounded-lg shadow-sm animate-scale"
               required
             />
           </div>
@@ -183,13 +179,13 @@ export function SignInForm() {
               placeholder="••••••••"
               value={password}
               onChange={(e) => setPassword(e.target.value)}
-              className="pl-10 pr-10 h-11 text-base border-[#E5DEFF] focus:border-[#9b87f5] hover:border-[#9b87f5] rounded-lg shadow-sm"
+              className="pl-10 pr-10 h-11 text-base border-[#E5DEFF] focus:border-[#9b87f5] hover:border-[#9b87f5] rounded-lg shadow-sm animate-scale"
               required
             />
             <button
               type="button"
               onClick={() => setShowPassword(!showPassword)}
-              className="absolute right-3 top-2.5 text-[#7E69AB] hover:text-[#9b87f5] focus:outline-none"
+              className="absolute right-3 top-2.5 text-[#7E69AB] hover:text-[#9b87f5] focus:outline-none transition-colors duration-200"
               aria-label={showPassword ? "Hide password" : "Show password"}
             >
               {showPassword ? (
@@ -203,18 +199,25 @@ export function SignInForm() {
 
         <Button
           type="submit"
-          className="w-full h-12 text-base font-medium bg-[#9b87f5] hover:bg-[#7E69AB] text-white transition-colors rounded-lg shadow-md disabled:opacity-50 disabled:cursor-not-allowed"
+          className="w-full h-12 text-base font-medium bg-[#9b87f5] hover:bg-[#7E69AB] text-white transition-colors rounded-lg shadow-md disabled:opacity-50 disabled:cursor-not-allowed animate-scale"
           disabled={loading}
         >
-          {loading ? "Signing in..." : "Sign In"}
+          {loading ? (
+            <div className="flex items-center gap-2">
+              <Loader2 className="h-4 w-4 animate-spin" />
+              <span>Signing in...</span>
+            </div>
+          ) : (
+            "Sign In"
+          )}
         </Button>
       </form>
 
-      <div className="text-center">
+      <div className="text-center animate-fade-in">
         <button
           type="button"
           onClick={() => setIsDialogOpen(true)}
-          className="text-sm text-[#7E69AB] hover:text-[#9b87f5]"
+          className="text-sm text-[#7E69AB] hover:text-[#9b87f5] transition-colors duration-200"
         >
           Forgot password?
         </button>
