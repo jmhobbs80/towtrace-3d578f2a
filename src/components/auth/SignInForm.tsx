@@ -291,7 +291,7 @@ export function SignInForm() {
         <TwoFactorSetup
           qrCodeUrl={qrCodeUrl}
           totpCode={totpCode}
-          onTotpCodeChange={handleTotpCodeChange}
+          onTotpCodeChange={(code) => setTotpCode(code)}
           onVerify={verifyTwoFactor}
         />
       ) : (
