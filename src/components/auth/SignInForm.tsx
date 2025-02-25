@@ -68,6 +68,16 @@ export function SignInForm() {
     return hoursSinceLastAttempt >= 1 && resetAttemptsCount < 3;
   };
 
+  const isValidPassword = (pwd: string) => {
+    return (
+      pwd.length >= PASSWORD_REQUIREMENTS.minLength &&
+      PASSWORD_REQUIREMENTS.hasNumber.test(pwd) &&
+      PASSWORD_REQUIREMENTS.hasSymbol.test(pwd) &&
+      PASSWORD_REQUIREMENTS.hasUppercase.test(pwd) &&
+      PASSWORD_REQUIREMENTS.hasLowercase.test(pwd)
+    );
+  };
+
   async function setupTwoFactor() {
     try {
       const { data, error } = await supabase.auth.mfa.enroll({
@@ -94,12 +104,10 @@ export function SignInForm() {
 
   async function verifyTwoFactor() {
     try {
-      // First create a challenge
       const { data: challenge, error: challengeError } = await supabase.auth.mfa.challenge({ factorId });
       if (challengeError) throw challengeError;
       
       if (challenge) {
-        // Then verify with the challenge
         const { error: verifyError } = await supabase.auth.mfa.verify({
           factorId,
           challengeId: challenge.id,
@@ -134,6 +142,16 @@ export function SignInForm() {
       });
       return;
     }
+
+    if (!isValidPassword(password)) {
+      toast({
+        variant: "destructive",
+        title: "Invalid password",
+        description: "Password must meet all security requirements",
+      });
+      return;
+    }
+
     setLoading(true);
 
     try {
