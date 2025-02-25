@@ -60,6 +60,24 @@ export interface Invoice {
   updated_at: string;
 }
 
+export interface SubscriptionPlan {
+  id: string;
+  name: string;
+  description?: string;
+  organization_type: OrganizationType;
+  base_price: number;
+  per_user_price: number;
+  per_vehicle_price: number;
+  interval: 'month' | 'year';
+  tier: string;
+  features: string[];
+  limits: Record<string, number>;
+  addon_roles: OrganizationType[];
+  addon_price: number;
+  volume_discount?: VolumeDiscount[];
+  is_active: boolean;
+}
+
 export interface ProviderBalance {
   id: string;
   organization_id: string;
