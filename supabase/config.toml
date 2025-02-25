@@ -3,7 +3,6 @@ project_id = "pfraresupodbfeggrwiy"
 
 [api]
 enabled = true
-url = "https://pfraresupodbfeggrwiy.supabase.co"
 
 [functions.create-checkout-session]
 verify_jwt = true
