@@ -15,6 +15,7 @@ import {
 } from "@/components/ui/select";
 import { UserRole } from "@/lib/types/auth";
 import { useState } from "react";
+import { cn } from "@/lib/utils";
 
 export function SignUpForm() {
   const {
@@ -55,29 +56,37 @@ export function SignUpForm() {
       <form onSubmit={handleSubmit} className="space-y-6 animate-fade-in">
         <div className="grid grid-cols-2 gap-4">
           <div className="space-y-2">
-            <Label htmlFor="firstName">First Name</Label>
+            <Label htmlFor="firstName" className="font-medium">First Name</Label>
             <Input
               id="firstName"
               value={firstName}
               onChange={(e) => setFirstName(e.target.value)}
-              className="h-11"
+              className={cn(
+                "h-11 transition-all duration-200 hover:border-primary/50 focus:border-primary",
+                !firstName && "border-input"
+              )}
+              placeholder="John"
               required
             />
           </div>
           <div className="space-y-2">
-            <Label htmlFor="lastName">Last Name</Label>
+            <Label htmlFor="lastName" className="font-medium">Last Name</Label>
             <Input
               id="lastName"
               value={lastName}
               onChange={(e) => setLastName(e.target.value)}
-              className="h-11"
+              className={cn(
+                "h-11 transition-all duration-200 hover:border-primary/50 focus:border-primary",
+                !lastName && "border-input"
+              )}
+              placeholder="Doe"
               required
             />
           </div>
         </div>
 
         <div className="space-y-2">
-          <Label htmlFor="email">Email</Label>
+          <Label htmlFor="email" className="font-medium">Email</Label>
           <EmailInput
             value={email}
             onChange={setEmail}
@@ -85,7 +94,7 @@ export function SignUpForm() {
         </div>
 
         <div className="space-y-2">
-          <Label htmlFor="password">Password</Label>
+          <Label htmlFor="password" className="font-medium">Password</Label>
           <PasswordInput
             value={password}
             onChange={setPassword}
@@ -93,35 +102,65 @@ export function SignUpForm() {
         </div>
 
         <div className="space-y-2">
-          <Label htmlFor="companyName">Company Name</Label>
+          <Label htmlFor="companyName" className="font-medium">Company Name</Label>
           <Input
             id="companyName"
             value={companyName}
             onChange={(e) => setCompanyName(e.target.value)}
-            className="h-11"
+            className={cn(
+              "h-11 transition-all duration-200 hover:border-primary/50 focus:border-primary",
+              !companyName && "border-input"
+            )}
+            placeholder="Your Company"
             required
           />
         </div>
 
         <div className="space-y-2">
-          <Label htmlFor="role">Role</Label>
+          <Label htmlFor="role" className="font-medium">Role</Label>
           <Select value={role} onValueChange={(value) => setRole(value as UserRole)}>
-            <SelectTrigger className="h-11">
-              <SelectValue placeholder="Select a role" />
+            <SelectTrigger className="h-11 transition-all duration-200 hover:border-primary/50 focus:border-primary">
+              <SelectValue placeholder="Select your role" />
             </SelectTrigger>
-            <SelectContent>
-              <SelectItem value="dealer">Dealer</SelectItem>
-              <SelectItem value="dispatcher">Dispatcher</SelectItem>
-              <SelectItem value="driver">Driver</SelectItem>
-              <SelectItem value="wholesaler">Wholesaler</SelectItem>
-              <SelectItem value="overwatch_admin">Overwatch Admin</SelectItem>
+            <SelectContent className="max-h-[280px]">
+              <SelectItem value="dealer" className="py-3">
+                <div className="space-y-1">
+                  <div className="font-medium">Dealer</div>
+                  <div className="text-xs text-muted-foreground">For automotive dealerships managing vehicle inventory</div>
+                </div>
+              </SelectItem>
+              <SelectItem value="dispatcher" className="py-3">
+                <div className="space-y-1">
+                  <div className="font-medium">Dispatcher</div>
+                  <div className="text-xs text-muted-foreground">For managing tow truck operations and assignments</div>
+                </div>
+              </SelectItem>
+              <SelectItem value="driver" className="py-3">
+                <div className="space-y-1">
+                  <div className="font-medium">Driver</div>
+                  <div className="text-xs text-muted-foreground">For tow truck operators and field personnel</div>
+                </div>
+              </SelectItem>
+              <SelectItem value="wholesaler" className="py-3">
+                <div className="space-y-1">
+                  <div className="font-medium">Wholesaler</div>
+                  <div className="text-xs text-muted-foreground">For wholesale vehicle buyers and sellers</div>
+                </div>
+              </SelectItem>
+              <SelectItem value="overwatch_admin" className="py-3">
+                <div className="space-y-1">
+                  <div className="font-medium">Overwatch Admin</div>
+                  <div className="text-xs text-muted-foreground">For system administrators and oversight</div>
+                </div>
+              </SelectItem>
             </SelectContent>
           </Select>
         </div>
 
         <div className="space-y-2">
-          <Label htmlFor="promoCode">
-            Promo Code <span className="text-muted-foreground">(Optional)</span>
+          <Label htmlFor="promoCode" className="font-medium flex items-center justify-between">
+            <span>Promo Code</span>
+            <span className="text-sm text-muted-foreground">(Optional)</span>
           </Label>
           <div className="relative">
             <Input
@@ -129,10 +168,12 @@ export function SignUpForm() {
               value={promoCode}
               onChange={(e) => setPromoCode(e.target.value.toUpperCase())}
               onBlur={handlePromoCodeBlur}
-              className={`h-11 ${
-                promoCodeValid === true ? 'border-green-500' : 
-                promoCodeValid === false ? 'border-red-500' : ''
-              }`}
+              className={cn(
+                "h-11 transition-all duration-200",
+                promoCodeValid === true && "border-green-500 focus:border-green-500",
+                promoCodeValid === false && "border-red-500 focus:border-red-500",
+                !promoCode && "border-input hover:border-primary/50 focus:border-primary"
+              )}
               placeholder="Enter promo code for 90-day trial"
             />
             {isValidatingPromo && (
@@ -142,9 +183,10 @@ export function SignUpForm() {
             )}
           </div>
           {promoCodeMessage && (
-            <p className={`text-sm ${
-              promoCodeValid ? 'text-green-500' : 'text-red-500'
-            }`}>
+            <p className={cn(
+              "text-sm transition-colors duration-200",
+              promoCodeValid ? "text-green-500" : "text-red-500"
+            )}>
               {promoCodeMessage}
             </p>
           )}
@@ -152,7 +194,10 @@ export function SignUpForm() {
 
         <Button
           type="submit"
-          className="w-full h-11"
+          className={cn(
+            "w-full h-11 transition-all duration-200",
+            loading && "animate-pulse"
+          )}
           disabled={loading}
         >
           {loading ? "Creating account..." : "Sign Up"}
