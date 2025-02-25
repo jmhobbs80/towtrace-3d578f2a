@@ -3,7 +3,7 @@ import type { VehicleInspection } from "./inspection";
 import type { VehicleInTransit } from "./fleet";
 import type { Json } from "@/integrations/supabase/types";
 
-export type VehicleStatus = 'available' | 'in_transit' | 'pending_inspection' | 'sold' | 'auction_ready' | 'maintenance';
+export type VehicleStatus = 'available' | 'in_transit' | 'pending_inspection' | 'sold' | 'auction_ready' | 'maintenance' | 'pending_repair' | 'in_repair';
 export type VehicleDamageSeverity = 'none' | 'minor' | 'moderate' | 'severe';
 export type VehicleInspectionResult = 'pass' | 'fail' | 'needs_repair';
 export type VehicleCondition = 'excellent' | 'good' | 'fair' | 'poor' | 'damaged' | 'salvage';
@@ -53,4 +53,3 @@ export interface VehicleSearchFilters {
   model?: string;
   status?: VehicleStatus;
 }
-

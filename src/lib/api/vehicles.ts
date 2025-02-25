@@ -31,7 +31,7 @@ export async function searchVehicles(filters: VehicleSearchFilters): Promise<Veh
 
   const { data, error } = await query;
   if (error) throw error;
-  return data;
+  return data as Vehicle[];
 }
 
 export async function getVehicleDetails(vehicleId: string): Promise<VehicleDetails> {

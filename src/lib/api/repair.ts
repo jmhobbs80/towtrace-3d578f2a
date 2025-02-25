@@ -134,8 +134,18 @@ export async function getRepairStats(organizationId: string): Promise<{
   totalCost: number;
 }> {
   const { data, error } = await supabase
-    .rpc('get_repair_stats', { org_id: organizationId });
+    .from('repair_orders')
+    .select('status, total_cost')
+    .eq('organization_id', organizationId);
 
   if (error) throw error;
-  return data;
+
+  const stats = {
+    totalOrders: data.length,
+    completedOrders: data.filter(order => order.status === 'completed').length,
+    averageCost: data.reduce((acc, order) => acc + (order.total_cost || 0), 0) / (data.length || 1),
+    totalCost: data.reduce((acc, order) => acc + (order.total_cost || 0), 0)
+  };
+
+  return stats;
 }
