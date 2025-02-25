@@ -24,9 +24,35 @@ export default function AuthPage() {
   useEffect(() => {
     const checkSession = async () => {
       try {
-        const { data: { session } } = await supabase.auth.getSession();
+        const { data: { session }, error } = await supabase.auth.getSession();
+        
+        if (error) throw error;
+
         if (session) {
-          navigate("/");
+          // Get user role for redirection
+          const { data: roleData, error: roleError } = await supabase
+            .from('user_roles')
+            .select('role')
+            .eq('user_id', session.user.id)
+            .single();
+
+          if (roleError) throw roleError;
+
+          // Role-based redirect
+          switch (roleData.role) {
+            case 'admin':
+            case 'overwatch_admin':
+              navigate('/admin');
+              break;
+            case 'dispatcher':
+              navigate('/dispatch');
+              break;
+            case 'fleet_manager':
+              navigate('/fleet');
+              break;
+            default:
+              navigate('/');
+          }
         }
       } catch (error) {
         console.error('Session check error:', error);
@@ -41,25 +67,10 @@ export default function AuthPage() {
     // Check if we're in a password reset flow
     const isReset = searchParams.get('type') === 'recovery';
     if (isReset) {
-      // Handle password reset
-      const handlePasswordReset = async () => {
-        try {
-          // The URL already contains the necessary tokens
-          // Just show a message to the user
-          toast({
-            title: "Reset Password",
-            description: "You can now set your new password by signing in.",
-          });
-        } catch (error) {
-          console.error('Password reset error:', error);
-          toast({
-            variant: "destructive",
-            title: "Reset error",
-            description: "Failed to process password reset",
-          });
-        }
-      };
-      handlePasswordReset();
+      toast({
+        title: "Reset Password",
+        description: "You can now set your new password by signing in.",
+      });
     } else {
       checkSession();
     }
