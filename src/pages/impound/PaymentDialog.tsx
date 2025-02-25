@@ -16,6 +16,8 @@ interface PaymentForm {
   method: 'cash' | 'credit_card' | 'check';
   reference_number?: string;
   notes?: string;
+  notify_email?: string;
+  notify_phone?: string;
 }
 
 interface PaymentDialogProps {
@@ -85,6 +87,19 @@ export function PaymentDialog({ impoundId, currentFees, onPaymentComplete }: Pay
 
       if (impoundError) throw impoundError;
 
+      // Send notification if email or phone is provided
+      if (data.notify_email || data.notify_phone) {
+        await supabase.functions.invoke('send-impound-notification', {
+          body: {
+            impoundId,
+            type: 'payment_received',
+            recipientEmail: data.notify_email,
+            recipientPhone: data.notify_phone,
+            message: `Payment of $${data.amount} has been processed for your impounded vehicle.`
+          }
+        });
+      }
+
       toast({
         title: "Payment Successful",
         description: "Payment has been processed and recorded.",
@@ -94,6 +109,7 @@ export function PaymentDialog({ impoundId, currentFees, onPaymentComplete }: Pay
       form.reset();
       onPaymentComplete?.();
     } catch (error) {
+      console.error('Payment processing error:', error);
       toast({
         title: "Error",
         description: "Failed to process payment. Please try again.",
@@ -149,6 +165,25 @@ export function PaymentDialog({ impoundId, currentFees, onPaymentComplete }: Pay
               id="reference_number"
               {...form.register("reference_number")}
               placeholder="Check number, transaction ID, etc."
+            />
+          </div>
+
+          <div className="space-y-2">
+            <Label htmlFor="notify_email">Notification Email (Optional)</Label>
+            <Input
+              id="notify_email"
+              type="email"
+              {...form.register("notify_email")}
+              placeholder="Email for payment receipt"
+            />
+          </div>
+
+          <div className="space-y-2">
+            <Label htmlFor="notify_phone">Notification Phone (Optional)</Label>
+            <Input
+              id="notify_phone"
+              {...form.register("notify_phone")}
+              placeholder="Phone number for SMS notification"
             />
           </div>
 
