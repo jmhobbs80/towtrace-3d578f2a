@@ -7,6 +7,7 @@ import { SignInForm } from "@/components/auth/SignInForm";
 import { SignUpForm } from "@/components/auth/SignUpForm";
 import { Card } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
+import { Logo } from "@/components/branding/Logo";
 
 export default function AuthPage() {
   const [isSignUp, setIsSignUp] = useState(false);
@@ -125,6 +126,14 @@ export default function AuthPage() {
 
   return (
     <div className="min-h-screen flex flex-col items-center justify-center bg-background py-12 px-4 sm:px-6 lg:px-8">
+      <div className="w-full max-w-md mb-8">
+        <div className="flex flex-col items-center justify-center space-y-4">
+          <Logo size="lg" className="animate-fade-in" />
+          <h2 className="mt-2 text-center text-2xl font-semibold tracking-tight text-foreground animate-fade-in">
+            Welcome to TowTrace
+          </h2>
+        </div>
+      </div>
       {renderAuthContent()}
     </div>
   );
