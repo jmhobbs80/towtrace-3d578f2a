@@ -5,6 +5,7 @@ import { Button } from "@/components/ui/button";
 import { useToast } from "@/components/ui/use-toast";
 import { Clock, Truck, Check } from "lucide-react";
 import type { Job } from "@/lib/types/job";
+import { toLocation } from "@/lib/types/job";
 
 interface TowDetailsProps {
   jobId: string;
@@ -29,7 +30,15 @@ export function TowDetails({ jobId, onComplete }: TowDetailsProps) {
           filter: `id=eq.${jobId}`,
         },
         (payload) => {
-          const updatedJob = payload.new as Job;
+          const rawJob = payload.new;
+          
+          // Convert the raw job data to match our Job type
+          const updatedJob: Job = {
+            ...rawJob,
+            pickup_location: toLocation(rawJob.pickup_location) || { address: 'Unknown location' },
+            delivery_location: toLocation(rawJob.delivery_location),
+          };
+          
           setJob(updatedJob);
           
           if (updatedJob.status === 'completed') {
@@ -61,7 +70,7 @@ export function TowDetails({ jobId, onComplete }: TowDetailsProps) {
   useEffect(() => {
     // Fetch initial job details
     const fetchJob = async () => {
-      const { data, error } = await supabase
+      const { data: rawJob, error } = await supabase
         .from('tow_jobs')
         .select('*')
         .eq('id', jobId)
@@ -76,7 +85,14 @@ export function TowDetails({ jobId, onComplete }: TowDetailsProps) {
         return;
       }
 
-      setJob(data);
+      // Convert the raw job data to match our Job type
+      const job: Job = {
+        ...rawJob,
+        pickup_location: toLocation(rawJob.pickup_location) || { address: 'Unknown location' },
+        delivery_location: toLocation(rawJob.delivery_location),
+      };
+
+      setJob(job);
     };
 
     fetchJob();
