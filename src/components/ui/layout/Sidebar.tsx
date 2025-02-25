@@ -2,7 +2,8 @@
 import { useState } from "react";
 import { 
   Menu, X, Home, Truck, Users, FileText, Settings, LogOut, 
-  Building, Wrench, CarFront, ArrowLeftRight, BarChart2 
+  Building, Wrench, CarFront, ArrowLeftRight, Banknote,
+  BarChart2, Tool, ShoppingCart, Gavel
 } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { cn } from "@/lib/utils";
@@ -26,6 +27,63 @@ export const Sidebar = () => {
 
   const navigationItems: NavigationItem[] = [
     { name: "Dashboard", icon: Home, href: "/" },
+    // Dealer features
+    { 
+      name: "Inventory", 
+      icon: CarFront, 
+      href: "/dealer/inventory",
+      orgTypes: ['dealer']
+    },
+    { 
+      name: "Repairs", 
+      icon: Tool, 
+      href: "/dealer/repairs",
+      orgTypes: ['dealer']
+    },
+    { 
+      name: "Transport Requests", 
+      icon: Truck, 
+      href: "/dealer/transport-requests",
+      orgTypes: ['dealer']
+    },
+    {
+      name: "Preferred Transporters",
+      icon: Building,
+      href: "/dealer/preferred-transporters",
+      orgTypes: ['dealer']
+    },
+    {
+      name: "Dealer Trades",
+      icon: ArrowLeftRight,
+      href: "/dealer/trades",
+      orgTypes: ['dealer']
+    },
+    {
+      name: "Billing",
+      icon: Banknote,
+      href: "/dealer/billing",
+      orgTypes: ['dealer']
+    },
+    // Wholesaler features
+    {
+      name: "Wholesale Vehicles",
+      icon: ShoppingCart,
+      href: "/wholesale/vehicles",
+      orgTypes: ['wholesaler']
+    },
+    {
+      name: "Auctions",
+      icon: Gavel,
+      href: "/wholesale/auctions",
+      orgTypes: ['wholesaler']
+    },
+    {
+      name: "Bulk Transport",
+      icon: Truck,
+      href: "/wholesale/transport",
+      orgTypes: ['wholesaler']
+    },
+    // Shared features
     { 
       name: "Fleet Management", 
       icon: Truck, 
@@ -33,49 +91,13 @@ export const Sidebar = () => {
       orgTypes: ['transporter']
     },
     { 
-      name: "Drivers", 
-      icon: Users, 
-      href: "/drivers",
-      orgTypes: ['transporter'] 
-    },
-    { 
-      name: "Inventory", 
-      icon: CarFront, 
-      href: "/inventory",
-      orgTypes: ['dealer', 'wholesaler']
-    },
-    { 
-      name: "Repairs", 
-      icon: Wrench, 
-      href: "/repairs",
-      orgTypes: ['dealer', 'wholesaler']
-    },
-    { 
-      name: "Transport Jobs", 
-      icon: Truck, 
-      href: "/transport",
-      orgTypes: ['dealer', 'wholesaler', 'transporter']
-    },
-    {
-      name: "Dealer Trades",
-      icon: ArrowLeftRight,
-      href: "/dealer/trades",
-      orgTypes: ['dealer', 'wholesaler']
-    },
-    { 
-      name: "Analytics",
-      icon: BarChart2,
+      name: "Analytics", 
+      icon: BarChart2, 
       href: "/analytics",
       orgTypes: ['dealer', 'wholesaler']
     },
-    { 
-      name: "Organizations", 
-      icon: Building, 
-      href: "/organizations",
-      orgTypes: ['dealer', 'wholesaler', 'transporter']
-    },
     { name: "Reports", icon: FileText, href: "/reports" },
-    { name: "Settings", icon: Settings, href: "/settings" },
+    { name: "Settings", icon: Settings, href: "/settings" }
   ];
 
   const filteredNavItems = organization

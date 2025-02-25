@@ -1,3 +1,4 @@
+
 import { createBrowserRouter, Navigate, Outlet } from "react-router-dom";
 import AuthPage from "@/pages/auth/AuthPage";
 import Dashboard from "@/pages/dashboard/Dashboard";
@@ -9,140 +10,107 @@ import { AnalyticsDashboard } from "@/pages/analytics/AnalyticsDashboard";
 import { DealerDashboard } from "@/pages/dashboard/DealerDashboard";
 import { TransporterDashboard } from "@/pages/dashboard/TransporterDashboard";
 import DispatchDashboard from "@/pages/dispatch/DispatchDashboard";
-import FleetDashboard from "@/pages/fleet/FleetManagement";
 import FleetManagement from "@/pages/fleet/FleetManagement";
 import InventoryManagement from "@/pages/inventory/InventoryManagement";
+import RepairTracking from "@/pages/repairs/RepairTracking";
+import TransportRequests from "@/pages/transport/TransportRequests";
+import PreferredTransporters from "@/pages/transport/PreferredTransporters";
 import BillingDashboard from "@/pages/billing/BillingDashboard";
-import ProfileSettings from "@/pages/profile/ProfileSettings";
-import OverwatchDashboard from "@/pages/admin/OverwatchDashboard";
-import CustomerPortal from "@/pages/customer/CustomerPortal";
-import HelpCenter from "@/pages/help/HelpCenter";
-import LegalHub from "@/pages/legal/LegalHub";
-import OrganizationDashboard from "@/pages/organization/OrganizationDashboard";
-import DriverPortal from "@/pages/driver/DriverPortal";
+import WholesaleVehicles from "@/pages/wholesale/WholesaleVehicles";
+import WholesaleAuctions from "@/pages/wholesale/WholesaleAuctions";
+import BulkTransport from "@/pages/wholesale/BulkTransport";
 import DealerTrades from "@/pages/dealer/DealerTrades";
 import { UserRole } from "@/lib/types/auth";
-import { DealerAnalyticsDashboard } from "@/pages/analytics/DealerAnalyticsDashboard";
 
-// Define allowed roles for each protected route
 const ROLE_ACCESS = {
   FLEET: ["dispatcher", "admin", "super_admin"] as UserRole[],
   INVENTORY: ["dealer", "wholesaler", "admin", "super_admin"] as UserRole[],
-  ANALYTICS: ["admin", "dealer", "wholesaler", "dispatcher", "super_admin"] as UserRole[],
-  ADMIN: ["overwatch_admin", "super_admin"] as UserRole[],
-  BILLING: ["billing_manager", "admin", "super_admin"] as UserRole[],
-  CUSTOMER: ["customer", "admin", "super_admin"] as UserRole[],
-  DISPATCH: ["dispatcher", "admin", "super_admin"] as UserRole[],
-  DRIVER: ["driver", "admin", "super_admin"] as UserRole[],
-  ORGANIZATION: ["admin", "super_admin"] as UserRole[],
-  DEALER: ["dealer", "wholesaler", "admin", "super_admin"] as UserRole[],
+  DEALER: ["dealer", "admin", "super_admin"] as UserRole[],
+  WHOLESALER: ["wholesaler", "admin", "super_admin"] as UserRole[],
+  TRANSPORT: ["dealer", "wholesaler", "transporter", "admin", "super_admin"] as UserRole[],
+  BILLING: ["dealer", "wholesaler", "admin", "super_admin"] as UserRole[],
 } as const;
 
-interface RouteConfig {
-  path: string;
-  allowedRoles?: UserRole[];
-  element: React.ReactNode;
-  children?: RouteConfig[];
-}
+const RootLayout = () => (
+  <AuthProvider>
+    <Outlet />
+  </AuthProvider>
+);
 
-const RootLayout = () => {
-  return (
-    <AuthProvider>
-      <Outlet />
-    </AuthProvider>
-  );
-};
-
-// Protected routes configuration with hierarchy
-const protectedRoutes: RouteConfig[] = [
+const protectedRoutes = [
   {
     path: "/",
     element: <Index />
   },
+  // Dealer routes
   {
-    path: "/dashboard",
-    element: <Dashboard />
-  },
-  // Fleet section
-  {
-    path: "/fleet",
-    allowedRoles: ROLE_ACCESS.FLEET,
-    element: <FleetDashboard />,
+    path: "/dealer",
+    allowedRoles: ROLE_ACCESS.DEALER,
     children: [
       {
-        path: "management",
-        element: <FleetManagement />
+        path: "dashboard",
+        element: <DealerDashboard />
+      },
+      {
+        path: "inventory",
+        element: <InventoryManagement />
+      },
+      {
+        path: "repairs",
+        element: <RepairTracking />
+      },
+      {
+        path: "transport-requests",
+        element: <TransportRequests />
+      },
+      {
+        path: "preferred-transporters",
+        element: <PreferredTransporters />
+      },
+      {
+        path: "billing",
+        element: <BillingDashboard />
+      },
+      {
+        path: "trades",
+        element: <DealerTrades />
       }
     ]
   },
-  // Dispatch section
+  // Wholesaler routes
   {
-    path: "/dispatch",
-    allowedRoles: ROLE_ACCESS.DISPATCH,
-    element: <DispatchDashboard />
+    path: "/wholesale",
+    allowedRoles: ROLE_ACCESS.WHOLESALER,
+    children: [
+      {
+        path: "vehicles",
+        element: <WholesaleVehicles />
+      },
+      {
+        path: "auctions",
+        element: <WholesaleAuctions />
+      },
+      {
+        path: "transport",
+        element: <BulkTransport />
+      }
+    ]
   },
-  // Driver section
-  {
-    path: "/driver",
-    allowedRoles: ROLE_ACCESS.DRIVER,
-    element: <DriverPortal />
-  },
-  // Organization section
-  {
-    path: "/organization",
-    allowedRoles: ROLE_ACCESS.ORGANIZATION,
-    element: <OrganizationDashboard />
-  },
-  // Inventory section
+  // Shared routes
   {
     path: "/inventory",
     allowedRoles: ROLE_ACCESS.INVENTORY,
     element: <InventoryManagement />
   },
-  // Dealer section
   {
-    path: "/dealer/trades",
-    allowedRoles: ROLE_ACCESS.DEALER,
-    element: <DealerTrades />
+    path: "/transport",
+    allowedRoles: ROLE_ACCESS.TRANSPORT,
+    element: <TransportRequests />
   },
-  // Analytics section
   {
-    path: "/analytics",
-    allowedRoles: ROLE_ACCESS.ANALYTICS,
-    element: <DealerAnalyticsDashboard />
-  },
-  // Billing section
-  {
-    path: "/billing",
-    allowedRoles: ROLE_ACCESS.BILLING,
-    element: <BillingDashboard />
-  },
-  // Settings section
-  {
-    path: "/settings",
-    element: <ProfileSettings />
-  },
-  // Admin section
-  {
-    path: "/admin",
-    allowedRoles: ROLE_ACCESS.ADMIN,
-    element: <OverwatchDashboard />
-  },
-  // Customer section
-  {
-    path: "/customer",
-    allowedRoles: ROLE_ACCESS.CUSTOMER,
-    element: <CustomerPortal />
-  },
-  // Help section
-  {
-    path: "/help",
-    element: <HelpCenter />
-  },
-  // Legal section
-  {
-    path: "/legal",
-    element: <LegalHub />
+    path: "/fleet",
+    allowedRoles: ROLE_ACCESS.FLEET,
+    element: <FleetManagement />
   }
 ];
 
