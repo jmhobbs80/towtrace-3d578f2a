@@ -1,3 +1,4 @@
+
 import { useState, useEffect } from "react";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
@@ -68,8 +69,16 @@ export function TwoFactorManager() {
 
   const generateBackupCodes = async () => {
     try {
-      const codes = Array.from({ length: 5 }, () => 
-        Math.random().toString(36).substring(2, 8).toUpperCase()
+      // Generate cryptographically secure backup codes
+      const codes = await Promise.all(
+        Array.from({ length: 5 }, async () => {
+          const buffer = new Uint8Array(4);
+          crypto.getRandomValues(buffer);
+          return Array.from(buffer)
+            .map(b => b.toString(16).padStart(2, '0'))
+            .join('')
+            .toUpperCase();
+        })
       );
       
       await supabase.from('profiles')
