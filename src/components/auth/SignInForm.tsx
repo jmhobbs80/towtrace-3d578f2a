@@ -1,3 +1,4 @@
+
 import { useState, useEffect } from "react";
 import { useNavigate } from "react-router-dom";
 import { supabase } from "@/integrations/supabase/client";
@@ -403,7 +404,7 @@ export function SignInForm() {
                   Forgot password?
                 </Button>
               </AlertDialogTrigger>
-              <AlertDialogContent>
+              <AlertDialogContent className="sm:max-w-md w-[95vw] mx-auto">
                 <AlertDialogHeader>
                   <AlertDialogTitle>Reset Password</AlertDialogTitle>
                   <AlertDialogDescription>
@@ -429,13 +430,14 @@ export function SignInForm() {
                         onChange={(e) => setResetEmail(e.target.value)}
                         placeholder="name@example.com"
                         required
+                        className="h-11"
                       />
                     </div>
                   )}
-                  <AlertDialogFooter>
-                    <AlertDialogCancel type="button">Cancel</AlertDialogCancel>
+                  <AlertDialogFooter className="sm:flex-row flex-col gap-2">
+                    <AlertDialogCancel type="button" className="sm:mt-0 mt-2">Cancel</AlertDialogCancel>
                     {resetStep === 1 && (
-                      <Button type="submit" disabled={isResetting}>
+                      <Button type="submit" disabled={isResetting} className="sm:ml-2 w-full sm:w-auto">
                         {isResetting ? "Sending..." : "Send Reset Link"}
                       </Button>
                     )}
