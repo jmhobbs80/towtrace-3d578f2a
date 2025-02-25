@@ -1,3 +1,4 @@
+
 import { supabase } from "@/integrations/supabase/client";
 import type { Vehicle, VehicleDetails, VehicleSearchFilters, VehicleStatus, VehicleDamageReport } from "../types/vehicles";
 import type { VehicleInspection } from "../types/inspection";
@@ -10,6 +11,16 @@ export type { VINScannerHardware };
 
 type Tables = Database['public']['Tables']
 type DamageReportRow = Tables['vehicle_damage_reports']['Row'];
+
+export async function getVehicles(): Promise<Vehicle[]> {
+  const { data, error } = await supabase
+    .from('inventory_vehicles')
+    .select('*')
+    .order('created_at', { ascending: false });
+
+  if (error) throw error;
+  return data;
+}
 
 export async function searchVehicles(filters: VehicleSearchFilters): Promise<Vehicle[]> {
   let query = supabase
