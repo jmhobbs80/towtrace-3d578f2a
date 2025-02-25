@@ -1,10 +1,9 @@
-
 import { useQuery } from "@tanstack/react-query";
 import { supabase } from "@/integrations/supabase/client";
 import { toLocation } from "@/lib/utils";
 import { useRouteOptimization } from "@/hooks/use-route-optimization";
 import { Button } from "@/components/ui/button";
-import { Map } from "@/components/map/Map";
+import { LocationMap } from "@/components/map/Map";
 import { toast } from "sonner";
 import { Card } from "@/components/ui/card";
 import {
@@ -148,7 +147,7 @@ export default function AIDispatch() {
         <Card className="p-4">
           <h2 className="text-lg font-semibold mb-4">Optimized Route</h2>
           <div className="h-[400px] mb-4">
-            <Map
+            <LocationMap
               initialCenter={[
                 optimizedRoute.waypoints[0].lat,
                 optimizedRoute.waypoints[0].lng

@@ -7,7 +7,7 @@ import { useToast } from "@/components/ui/use-toast";
 import { format } from "date-fns";
 import type { Load, Dimensions, PriceRange } from "@/lib/types/load";
 import { CreateLoadDialog } from "@/components/transport/CreateLoadDialog";
-import { Map } from "@/components/map/Map";
+import { LocationMap } from "@/components/map/Map";
 import { LoadTable } from "@/components/transport/LoadTable";
 import { parseLocation, isValidLoadStatus } from "@/lib/types/load";
 
@@ -144,7 +144,7 @@ export default function LoadBoard() {
           {selectedLoad && (
             <div className="bg-white rounded-lg shadow p-4">
               <h2 className="text-lg font-medium mb-4">Route Visualization</h2>
-              <Map
+              <LocationMap
                 initialCenter={[
                   selectedLoad.pickup_location.coordinates?.[0] || -95.7129,
                   selectedLoad.pickup_location.coordinates?.[1] || 37.0902

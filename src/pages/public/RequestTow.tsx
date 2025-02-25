@@ -1,6 +1,5 @@
-
 import { useState } from "react";
-import { Map } from "@/components/map/Map";
+import { LocationMap } from "@/components/map/Map";
 import { TowRequestForm } from "@/components/public/TowRequestForm";
 import { TowDetails } from "@/components/public/TowDetails";
 import { useToast } from "@/components/ui/use-toast";
@@ -33,7 +32,7 @@ export default function RequestTow() {
     <div className="min-h-screen bg-gray-50">
       <div className="grid grid-cols-1 md:grid-cols-2 gap-4 p-4">
         <div className="h-[calc(100vh-2rem)]">
-          <Map jobId={jobId} />
+          <LocationMap jobId={jobId} />
         </div>
         <div className="space-y-4">
           <Card className="p-6">
