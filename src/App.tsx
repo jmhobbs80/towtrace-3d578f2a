@@ -1,4 +1,3 @@
-
 import React from 'react';
 import { createRoot } from 'react-dom/client';
 import { BrowserRouter as Router, Route, Routes } from 'react-router-dom';
@@ -22,6 +21,7 @@ import RepairDashboard from './pages/repairs/RepairDashboard';
 import RepairFacilityManagement from './pages/repairs/RepairFacilityManagement';
 import CreateRepairOrder from './pages/repairs/CreateRepairOrder';
 import CustomerPortal from './pages/impound/customer/CustomerPortal';
+import DealerTrades from './pages/dealer/DealerTrades';
 
 const App = () => {
   return (
@@ -220,6 +220,19 @@ const App = () => {
                   <Sidebar />
                   <SidebarInset>
                     <CreateRepairOrder />
+                  </SidebarInset>
+                </SidebarProvider>
+              </ProtectedRoute>
+            }
+          />
+          <Route
+            path="/dealer/trades"
+            element={
+              <ProtectedRoute>
+                <SidebarProvider>
+                  <Sidebar />
+                  <SidebarInset>
+                    <DealerTrades />
                   </SidebarInset>
                 </SidebarProvider>
               </ProtectedRoute>
