@@ -1,4 +1,3 @@
-
 import { serve } from "https://deno.land/std@0.190.0/http/server.ts";
 import { createClient } from "https://esm.sh/@supabase/supabase-js@2.39.3";
 import { OAuthClient } from "https://esm.sh/intuit-oauth@4.0.0";
@@ -13,146 +12,154 @@ const supabase = createClient(
   Deno.env.get("SUPABASE_SERVICE_ROLE_KEY")!
 );
 
+async function createSyncLog(organization_id: string, entity_type: string, entity_id: string) {
+  const { data: syncLog, error: logError } = await supabase
+    .from('quickbooks_sync_logs')
+    .insert({
+      organization_id,
+      entity_type,
+      entity_id,
+      sync_type: 'push',
+      status: 'pending'
+    })
+    .select()
+    .single();
+
+  if (logError) throw logError;
+  return syncLog;
+}
+
+async function getQuickBooksConnection(organization_id: string, maxRetries = 3) {
+  let retryCount = 0;
+  while (retryCount < maxRetries) {
+    const { data: connData, error: connError } = await supabase
+      .from('quickbooks_connections')
+      .select('*')
+      .eq('organization_id', organization_id)
+      .single();
+
+    if (!connError) return connData;
+
+    if (retryCount === maxRetries - 1) throw connError;
+    retryCount++;
+    await new Promise(resolve => setTimeout(resolve, 1000 * retryCount));
+  }
+}
+
+async function refreshQuickBooksToken(oauthClient: any, connection: any, organization_id: string, maxRetries = 3) {
+  let retryCount = 0;
+  while (retryCount < maxRetries) {
+    try {
+      const refreshResponse = await oauthClient.refresh();
+      await supabase
+        .from('quickbooks_connections')
+        .update({
+          access_token: refreshResponse.token.access_token,
+          refresh_token: refreshResponse.token.refresh_token,
+          token_expires_at: new Date(Date.now() + refreshResponse.token.expires_in * 1000).toISOString(),
+        })
+        .eq('organization_id', organization_id);
+      return;
+    } catch (error) {
+      console.error(`Token refresh attempt ${retryCount + 1} failed:`, error);
+      if (retryCount === maxRetries - 1) throw error;
+      retryCount++;
+      await new Promise(resolve => setTimeout(resolve, 1000 * retryCount));
+    }
+  }
+}
+
+async function syncEntityWithRetry(entity_type: string, entity_id: string, oauthClient: any, realm_id: string, maxRetries = 3) {
+  let retryCount = 0;
+  while (retryCount < maxRetries) {
+    try {
+      switch (entity_type) {
+        case 'invoice':
+          return await syncInvoice(entity_id, oauthClient, realm_id);
+        case 'payment':
+          return await syncPayment(entity_id, oauthClient, realm_id);
+        case 'expense':
+          return await syncExpense(entity_id, oauthClient, realm_id);
+        default:
+          throw new Error(`Unsupported entity type: ${entity_type}`);
+      }
+    } catch (error) {
+      console.error(`Sync attempt ${retryCount + 1} failed:`, error);
+      if (retryCount === maxRetries - 1) throw error;
+      retryCount++;
+      await new Promise(resolve => setTimeout(resolve, 1000 * retryCount));
+    }
+  }
+}
+
+async function updateSyncLogSuccess(syncLog: any, syncResult: any) {
+  await supabase
+    .from('quickbooks_sync_logs')
+    .update({
+      status: 'completed',
+      quickbooks_id: syncResult.Id,
+      processed_at: new Date().toISOString(),
+      metadata: {
+        sync_duration: Date.now() - new Date(syncLog.created_at).getTime()
+      }
+    })
+    .eq('id', syncLog.id);
+}
+
+async function handleQuickBooksSync(req: Request) {
+  const { organization_id, entity_type, entity_id } = await req.json();
+  
+  // Create sync log
+  const syncLog = await createSyncLog(organization_id, entity_type, entity_id);
+
+  // Get QuickBooks connection
+  const connection = await getQuickBooksConnection(organization_id);
+  if (!connection) {
+    throw new Error('QuickBooks connection not found');
+  }
+
+  // Initialize OAuth client
+  const oauthClient = new OAuthClient({
+    clientId: Deno.env.get("QUICKBOOKS_CLIENT_ID")!,
+    clientSecret: Deno.env.get("QUICKBOOKS_CLIENT_SECRET")!,
+    environment: Deno.env.get("QUICKBOOKS_ENVIRONMENT") || "sandbox",
+    redirectUri: `${Deno.env.get("PUBLIC_APP_URL")}/api/quickbooks/callback`,
+  });
+
+  // Set tokens
+  oauthClient.setToken({
+    access_token: connection.access_token,
+    refresh_token: connection.refresh_token,
+    expires_in: new Date(connection.token_expires_at).getTime() - Date.now(),
+  });
+
+  // Refresh token if needed
+  if (new Date(connection.token_expires_at) < new Date()) {
+    await refreshQuickBooksToken(oauthClient, connection, organization_id);
+  }
+
+  // Sync entity
+  const syncResult = await syncEntityWithRetry(entity_type, entity_id, oauthClient, connection.realm_id);
+  
+  // Update sync log
+  await updateSyncLogSuccess(syncLog, syncResult);
+
+  return syncResult;
+}
+
 serve(async (req) => {
   if (req.method === 'OPTIONS') {
     return new Response(null, { headers: corsHeaders });
   }
 
   try {
-    const { organization_id, entity_type, entity_id } = await req.json();
-    
-    // Log sync attempt
-    const { data: syncLog, error: logError } = await supabase
-      .from('quickbooks_sync_logs')
-      .insert({
-        organization_id,
-        entity_type,
-        entity_id,
-        sync_type: 'push',
-        status: 'pending'
-      })
-      .select()
-      .single();
-
-    if (logError) throw logError;
-
-    // Get QuickBooks connection details with retry logic
-    let connection;
-    let retryCount = 0;
-    const maxRetries = 3;
-
-    while (retryCount < maxRetries) {
-      const { data: connData, error: connError } = await supabase
-        .from('quickbooks_connections')
-        .select('*')
-        .eq('organization_id', organization_id)
-        .single();
-
-      if (connError) {
-        if (retryCount === maxRetries - 1) throw connError;
-        retryCount++;
-        await new Promise(resolve => setTimeout(resolve, 1000 * retryCount));
-        continue;
-      }
-
-      connection = connData;
-      break;
-    }
-
-    if (!connection) {
-      throw new Error('QuickBooks connection not found');
-    }
-
-    const oauthClient = new OAuthClient({
-      clientId: Deno.env.get("QUICKBOOKS_CLIENT_ID")!,
-      clientSecret: Deno.env.get("QUICKBOOKS_CLIENT_SECRET")!,
-      environment: Deno.env.get("QUICKBOOKS_ENVIRONMENT") || "sandbox",
-      redirectUri: `${Deno.env.get("PUBLIC_APP_URL")}/api/quickbooks/callback`,
-    });
-
-    // Set tokens
-    oauthClient.setToken({
-      access_token: connection.access_token,
-      refresh_token: connection.refresh_token,
-      expires_in: new Date(connection.token_expires_at).getTime() - Date.now(),
-    });
-
-    // Refresh token if needed with retry logic
-    if (new Date(connection.token_expires_at) < new Date()) {
-      let refreshed = false;
-      retryCount = 0;
-
-      while (!refreshed && retryCount < maxRetries) {
-        try {
-          const refreshResponse = await oauthClient.refresh();
-          await supabase
-            .from('quickbooks_connections')
-            .update({
-              access_token: refreshResponse.token.access_token,
-              refresh_token: refreshResponse.token.refresh_token,
-              token_expires_at: new Date(Date.now() + refreshResponse.token.expires_in * 1000).toISOString(),
-            })
-            .eq('organization_id', organization_id);
-          refreshed = true;
-        } catch (error) {
-          console.error(`Token refresh attempt ${retryCount + 1} failed:`, error);
-          if (retryCount === maxRetries - 1) throw error;
-          retryCount++;
-          await new Promise(resolve => setTimeout(resolve, 1000 * retryCount));
-        }
-      }
-    }
-
-    // Sync data based on entity type with improved error handling
-    let syncResult;
-    let retrySync = true;
-    retryCount = 0;
-
-    while (retrySync && retryCount < maxRetries) {
-      try {
-        switch (entity_type) {
-          case 'invoice':
-            syncResult = await syncInvoice(entity_id, oauthClient, connection.realm_id);
-            break;
-          case 'payment':
-            syncResult = await syncPayment(entity_id, oauthClient, connection.realm_id);
-            break;
-          case 'expense':
-            syncResult = await syncExpense(entity_id, oauthClient, connection.realm_id);
-            break;
-          default:
-            throw new Error(`Unsupported entity type: ${entity_type}`);
-        }
-        retrySync = false;
-      } catch (error) {
-        console.error(`Sync attempt ${retryCount + 1} failed:`, error);
-        if (retryCount === maxRetries - 1) throw error;
-        retryCount++;
-        await new Promise(resolve => setTimeout(resolve, 1000 * retryCount));
-      }
-    }
-
-    // Update sync log with retry information
-    await supabase
-      .from('quickbooks_sync_logs')
-      .update({
-        status: 'completed',
-        quickbooks_id: syncResult.Id,
-        processed_at: new Date().toISOString(),
-        metadata: {
-          retries: retryCount,
-          sync_duration: Date.now() - new Date(syncLog.created_at).getTime()
-        }
-      })
-      .eq('id', syncLog.id);
-
+    const syncResult = await handleQuickBooksSync(req);
     return new Response(JSON.stringify(syncResult), {
       headers: { ...corsHeaders, 'Content-Type': 'application/json' },
     });
   } catch (error) {
     console.error('QuickBooks sync error:', error);
 
-    // Log sync failure with detailed error information
     if (error instanceof Error) {
       await supabase
         .from('quickbooks_sync_logs')
