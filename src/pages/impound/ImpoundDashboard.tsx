@@ -8,6 +8,7 @@ import { Car, Warehouse, DollarSign } from "lucide-react";
 import { AddImpoundLotDialog } from "./AddImpoundLotDialog";
 import { AddImpoundedVehicleDialog } from "./AddImpoundedVehicleDialog";
 import { ReleaseVehicleDialog } from "./ReleaseVehicleDialog";
+import { PaymentDialog } from "./PaymentDialog";
 
 interface ImpoundedVehicle {
   id: string;
@@ -17,6 +18,11 @@ interface ImpoundedVehicle {
   vehicle_id: string;
   police_report_number?: string;
   insurance_claim_number?: string;
+  inventory_vehicles?: {
+    make: string;
+    model: string;
+    year: number;
+  };
 }
 
 interface ImpoundLot {
@@ -67,7 +73,6 @@ export default function ImpoundDashboard() {
         .eq('organization_id', organization?.id);
       
       if (error) throw error;
-      
       return data as ImpoundLot[];
     },
     enabled: !!organization?.id
@@ -164,12 +169,21 @@ export default function ImpoundDashboard() {
                   <TableCell>{vehicle.police_report_number || '-'}</TableCell>
                   <TableCell>{vehicle.insurance_claim_number || '-'}</TableCell>
                   <TableCell>
-                    {vehicle.status === 'impounded' && (
-                      <ReleaseVehicleDialog 
-                        impoundId={vehicle.id}
-                        onRelease={refetchVehicles}
-                      />
-                    )}
+                    <div className="flex gap-2">
+                      {vehicle.status === 'impounded' && (
+                        <ReleaseVehicleDialog 
+                          impoundId={vehicle.id}
+                          onRelease={refetchVehicles}
+                        />
+                      )}
+                      {vehicle.status === 'waiting_for_payment' && (
+                        <PaymentDialog
+                          impoundId={vehicle.id}
+                          currentFees={vehicle.total_fees}
+                          onPaymentComplete={refetchVehicles}
+                        />
+                      )}
+                    </div>
                   </TableCell>
                 </TableRow>
               );
