@@ -66,10 +66,15 @@ export const fetchSubscriptionPlans = async (organizationType: OrganizationType)
     tier: plan.tier || 'standard',
     features: Array.isArray(plan.features) ? plan.features.map(String) : [],
     limits: plan.limits as Record<string, number>,
-    volume_discount: Array.isArray(plan.volume_discount) ? plan.volume_discount.map(discount => ({
-      threshold: discount.threshold,
-      discount_percentage: discount.discount_percentage
-    })) : undefined,
+    volume_discount: Array.isArray(plan.volume_discount) 
+      ? plan.volume_discount.map(discount => {
+          const discountObj = discount as { threshold?: number; discount_percentage?: number };
+          return {
+            threshold: discountObj.threshold || 0,
+            discount_percentage: discountObj.discount_percentage || 0
+          };
+        })
+      : undefined,
     is_active: Boolean(plan.is_active)
   }));
 
