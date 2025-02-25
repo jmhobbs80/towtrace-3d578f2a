@@ -1,5 +1,6 @@
 
 export type ScanMethod = 'barcode' | 'ocr' | 'manual';
+
 export type ScanResult = {
   vin: string;
   method: ScanMethod;
@@ -14,3 +15,9 @@ export interface VINScannerHardware {
   stopScanning(): Promise<void>;
   getScanMethod(): ScanMethod;
 }
+
+export type ScanError = {
+  code: 'TIMEOUT' | 'CAMERA_ERROR' | 'INVALID_VIN' | 'USER_CANCELLED';
+  message: string;
+  details?: any;
+};
