@@ -308,4 +308,66 @@ export function SignInForm() {
                   placeholder="name@example.com"
                   value={email}
                   onChange={(e) => setEmail(e.target.value)}
-                  className="pl-10 h-11 text-base border-[#E5DEFF] focus:border-[#9b87f5]
+                  className="pl-10 h-11 text-base border-[#E5DEFF] focus:border-[#9b87f5] hover:border-[#9b87f5] rounded-lg shadow-sm"
+                  required
+                />
+              </div>
+            </div>
+
+            <div className="space-y-3">
+              <Label htmlFor="password" className="text-sm font-medium text-[#1A1F2C]">Password</Label>
+              <div className="relative">
+                <LockIcon className="absolute left-3 top-2.5 h-5 w-5 text-[#7E69AB]" />
+                <Input
+                  id="password"
+                  type={showPassword ? "text" : "password"}
+                  placeholder="••••••••"
+                  value={password}
+                  onChange={(e) => {
+                    setPassword(e.target.value);
+                    setPasswordStrength(calculatePasswordStrength(e.target.value));
+                  }}
+                  className="pl-10 pr-10 h-11 text-base border-[#E5DEFF] focus:border-[#9b87f5] hover:border-[#9b87f5] rounded-lg shadow-sm"
+                  required
+                />
+                <button
+                  type="button"
+                  onClick={() => setShowPassword(!showPassword)}
+                  className="absolute right-3 top-2.5 text-[#7E69AB] hover:text-[#9b87f5] focus:outline-none"
+                  aria-label={showPassword ? "Hide password" : "Show password"}
+                >
+                  {showPassword ? (
+                    <EyeOffIcon className="h-5 w-5" />
+                  ) : (
+                    <EyeIcon className="h-5 w-5" />
+                  )}
+                </button>
+              </div>
+              {password && <PasswordStrengthIndicator strength={passwordStrength} />}
+            </div>
+
+            <Button
+              type="submit"
+              className="w-full h-12 text-base font-medium bg-[#9b87f5] hover:bg-[#7E69AB] text-white transition-colors rounded-lg shadow-md disabled:opacity-50 disabled:cursor-not-allowed"
+              disabled={loading}
+            >
+              {loading ? "Signing in..." : "Sign In"}
+            </Button>
+          </form>
+
+          <div className="text-center">
+            <PasswordResetDialog
+              isOpen={isDialogOpen}
+              onOpenChange={setIsDialogOpen}
+              resetEmail={resetEmail}
+              onResetEmailChange={setResetEmail}
+              resetStep={resetStep}
+              isResetting={isResetting}
+              onSubmit={handlePasswordReset}
+            />
+          </div>
+        </>
+      )}
+    </div>
+  );
+}
