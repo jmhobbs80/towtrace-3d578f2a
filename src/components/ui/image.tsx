@@ -14,7 +14,7 @@ const Image = forwardRef<HTMLImageElement, LocalImageProps>(
         ref={ref}
         src={src}
         alt={alt}
-        className={cn("", className)}
+        className={cn("object-contain w-auto", className)}
         {...props}
       />
     );
