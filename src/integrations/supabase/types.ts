@@ -1628,10 +1628,14 @@ export type Database = {
           last_email_verification_sent: string | null
           last_name: string | null
           last_seen: string | null
+          last_two_factor_verification: string | null
           notification_preferences: Json | null
           phone_number: string | null
           preferences: Json | null
           title: string | null
+          two_factor_backup_codes: string[] | null
+          two_factor_enabled: boolean | null
+          two_factor_recovery_codes: string[] | null
           updated_at: string
         }
         Insert: {
@@ -1646,10 +1650,14 @@ export type Database = {
           last_email_verification_sent?: string | null
           last_name?: string | null
           last_seen?: string | null
+          last_two_factor_verification?: string | null
           notification_preferences?: Json | null
           phone_number?: string | null
           preferences?: Json | null
           title?: string | null
+          two_factor_backup_codes?: string[] | null
+          two_factor_enabled?: boolean | null
+          two_factor_recovery_codes?: string[] | null
           updated_at?: string
         }
         Update: {
@@ -1664,10 +1672,14 @@ export type Database = {
           last_email_verification_sent?: string | null
           last_name?: string | null
           last_seen?: string | null
+          last_two_factor_verification?: string | null
           notification_preferences?: Json | null
           phone_number?: string | null
           preferences?: Json | null
           title?: string | null
+          two_factor_backup_codes?: string[] | null
+          two_factor_enabled?: boolean | null
+          two_factor_recovery_codes?: string[] | null
           updated_at?: string
         }
         Relationships: []
@@ -2605,6 +2617,33 @@ export type Database = {
           },
         ]
       }
+      two_factor_attempts: {
+        Row: {
+          attempt_time: string | null
+          device_info: Json | null
+          id: string
+          ip_address: string | null
+          success: boolean | null
+          user_id: string | null
+        }
+        Insert: {
+          attempt_time?: string | null
+          device_info?: Json | null
+          id?: string
+          ip_address?: string | null
+          success?: boolean | null
+          user_id?: string | null
+        }
+        Update: {
+          attempt_time?: string | null
+          device_info?: Json | null
+          id?: string
+          ip_address?: string | null
+          success?: boolean | null
+          user_id?: string | null
+        }
+        Relationships: []
+      }
       user_roles: {
         Row: {
           created_at: string
@@ -3117,6 +3156,12 @@ export type Database = {
           is_surge?: boolean
         }
         Returns: string
+      }
+      requires_two_factor: {
+        Args: {
+          user_id: string
+        }
+        Returns: boolean
       }
       validate_customer_access_token: {
         Args: {
