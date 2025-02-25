@@ -1,3 +1,4 @@
+
 import { useState } from "react";
 import { useNavigate } from "react-router-dom";
 import { supabase } from "@/integrations/supabase/client";
@@ -5,7 +6,7 @@ import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { useToast } from "@/hooks/use-toast";
-import { MailIcon, LockIcon, EyeIcon, EyeOffIcon } from "lucide-react";
+import { MailIcon, LockIcon, EyeIcon, EyeOffIcon, Loader } from "lucide-react";
 import { PasswordResetDialog } from "./PasswordResetDialog";
 
 const EMAIL_REGEX = /^[a-zA-Z0-9._%+-]+@[a-zA-Z0-9.-]+\.[a-zA-Z]{2,}$/;
@@ -204,7 +205,7 @@ export function SignInForm() {
         >
           {loading ? (
             <div className="flex items-center gap-2">
-              <Loader2 className="h-4 w-4 animate-spin" />
+              <Loader className="h-4 w-4 animate-spin" />
               <span>Signing in...</span>
             </div>
           ) : (
