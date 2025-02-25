@@ -14,6 +14,7 @@ import { analyticsRoutes } from "./analytics-routes";
 import { legalRoutes } from "./legal-routes";
 import Dashboard from "@/pages/dashboard/Dashboard";
 import NotFound from "@/pages/NotFound";
+import CustomerPortal from "@/pages/customer/CustomerPortal";
 import { UserRole } from "@/lib/types/auth";
 
 const protectedRoutes = [
