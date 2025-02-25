@@ -2,7 +2,7 @@
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
-import { AlertTriangle, CheckCircle, Tool } from "lucide-react";
+import { AlertTriangle, CheckCircle } from "lucide-react";
 import { format } from "date-fns";
 import type { VehicleAssignment } from "@/lib/types/fleet";
 
