@@ -5,7 +5,7 @@ import AuthPage from './pages/auth/AuthPage';
 import Index from './pages/Index';
 import ProtectedRoute from './components/auth/ProtectedRoute';
 import { AuthProvider } from './components/auth/AuthProvider';
-import Layout from './components/ui/layout/Layout';
+import Layout from './components/ui/sidebar';  // Updated import path
 import BillingDashboard from './pages/billing/BillingDashboard';
 
 function App() {
