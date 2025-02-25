@@ -34,6 +34,16 @@ interface ProfileFormData {
   avatar_url: string;
 }
 
+const defaultFormValues: ProfileFormData = {
+  first_name: '',
+  last_name: '',
+  email: '',
+  title: '',
+  company: '',
+  bio: '',
+  avatar_url: ''
+};
+
 export default function ProfileSettings() {
   const { user } = useAuth();
   const { toast } = useToast();
@@ -41,7 +51,7 @@ export default function ProfileSettings() {
   
   const form = useForm<ProfileFormData>({
     defaultValues: async () => {
-      if (!user) return {};
+      if (!user) return defaultFormValues;
       
       const { data: profile } = await supabase
         .from('profiles')
@@ -49,7 +59,15 @@ export default function ProfileSettings() {
         .eq('id', user.id)
         .single();
         
-      return profile || {};
+      return {
+        first_name: profile?.first_name ?? '',
+        last_name: profile?.last_name ?? '',
+        email: profile?.email ?? '',
+        title: profile?.title ?? '',
+        company: profile?.company ?? '',
+        bio: profile?.bio ?? '',
+        avatar_url: profile?.avatar_url ?? ''
+      };
     }
   });
 
