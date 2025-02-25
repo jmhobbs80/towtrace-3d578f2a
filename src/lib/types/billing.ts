@@ -1,3 +1,4 @@
+
 import type { Database } from "@/integrations/supabase/types";
 
 export type PaymentMethod = Database["public"]["Enums"]["payment_method"];
@@ -59,53 +60,6 @@ export interface Invoice {
   updated_at: string;
 }
 
-export interface SubscriptionPlan {
-  id: string;
-  name: string;
-  description?: string;
-  organization_type: OrganizationType;
-  base_price: number;
-  per_user_price: number;
-  per_vehicle_price: number;
-  interval: 'month' | 'year';
-  tier: string;
-  features: string[];
-  limits: Record<string, number>;
-  addon_roles: OrganizationType[];
-  addon_price: number;
-  volume_discount?: VolumeDiscount[];
-  is_active: boolean;
-}
-
-export interface SubscriptionAddon {
-  id: string;
-  name: string;
-  description?: string;
-  price: number;
-  features: string[];
-  limits: Record<string, number>;
-  is_active: boolean;
-}
-
-export interface UsageMetrics {
-  organization_id: string;
-  feature_name: string;
-  usage_count: number;
-  usage_type: string;
-  pricing_tier?: string;
-  period_start: string;
-  period_end: string;
-}
-
-export interface BillingCalculation {
-  base_cost: number;
-  user_costs: number;
-  vehicle_costs: number;
-  addon_costs: number;
-  volume_discounts: number;
-  total: number;
-}
-
 export interface ProviderBalance {
   id: string;
   organization_id: string;
@@ -124,7 +78,6 @@ export interface ProviderPayout {
   status: 'pending' | 'processing' | 'completed' | 'failed';
   payout_method: string;
   reference_number?: string | null;
-  created_at: string;
   processed_at?: string | null;
   error_message?: string | null;
   metadata?: Json | null;
