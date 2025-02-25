@@ -12,6 +12,7 @@ import { customerRoutes } from "./customer-routes";
 import { billingRoutes } from "./billing-routes";
 import { analyticsRoutes } from "./analytics-routes";
 import { legalRoutes } from "./legal-routes";
+import Index from "@/pages/Index";
 import Dashboard from "@/pages/dashboard/Dashboard";
 import NotFound from "@/pages/NotFound";
 import CustomerPortal from "@/pages/customer/CustomerPortal";
@@ -19,7 +20,7 @@ import { UserRole } from "@/lib/types/auth";
 
 const protectedRoutes = [
   {
-    path: "/",
+    path: "/dashboard",
     element: <Dashboard />,
     allowedRoles: ["admin", "dealer", "dispatcher", "wholesaler", "transporter", "driver"] as UserRole[]
   },
@@ -29,7 +30,37 @@ const protectedRoutes = [
   ...dispatchRoutes, // Job dispatch, route optimization
   ...customerRoutes, // Customer portal, service requests
   ...billingRoutes,  // Invoices, payments, billing dashboard
-  ...analyticsRoutes // Performance metrics, reports
+  ...analyticsRoutes, // Performance metrics, reports
+  {
+    path: "/settings",
+    element: <ProfileSettings />,
+    allowedRoles: ["admin", "dealer", "dispatcher", "wholesaler", "transporter", "driver"] as UserRole[]
+  },
+  {
+    path: "/organization",
+    element: <OrganizationDashboard />,
+    allowedRoles: ["admin", "dealer"] as UserRole[]
+  },
+  {
+    path: "/job/:jobId",
+    element: <JobDetails />,
+    allowedRoles: ["admin", "dealer", "dispatcher", "transporter", "driver"] as UserRole[]
+  },
+  {
+    path: "/impound",
+    element: <ImpoundDashboard />,
+    allowedRoles: ["admin", "dealer"] as UserRole[]
+  },
+  {
+    path: "/driver-portal",
+    element: <DriverPortal />,
+    allowedRoles: ["driver"] as UserRole[]
+  },
+  {
+    path: "/help",
+    element: <HelpCenter />,
+    allowedRoles: ["admin", "dealer", "dispatcher", "wholesaler", "transporter", "driver"] as UserRole[]
+  }
 ];
 
 const publicRoutes = [
@@ -37,6 +68,10 @@ const publicRoutes = [
   {
     path: "/customer/book",
     element: <CustomerPortal />,
+  },
+  {
+    path: "/",
+    element: <Index />
   }
 ];
 
@@ -50,10 +85,6 @@ export const router = createBrowserRouter([
   {
     element: <AppLayout />,
     children: [
-      {
-        path: "/",
-        element: <Navigate to="/auth" replace />,
-      },
       ...authRoutes,
       ...publicRoutes,
       {
@@ -87,3 +118,11 @@ export const router = createBrowserRouter([
     ]
   }
 ]);
+
+// Import statements for additional components
+import ProfileSettings from "@/pages/profile/ProfileSettings";
+import OrganizationDashboard from "@/pages/organization/OrganizationDashboard";
+import JobDetails from "@/pages/job/JobDetails";
+import ImpoundDashboard from "@/pages/impound/ImpoundDashboard";
+import DriverPortal from "@/pages/driver/DriverPortal";
+import HelpCenter from "@/pages/help/HelpCenter";
