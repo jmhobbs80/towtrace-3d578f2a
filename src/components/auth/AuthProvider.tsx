@@ -128,7 +128,20 @@ export const AuthProvider = ({ children }: { children: React.ReactNode }) => {
         return;
       }
 
-      setOrganization(org);
+      if (org) {
+        // Cast the organization data to match our interface
+        const formattedOrg: Organization = {
+          id: org.id,
+          name: org.name,
+          subscription_tier: org.subscription_tier,
+          subscription_status: org.subscription_status,
+          subscription_period_end: org.subscription_period_end,
+          stripe_customer_id: org.stripe_customer_id,
+          subscription_plan_id: org.subscription_plan_id,
+          billing_details: org.billing_details as Organization['billing_details']
+        };
+        setOrganization(formattedOrg);
+      }
     }
   };
 
