@@ -16,6 +16,21 @@ import ProfileSettings from "@/pages/profile/ProfileSettings";
 import OverwatchDashboard from "@/pages/admin/OverwatchDashboard";
 import { UserRole } from "@/lib/types/auth";
 
+// Define allowed roles for each protected route
+const ROLE_ACCESS = {
+  FLEET: ["dispatcher", "admin", "super_admin"] as UserRole[],
+  INVENTORY: ["dealer", "wholesaler", "admin", "super_admin"] as UserRole[],
+  ANALYTICS: ["admin", "dealer", "wholesaler", "dispatcher", "super_admin"] as UserRole[],
+  ADMIN: ["overwatch_admin", "super_admin"] as UserRole[],
+  BILLING: ["billing_manager", "admin", "super_admin"] as UserRole[],
+} as const;
+
+interface RouteConfig {
+  path: string;
+  allowedRoles?: UserRole[];
+  element: React.ReactNode;
+}
+
 const RootLayout = () => {
   return (
     <AuthProvider>
@@ -24,87 +39,70 @@ const RootLayout = () => {
   );
 };
 
+// Protected routes configuration
+const protectedRoutes: RouteConfig[] = [
+  {
+    path: "/",
+    element: <Index />
+  },
+  {
+    path: "/dashboard",
+    element: <Dashboard />
+  },
+  {
+    path: "/fleet",
+    allowedRoles: ROLE_ACCESS.FLEET,
+    element: <FleetManagement />
+  },
+  {
+    path: "/inventory",
+    allowedRoles: ROLE_ACCESS.INVENTORY,
+    element: <InventoryManagement />
+  },
+  {
+    path: "/analytics",
+    allowedRoles: ROLE_ACCESS.ANALYTICS,
+    element: <AnalyticsDashboard />
+  },
+  {
+    path: "/billing",
+    allowedRoles: ROLE_ACCESS.BILLING,
+    element: <BillingDashboard />
+  },
+  {
+    path: "/settings",
+    element: <ProfileSettings />
+  },
+  {
+    path: "/admin",
+    allowedRoles: ROLE_ACCESS.ADMIN,
+    element: <OverwatchDashboard />
+  }
+];
+
 export const router = createBrowserRouter([
   {
     element: <RootLayout />,
     children: [
       {
         path: "/auth",
-        element: <AuthPage />,
+        element: <AuthPage />
       },
       {
         element: <SidebarLayout />,
-        children: [
-          {
-            path: "/",
-            element: (
-              <ProtectedRoute>
-                <Index />
-              </ProtectedRoute>
-            ),
-          },
-          {
-            path: "/dashboard",
-            element: (
-              <ProtectedRoute>
-                <Dashboard />
-              </ProtectedRoute>
-            ),
-          },
-          {
-            path: "/fleet",
-            element: (
-              <ProtectedRoute allowedRoles={["dispatcher" as UserRole]}>
-                <FleetManagement />
-              </ProtectedRoute>
-            ),
-          },
-          {
-            path: "/inventory",
-            element: (
-              <ProtectedRoute allowedRoles={["dealer" as UserRole, "wholesaler" as UserRole]}>
-                <InventoryManagement />
-              </ProtectedRoute>
-            ),
-          },
-          {
-            path: "/analytics",
-            element: (
-              <ProtectedRoute allowedRoles={["admin" as UserRole, "dealer" as UserRole, "wholesaler" as UserRole, "dispatcher" as UserRole]}>
-                <AnalyticsDashboard />
-              </ProtectedRoute>
-            ),
-          },
-          {
-            path: "/billing",
-            element: (
-              <ProtectedRoute>
-                <BillingDashboard />
-              </ProtectedRoute>
-            ),
-          },
-          {
-            path: "/settings",
-            element: (
-              <ProtectedRoute>
-                <ProfileSettings />
-              </ProtectedRoute>
-            ),
-          },
-          {
-            path: "/admin",
-            element: (
-              <ProtectedRoute allowedRoles={["overwatch_admin" as UserRole]}>
-                <OverwatchDashboard />
-              </ProtectedRoute>
-            ),
-          }
-        ],
+        children: protectedRoutes.map(route => ({
+          path: route.path,
+          element: (
+            <ProtectedRoute allowedRoles={route.allowedRoles}>
+              {route.element}
+            </ProtectedRoute>
+          )
+        }))
       },
       {
         path: "*",
-        element: <Navigate to="/" replace />,
-      },
-    ],
-  },
+        element: <Navigate to="/" replace />
+      }
+    ]
+  }
 ]);
