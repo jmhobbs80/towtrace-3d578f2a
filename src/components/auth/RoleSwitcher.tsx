@@ -1,6 +1,7 @@
 
 import { useState, useEffect } from 'react';
 import { useAuth } from './AuthProvider';
+import { supabase } from "@/integrations/supabase/client";
 import {
   Select,
   SelectContent,

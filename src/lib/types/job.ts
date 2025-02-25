@@ -1,3 +1,4 @@
+
 import type { Database } from "@/integrations/supabase/types";
 
 export interface Location {
@@ -33,6 +34,7 @@ export interface Job {
   vehicle_id?: string;
   notes?: string;
   service_type?: string;
+  priority?: number;
 }
 
 // Type guard to check if a value is a Location
