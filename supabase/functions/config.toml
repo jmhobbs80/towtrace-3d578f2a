@@ -8,3 +8,7 @@ cors = ["*"]
 [[functions]]
 name = "optimize-route"
 verify_jwt = true
+
+[[functions]]
+name = "get-mapbox-token"
+verify_jwt = true
