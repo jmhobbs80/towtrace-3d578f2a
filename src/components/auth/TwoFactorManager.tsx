@@ -29,7 +29,7 @@ export function TwoFactorManager() {
         qrCodeUrl={qrCodeUrl}
         totpCode={totpCode}
         onTotpCodeChange={setTotpCode}
-        onVerify={handleVerify}
+        onVerify={() => handleVerify(totpCode)}
       />
     );
   }

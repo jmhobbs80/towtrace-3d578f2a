@@ -2,6 +2,7 @@
 import { useState, useEffect } from "react";
 import { useToast } from "@/hooks/use-toast";
 import { useAuth } from "@/lib/auth";
+import { supabase } from "@/integrations/supabase/client";
 import { useUserRole } from "./useUserRole";
 import { useTwoFactorVerification } from "./useTwoFactorVerification";
 import { useTwoFactorSetup } from "./useTwoFactorSetup";
@@ -16,7 +17,7 @@ export function useTwoFactorAuth() {
   
   const { user } = useAuth();
   const { isOverwatchAdmin } = useUserRole(user?.id);
-  const { handleVerify, failedAttempts } = useTwoFactorVerification(user?.id, factorId);
+  const { handleVerify, failedAttempts } = useTwoFactorVerification(factorId, user?.id);
   const { handleEnable2FA, handleDisable2FA } = useTwoFactorSetup({
     user,
     isOverwatchAdmin,
@@ -47,6 +48,7 @@ export function useTwoFactorAuth() {
     qrCodeUrl,
     totpCode,
     isOverwatchAdmin,
+    failedAttempts,
     setTotpCode,
     handleEnable2FA,
     handleDisable2FA,
