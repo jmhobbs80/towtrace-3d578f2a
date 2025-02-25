@@ -16,8 +16,35 @@ export function useSignUpForm() {
   const [preferPush, setPreferPush] = useState(false);
   const [preferSMS, setPreferSMS] = useState(false);
   const [companyName, setCompanyName] = useState("");
+  const [promoCode, setPromoCode] = useState("");
+  const [promoCodeValid, setPromoCodeValid] = useState<boolean | null>(null);
+  const [promoCodeMessage, setPromoCodeMessage] = useState("");
   const { toast } = useToast();
   const pushNotificationService = PushNotificationService.getInstance();
+
+  async function validatePromoCode() {
+    if (!promoCode) {
+      setPromoCodeValid(null);
+      setPromoCodeMessage("");
+      return null;
+    }
+
+    const { data, error } = await supabase.rpc('validate_promo_code', {
+      code_input: promoCode,
+      user_id_input: await supabase.auth.getUser().then(({ data }) => data.user?.id)
+    });
+
+    if (error) {
+      setPromoCodeValid(false);
+      setPromoCodeMessage("Error validating promo code");
+      return null;
+    }
+
+    const validation = data[0];
+    setPromoCodeValid(validation.is_valid);
+    setPromoCodeMessage(validation.message);
+    return validation;
+  }
 
   async function setupNotifications() {
     if (preferPush) {
@@ -62,6 +89,15 @@ export function useSignUpForm() {
         throw new Error("Password must be at least 6 characters long");
       }
 
+      // Validate promo code if provided
+      let promoValidation = null;
+      if (promoCode) {
+        promoValidation = await validatePromoCode();
+        if (!promoValidation?.is_valid) {
+          throw new Error("Invalid promo code");
+        }
+      }
+
       // Sign up
       const { error: signUpError, data: signUpData } = await supabase.auth.signUp({
         email,
@@ -72,7 +108,8 @@ export function useSignUpForm() {
             last_name: lastName,
             phone_number: preferSMS ? phoneNumber : null,
             role: role,
-            company_name: companyName
+            company_name: companyName,
+            promo_code: promoValidation?.is_valid ? promoCode : null
           }
         }
       });
@@ -101,9 +138,26 @@ export function useSignUpForm() {
 
       if (profileError) throw profileError;
 
+      // Record promo code redemption if valid
+      if (promoValidation?.is_valid && signUpData.user) {
+        const { error: redemptionError } = await supabase
+          .from('promo_code_redemptions')
+          .insert({
+            user_id: signUpData.user.id,
+            organization_id: signUpData.user.user_metadata.current_organization_id,
+            promo_code_id: promoCode
+          });
+
+        if (redemptionError) {
+          console.error('Error recording promo code redemption:', redemptionError);
+        }
+      }
+
       toast({
         title: "Account created successfully",
-        description: "Please check your email to verify your account",
+        description: promoValidation?.is_valid 
+          ? "Your 90-day trial has been activated! Please check your email to verify your account."
+          : "Please check your email to verify your account",
       });
     } catch (error) {
       toast({
@@ -136,6 +190,11 @@ export function useSignUpForm() {
     setPreferSMS,
     companyName,
     setCompanyName,
+    promoCode,
+    setPromoCode,
+    promoCodeValid,
+    promoCodeMessage,
+    validatePromoCode,
     handleSubmit
   };
 }

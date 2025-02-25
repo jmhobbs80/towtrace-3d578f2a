@@ -74,7 +74,14 @@ const handler = async (req: Request): Promise<Response> => {
     const addonPrice = plan.addon_price * additionalRoles.length;
     const totalPrice = basePrice + addonPrice;
 
-    // Create Stripe Checkout session
+    // Check for valid promo code with trial period
+    const { data: promoData } = await supabase
+      .from('promo_code_redemptions')
+      .select('promo_codes(*)')
+      .eq('organization_id', organizationId)
+      .single();
+
+    // Create Stripe Checkout session with trial period if applicable
     const session = await stripe.checkout.sessions.create({
       customer: customerId,
       line_items: [
@@ -102,6 +109,8 @@ const handler = async (req: Request): Promise<Response> => {
           plan_id: planId,
           additional_roles: JSON.stringify(additionalRoles),
         },
+        // Add trial period if promo code exists and is valid
+        trial_period_days: promoData?.promo_codes?.trial_days || undefined,
       },
     });
 

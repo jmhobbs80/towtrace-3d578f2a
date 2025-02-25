@@ -2,10 +2,7 @@
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
-import { useToast } from "@/hooks/use-toast";
-import { useState } from "react";
-import { useNavigate } from "react-router-dom";
-import { supabase } from "@/integrations/supabase/client";
+import { useSignUpForm } from "@/hooks/use-signup-form";
 import { 
   Select,
   SelectContent,
@@ -14,54 +11,40 @@ import {
   SelectValue,
 } from "@/components/ui/select";
 import { UserRole } from "@/lib/types/auth";
+import { useState } from "react";
 
 export function SignUpForm() {
-  const [email, setEmail] = useState("");
-  const [password, setPassword] = useState("");
-  const [firstName, setFirstName] = useState("");
-  const [lastName, setLastName] = useState("");
-  const [companyName, setCompanyName] = useState("");
-  const [role, setRole] = useState<UserRole>("dealer");
-  const [loading, setLoading] = useState(false);
-  const navigate = useNavigate();
-  const { toast } = useToast();
+  const {
+    email,
+    setEmail,
+    password,
+    setPassword,
+    firstName,
+    setFirstName,
+    lastName,
+    setLastName,
+    companyName,
+    setCompanyName,
+    role,
+    setRole,
+    promoCode,
+    setPromoCode,
+    promoCodeValid,
+    promoCodeMessage,
+    validatePromoCode,
+    loading,
+    handleSubmit
+  } = useSignUpForm();
 
-  async function handleSubmit(e: React.FormEvent) {
-    e.preventDefault();
-    setLoading(true);
+  const [isValidatingPromo, setIsValidatingPromo] = useState(false);
 
-    try {
-      const { error } = await supabase.auth.signUp({
-        email,
-        password,
-        options: {
-          data: {
-            first_name: firstName,
-            last_name: lastName,
-            company_name: companyName,
-            role: role
-          }
-        }
-      });
-
-      if (error) throw error;
-
-      toast({
-        title: "Account created",
-        description: "Please check your email to verify your account.",
-      });
-      
-      navigate("/");
-    } catch (error) {
-      toast({
-        variant: "destructive",
-        title: "Registration error",
-        description: error instanceof Error ? error.message : "An error occurred",
-      });
-    } finally {
-      setLoading(false);
+  const handlePromoCodeBlur = async () => {
+    if (promoCode) {
+      setIsValidatingPromo(true);
+      await validatePromoCode();
+      setIsValidatingPromo(false);
     }
-  }
+  };
 
   return (
     <form onSubmit={handleSubmit} className="space-y-6 animate-fade-in">
@@ -137,6 +120,37 @@ export function SignUpForm() {
             <SelectItem value="overwatch_admin">Overwatch Admin</SelectItem>
           </SelectContent>
         </Select>
+      </div>
+
+      <div className="space-y-3">
+        <Label htmlFor="promoCode" className="text-sm font-medium">
+          Promo Code <span className="text-muted-foreground">(Optional)</span>
+        </Label>
+        <div className="relative">
+          <Input
+            id="promoCode"
+            value={promoCode}
+            onChange={(e) => setPromoCode(e.target.value.toUpperCase())}
+            onBlur={handlePromoCodeBlur}
+            className={`h-11 text-base bg-white/5 backdrop-blur-sm border-white/10 hover:border-white/20 transition-colors ${
+              promoCodeValid === true ? 'border-green-500' : 
+              promoCodeValid === false ? 'border-red-500' : ''
+            }`}
+            placeholder="Enter promo code for 90-day trial"
+          />
+          {isValidatingPromo && (
+            <div className="absolute right-3 top-1/2 -translate-y-1/2">
+              <div className="animate-spin h-4 w-4 border-2 border-primary border-t-transparent rounded-full" />
+            </div>
+          )}
+        </div>
+        {promoCodeMessage && (
+          <p className={`text-sm ${
+            promoCodeValid ? 'text-green-500' : 'text-red-500'
+          }`}>
+            {promoCodeMessage}
+          </p>
+        )}
       </div>
 
       <Button
