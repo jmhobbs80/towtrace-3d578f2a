@@ -40,7 +40,16 @@ export default function LoadBoard() {
         throw error;
       }
 
-      return data as Load[];
+      // Transform the data to match our Load type
+      const transformedData: Load[] = data.map((load) => ({
+        ...load,
+        pickup_location: load.pickup_location as { address: string },
+        delivery_location: load.delivery_location as { address: string },
+        requirements: (load.requirements as string[]) || [],
+        photos: (load.photos as string[]) || [],
+      }));
+
+      return transformedData;
     },
   });
 
