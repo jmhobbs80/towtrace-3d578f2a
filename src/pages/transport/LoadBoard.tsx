@@ -1,23 +1,15 @@
+
 import { useEffect, useState } from "react";
 import { useQuery } from "@tanstack/react-query";
 import { supabase } from "@/integrations/supabase/client";
 import { Button } from "@/components/ui/button";
 import { Sidebar } from "@/components/ui/layout/Sidebar";
-import {
-  Table,
-  TableBody,
-  TableCell,
-  TableHead,
-  TableHeader,
-  TableRow,
-} from "@/components/ui/table";
-import { Badge } from "@/components/ui/badge";
 import { useToast } from "@/components/ui/use-toast";
 import { format } from "date-fns";
-import { MapPin, Calendar, Package, Route } from "lucide-react";
 import type { Load, Dimensions, PriceRange } from "@/lib/types/load";
 import { CreateLoadDialog } from "@/components/transport/CreateLoadDialog";
 import { Map } from "@/components/map/Map";
+import { LoadTable } from "@/components/transport/LoadTable";
 
 function isDimensions(value: unknown): value is Dimensions {
   if (!value || typeof value !== 'object') return false;
@@ -160,101 +152,11 @@ export default function LoadBoard() {
           )}
 
           <div className="bg-white rounded-lg shadow overflow-hidden">
-            <Table>
-              <TableHeader>
-                <TableRow>
-                  <TableHead>Load Details</TableHead>
-                  <TableHead>Type</TableHead>
-                  <TableHead>Pickup</TableHead>
-                  <TableHead>Delivery</TableHead>
-                  <TableHead>Price Range</TableHead>
-                  <TableHead>Status</TableHead>
-                  <TableHead>Actions</TableHead>
-                </TableRow>
-              </TableHeader>
-              <TableBody>
-                {loads?.map((load) => (
-                  <TableRow key={load.id}>
-                    <TableCell>
-                      <div className="space-y-1">
-                        <div className="font-medium">{load.title}</div>
-                        <div className="text-sm text-gray-500">
-                          {load.description}
-                        </div>
-                      </div>
-                    </TableCell>
-                    <TableCell>
-                      <Badge variant="secondary" className="capitalize">
-                        <Package className="w-4 h-4 mr-1" />
-                        {load.load_type}
-                      </Badge>
-                    </TableCell>
-                    <TableCell>
-                      <div className="space-y-1">
-                        <div className="flex items-center text-sm">
-                          <MapPin className="w-4 h-4 mr-1" />
-                          {load.pickup_location.address}
-                        </div>
-                        <div className="flex items-center text-sm text-gray-500">
-                          <Calendar className="w-4 h-4 mr-1" />
-                          {format(new Date(load.pickup_date), "MMM d, yyyy")}
-                        </div>
-                      </div>
-                    </TableCell>
-                    <TableCell>
-                      <div className="space-y-1">
-                        <div className="flex items-center text-sm">
-                          <MapPin className="w-4 h-4 mr-1" />
-                          {load.delivery_location.address}
-                        </div>
-                        <div className="flex items-center text-sm text-gray-500">
-                          <Calendar className="w-4 h-4 mr-1" />
-                          {format(new Date(load.delivery_date), "MMM d, yyyy")}
-                        </div>
-                      </div>
-                    </TableCell>
-                    <TableCell>
-                      {load.price_range ? (
-                        <span>
-                          ${load.price_range.min} - ${load.price_range.max}
-                        </span>
-                      ) : (
-                        "Contact for price"
-                      )}
-                    </TableCell>
-                    <TableCell>
-                      <Badge
-                        variant={
-                          load.status === "open"
-                            ? "default"
-                            : load.status === "assigned"
-                            ? "secondary"
-                            : "outline"
-                        }
-                      >
-                        {load.status}
-                      </Badge>
-                    </TableCell>
-                    <TableCell>
-                      <div className="flex gap-2">
-                        <Button variant="outline" size="sm">
-                          View Details
-                        </Button>
-                        <Button
-                          variant="secondary"
-                          size="sm"
-                          onClick={() => handleOptimizeRoute(load)}
-                          disabled={isOptimizing}
-                        >
-                          <Route className="w-4 h-4 mr-1" />
-                          Optimize Route
-                        </Button>
-                      </div>
-                    </TableCell>
-                  </TableRow>
-                ))}
-              </TableBody>
-            </Table>
+            <LoadTable
+              loads={loads || []}
+              onOptimize={handleOptimizeRoute}
+              isOptimizing={isOptimizing}
+            />
           </div>
         </div>
       </main>
