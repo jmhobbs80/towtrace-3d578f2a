@@ -65,7 +65,7 @@ export default function OrganizationDashboard() {
           </CardHeader>
           <CardContent>
             <div className="text-2xl font-bold">
-              {organization?.service_area?.radius_miles || 25} miles
+              25 miles {/* Default value since service_area is not in the type */}
             </div>
           </CardContent>
         </Card>

@@ -35,6 +35,10 @@ export default function DriverPortal() {
     enabled: !!user?.id
   });
 
+  if (!user?.id) {
+    return <div>Loading...</div>;
+  }
+
   return (
     <div className="container mx-auto py-8 space-y-6">
       <h1 className="text-3xl font-bold">Driver Portal</h1>
@@ -45,11 +49,7 @@ export default function DriverPortal() {
             <CardTitle>Current Vehicle</CardTitle>
           </CardHeader>
           <CardContent>
-            {currentAssignment ? (
-              <DriverVehicleStatus assignment={currentAssignment} />
-            ) : (
-              <p className="text-muted-foreground">No vehicle currently assigned</p>
-            )}
+            <DriverVehicleStatus driverId={user.id} />
           </CardContent>
         </Card>
 
