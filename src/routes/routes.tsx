@@ -1,7 +1,8 @@
+
 import { RouteObject } from "react-router-dom";
-import { ProtectedRoute } from "@/components/auth/ProtectedRoute";
-import { AuthPage } from "@/pages/auth/AuthPage";
-import { Dashboard } from "@/pages/dashboard/Dashboard";
+import ProtectedRoute from "@/components/auth/ProtectedRoute";
+import AuthPage from "@/pages/auth/AuthPage";
+import Dashboard from "@/pages/dashboard/Dashboard";
 import { AnalyticsDashboard } from "@/pages/analytics/AnalyticsDashboard";
 import Index from "@/pages/Index";
 import BillingDashboard from "@/pages/billing/BillingDashboard";
