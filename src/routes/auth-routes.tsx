@@ -12,6 +12,21 @@ export const authRoutes: RouteConfig[] = [
     allowedRoles: [] as UserRole[]
   },
   {
+    path: "/auth/signup",
+    element: <AuthPage />,
+    allowedRoles: [] as UserRole[]
+  },
+  {
+    path: "/auth/login",
+    element: <AuthPage />,
+    allowedRoles: [] as UserRole[]
+  },
+  {
+    path: "/auth/forgot-password",
+    element: <AuthPage />,
+    allowedRoles: [] as UserRole[]
+  },
+  {
     path: "/notifications",
     element: <NotificationCenter />,
     allowedRoles: ROLE_ACCESS.PUBLIC

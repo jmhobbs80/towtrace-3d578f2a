@@ -26,12 +26,12 @@ const protectedRoutes = [
   ...dealerRoutes,
   ...fleetRoutes,
   ...dispatchRoutes,
+  ...customerRoutes,
   ...billingRoutes,
   ...analyticsRoutes,
 ];
 
 const publicRoutes = [
-  ...customerRoutes,
   ...legalRoutes,
 ];
 
@@ -45,6 +45,10 @@ export const router = createBrowserRouter([
   {
     element: <AppLayout />,
     children: [
+      {
+        path: "/",
+        element: <Navigate to="/auth" replace />,
+      },
       ...authRoutes,
       ...publicRoutes,
       {
@@ -57,6 +61,18 @@ export const router = createBrowserRouter([
             </ProtectedRoute>
           )
         }))
+      },
+      {
+        path: "/login",
+        element: <Navigate to="/auth" replace />,
+      },
+      {
+        path: "/signup",
+        element: <Navigate to="/auth?signup=true" replace />,
+      },
+      {
+        path: "/forgot-password",
+        element: <Navigate to="/auth?type=recovery" replace />,
       },
       {
         path: "*",
