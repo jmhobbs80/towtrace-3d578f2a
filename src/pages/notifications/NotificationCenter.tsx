@@ -6,6 +6,9 @@ import { Bell } from "lucide-react";
 
 export default function NotificationCenter() {
   const [notifications] = useState([]);
+  const [preferPush, setPreferPush] = useState(false);
+  const [preferSMS, setPreferSMS] = useState(false);
+  const [phoneNumber, setPhoneNumber] = useState("");
 
   return (
     <div className="container mx-auto p-6 space-y-6">
@@ -19,7 +22,14 @@ export default function NotificationCenter() {
           <CardTitle>Notification Preferences</CardTitle>
         </CardHeader>
         <CardContent>
-          <NotificationPreferences />
+          <NotificationPreferences 
+            preferPush={preferPush}
+            setPreferPush={setPreferPush}
+            preferSMS={preferSMS}
+            setPreferSMS={setPreferSMS}
+            phoneNumber={phoneNumber}
+            setPhoneNumber={setPhoneNumber}
+          />
         </CardContent>
       </Card>
 

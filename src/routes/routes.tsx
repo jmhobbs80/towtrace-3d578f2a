@@ -21,7 +21,6 @@ import BulkTransport from "@/pages/wholesale/BulkTransport";
 import DealerTrades from "@/pages/dealer/DealerTrades";
 import type { UserRole } from "@/lib/types/auth";
 
-// Import newly created components
 import ProfileSettings from "@/pages/profile/ProfileSettings";
 import NotificationCenter from "@/pages/notifications/NotificationCenter";
 import OrganizationDashboard from "@/pages/organization/OrganizationDashboard";
@@ -53,10 +52,18 @@ const ROLE_ACCESS = {
   DRIVER: ["driver", "admin", "super_admin"] as UserRole[],
   DISPATCH: ["dispatcher", "admin", "super_admin"] as UserRole[],
   ANALYTICS: ["dealer", "wholesaler", "dispatcher", "admin", "super_admin"] as UserRole[],
-  PUBLIC: [] as UserRole[] // Empty array means public access
+  CUSTOMER: ["customer", "admin", "super_admin"] as UserRole[],
+  PUBLIC: [] as UserRole[],
 } as const;
 
-const protectedRoutes = [
+interface RouteConfig {
+  path: string;
+  element: React.ReactNode;
+  allowedRoles: UserRole[];
+  children?: RouteConfig[];
+}
+
+const protectedRoutes: RouteConfig[] = [
   {
     path: "/dashboard",
     element: <Dashboard />,
@@ -214,9 +221,15 @@ const protectedRoutes = [
   }
 ];
 
+const AppLayout = () => (
+  <AuthProvider>
+    <Outlet />
+  </AuthProvider>
+);
+
 export const router = createBrowserRouter([
   {
-    element: <RootLayout />,
+    element: <AppLayout />,
     children: [
       {
         path: "/auth",

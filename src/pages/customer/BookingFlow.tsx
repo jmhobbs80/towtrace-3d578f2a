@@ -6,6 +6,16 @@ import { PaymentForm } from "@/components/billing/PaymentForm";
 
 export default function BookingFlow() {
   const [step, setStep] = useState(1);
+  const [jobId, setJobId] = useState<string | null>(null);
+
+  const handleRequestSubmit = (submittedJobId: string) => {
+    setJobId(submittedJobId);
+    setStep(2);
+  };
+
+  const handlePaymentSubmit = () => {
+    setStep(3);
+  };
 
   return (
     <div className="container mx-auto p-6 space-y-6">
@@ -17,18 +27,18 @@ export default function BookingFlow() {
             <CardTitle>Service Details</CardTitle>
           </CardHeader>
           <CardContent>
-            <TowRequestForm onComplete={() => setStep(2)} />
+            <TowRequestForm onSubmit={handleRequestSubmit} />
           </CardContent>
         </Card>
       )}
 
-      {step === 2 && (
+      {step === 2 && jobId && (
         <Card>
           <CardHeader>
             <CardTitle>Payment Information</CardTitle>
           </CardHeader>
           <CardContent>
-            <PaymentForm onComplete={() => setStep(3)} />
+            <PaymentForm jobId={jobId} organizationId="default" onSuccess={handlePaymentSubmit} />
           </CardContent>
         </Card>
       )}
