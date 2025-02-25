@@ -109,6 +109,7 @@ export async function queueOfflineVINScan(scanResult: ScanResult): Promise<void>
     const { error } = await supabase
       .from('offline_sync_queue')
       .insert({
+        action: 'vin_scan',
         entity_type: 'vin_scan',
         data: scanResult,
         status: 'pending'

@@ -39,7 +39,6 @@ export class OCRVINScanner implements VINScannerHardware {
           (result, error) => {
             if (result) {
               const text = result.getText();
-              // Validate that the scanned text matches VIN format
               if (/^[A-HJ-NP-Z0-9]{17}$/.test(text)) {
                 this.stopScanning();
                 resolve(text);
@@ -59,7 +58,7 @@ export class OCRVINScanner implements VINScannerHardware {
 
   async stopScanning(): Promise<void> {
     try {
-      this.reader.reset();
+      this.reader.stopAsyncDecode(); // Using the correct method
       if (this.videoElement && this.videoElement.parentNode) {
         this.videoElement.parentNode.removeChild(this.videoElement);
       }

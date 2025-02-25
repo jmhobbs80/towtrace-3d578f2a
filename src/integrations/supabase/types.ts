@@ -2614,6 +2614,50 @@ export type Database = {
           },
         ]
       }
+      vin_scan_logs: {
+        Row: {
+          confidence: number | null
+          created_at: string | null
+          id: string
+          metadata: Json | null
+          organization_id: string | null
+          scan_method: string
+          scan_timestamp: string
+          user_id: string | null
+          vin: string
+        }
+        Insert: {
+          confidence?: number | null
+          created_at?: string | null
+          id?: string
+          metadata?: Json | null
+          organization_id?: string | null
+          scan_method: string
+          scan_timestamp: string
+          user_id?: string | null
+          vin: string
+        }
+        Update: {
+          confidence?: number | null
+          created_at?: string | null
+          id?: string
+          metadata?: Json | null
+          organization_id?: string | null
+          scan_method?: string
+          scan_timestamp?: string
+          user_id?: string | null
+          vin?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "vin_scan_logs_organization_id_fkey"
+            columns: ["organization_id"]
+            isOneToOne: false
+            referencedRelation: "organizations"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
     }
     Views: {
       [_ in never]: never
@@ -2798,6 +2842,15 @@ export type Database = {
           previous_state?: Json
           new_state?: Json
           metadata?: Json
+        }
+        Returns: string
+      }
+      log_vin_scan: {
+        Args: {
+          p_vin: string
+          p_scan_method: string
+          p_confidence?: number
+          p_metadata?: Json
         }
         Returns: string
       }
