@@ -31,7 +31,10 @@ export async function createRepairFacility(params: CreateRepairFacilityParams): 
   return data;
 }
 
-export async function getRepairOrders(vehicleId?: string): Promise<RepairOrder[]> {
+export async function getRepairOrders(vehicleId?: string): Promise<(RepairOrder & {
+  facility: { name: string; address: any };
+  items: RepairItem[];
+})[]> {
   let query = supabase
     .from('repair_orders')
     .select(`
