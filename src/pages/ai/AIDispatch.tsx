@@ -1,7 +1,7 @@
 
 import { useQuery } from "@tanstack/react-query";
 import { supabase } from "@/integrations/supabase/client";
-import { toLocation } from "@/lib/types/job";
+import { toLocation } from "@/lib/utils";
 
 interface Location {
   address: string;
@@ -64,7 +64,7 @@ export default function AIDispatch() {
       if (error) throw error;
       if (!jobData) return [];
 
-      return jobData.map((job: DatabaseJob) => ({
+      return (jobData as DatabaseJob[]).map((job: DatabaseJob): Job => ({
         ...job,
         pickup_location: toLocation(job.pickup_location) || { address: 'Unknown' },
         delivery_location: job.delivery_location ? toLocation(job.delivery_location) : undefined,

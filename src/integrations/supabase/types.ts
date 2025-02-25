@@ -877,6 +877,7 @@ export type Database = {
       inventory_vehicles: {
         Row: {
           auction_date: string | null
+          auction_result_id: string | null
           auction_status: string | null
           color: string | null
           condition: Database["public"]["Enums"]["vehicle_condition"] | null
@@ -903,6 +904,7 @@ export type Database = {
         }
         Insert: {
           auction_date?: string | null
+          auction_result_id?: string | null
           auction_status?: string | null
           color?: string | null
           condition?: Database["public"]["Enums"]["vehicle_condition"] | null
@@ -929,6 +931,7 @@ export type Database = {
         }
         Update: {
           auction_date?: string | null
+          auction_result_id?: string | null
           auction_status?: string | null
           color?: string | null
           condition?: Database["public"]["Enums"]["vehicle_condition"] | null
@@ -954,6 +957,13 @@ export type Database = {
           year?: number
         }
         Relationships: [
+          {
+            foreignKeyName: "inventory_vehicles_auction_result_id_fkey"
+            columns: ["auction_result_id"]
+            isOneToOne: false
+            referencedRelation: "auction_results"
+            referencedColumns: ["id"]
+          },
           {
             foreignKeyName: "inventory_vehicles_location_id_fkey"
             columns: ["location_id"]
@@ -3173,6 +3183,8 @@ export type Database = {
         | "maintenance"
         | "pending_repair"
         | "in_repair"
+        | "in_auction"
+        | "sold_at_auction"
       job_status:
         | "pending"
         | "assigned"
