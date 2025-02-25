@@ -16,13 +16,13 @@ export function Logo({
   const sizeClasses = {
     sm: "h-8",
     md: "h-10",
-    lg: "h-12"
+    lg: "h-16"
   }
 
   return (
     <div 
       className={cn(
-        "flex items-center gap-2 font-display font-bold",
+        "flex items-center gap-2",
         sizeClasses[size],
         className
       )} 
@@ -32,6 +32,7 @@ export function Logo({
         <svg
           className="h-full w-auto"
           viewBox="0 0 512 128"
+          preserveAspectRatio="xMidYMid meet"
           fill="none"
           xmlns="http://www.w3.org/2000/svg"
         >
@@ -80,6 +81,7 @@ export function Logo({
           <svg
             className="h-full w-auto"
             viewBox="0 0 512 128"
+            preserveAspectRatio="xMidYMid meet"
             fill="none"
             xmlns="http://www.w3.org/2000/svg"
           >
