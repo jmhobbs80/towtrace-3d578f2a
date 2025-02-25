@@ -11,6 +11,9 @@ export type Job = Database["public"]["Tables"]["tow_jobs"]["Row"] & {
     first_name: string | null;
     last_name: string | null;
   };
+  assigned_to?: string;
+  pickup_location: Location;
+  delivery_location?: Location;
 };
 
 // Type guard to check if a value is a Location
