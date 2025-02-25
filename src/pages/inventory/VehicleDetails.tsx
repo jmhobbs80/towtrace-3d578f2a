@@ -1,4 +1,3 @@
-
 import { useEffect, useState } from "react";
 import { useParams } from "react-router-dom";
 import { getVehicleDetails } from "@/lib/api/vehicles";
@@ -9,25 +8,7 @@ import { DamageReportForm } from "@/components/inventory/DamageReportForm";
 import { RepairOrderForm } from "@/components/repair/RepairOrderForm";
 import { useToast } from "@/components/ui/use-toast";
 import type { Json } from "@/integrations/supabase/types";
-
-interface VehicleLocation {
-  name: string;
-  address: Json;
-}
-
-interface DamageReport {
-  id: string;
-  severity: string;
-  description?: string;
-  created_at: string;
-}
-
-interface TransitRecord {
-  id: string;
-  status: string;
-  pickup_date: string;
-  delivery_date?: string;
-}
+import type { DamageReport, TransitRecord, VehicleLocation } from "@/lib/api/vehicles";
 
 interface VehicleDetailsData {
   id: string;

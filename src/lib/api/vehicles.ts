@@ -5,30 +5,41 @@ import type { VINScannerHardware } from './scanner-types';
 import type { Json } from '@/integrations/supabase/types';
 
 export type VehicleDamageSeverity = 'none' | 'minor' | 'moderate' | 'severe';
-
 export type VehicleCondition = 'excellent' | 'good' | 'fair' | 'poor' | 'damaged' | 'salvage';
 
 export interface DamageReport {
+  id: string;
+  vehicle_id: string;
+  inspector_id: string;
   damage_locations: Json;
   severity: VehicleDamageSeverity;
   description?: string;
-  photos?: string[];
   repair_estimate?: number;
+  photos: string[];
+  created_at: string;
+  updated_at: string;
 }
 
-// Re-export scanner types
-export type { VINScannerHardware };
+export interface TransitRecord {
+  id: string;
+  status: string;
+  pickup_date: string;
+  delivery_date?: string;
+  vehicle_id: string;
+}
 
-// VIN Scanner Core Functions
+export interface VehicleLocation {
+  name: string;
+  address: Json;
+}
+
 export async function createVINScanner(): Promise<VINScannerHardware> {
-  // Try Bluetooth scanner first (for dedicated hardware)
   const bluetoothScanner = new BluetoothVINScanner();
   if (await bluetoothScanner.isAvailable()) {
     console.log('Using Bluetooth VIN scanner');
     return bluetoothScanner;
   }
 
-  // Fall back to webcam scanning
   const webcamScanner = new WebcamVINScanner();
   if (await webcamScanner.isAvailable()) {
     console.log('Using webcam VIN scanner');
@@ -39,7 +50,6 @@ export async function createVINScanner(): Promise<VINScannerHardware> {
 }
 
 export function validateVIN(vin: string): boolean {
-  // Validate the VIN
   return vin.length === 17 && /^[A-HJ-NP-TV-Z0-9]{17}$/.test(vin);
 }
 
@@ -57,7 +67,6 @@ export async function decodeVIN(vin: string): Promise<any> {
   }
 }
 
-// Vehicle Management Functions
 export async function getVehicles(organizationId: string) {
   const { data, error } = await supabase
     .from('inventory_vehicles')
@@ -74,7 +83,6 @@ export async function getVehicles(organizationId: string) {
 }
 
 export async function getVehicleDetails(vehicleId: string) {
-  // First get the vehicle details with basic related data
   const { data: vehicleData, error: vehicleError } = await supabase
     .from('inventory_vehicles')
     .select(`
@@ -86,7 +94,6 @@ export async function getVehicleDetails(vehicleId: string) {
 
   if (vehicleError) throw vehicleError;
 
-  // Get damage reports separately
   const { data: damageReports, error: damageError } = await supabase
     .from('vehicle_damage_reports')
     .select('*')
@@ -94,19 +101,41 @@ export async function getVehicleDetails(vehicleId: string) {
 
   if (damageError) throw damageError;
 
-  // Get transit history separately
-  const { data: transitHistory, error: transitError } = await supabase
+  const { data: conditionLogs, error: conditionError } = await supabase
+    .from('vehicle_condition_logs')
+    .select('*')
+    .eq('vehicle_id', vehicleId);
+
+  if (conditionError) throw conditionError;
+
+  const { data: inspections, error: inspectionError } = await supabase
+    .from('vehicle_inspections')
+    .select('*')
+    .eq('vehicle_id', vehicleId);
+
+  if (inspectionError) throw inspectionError;
+
+  const { data: transitData, error: transitError } = await supabase
     .from('vehicles_in_transit')
     .select('*')
     .eq('vehicle_id', vehicleId);
 
   if (transitError) throw transitError;
 
-  // Combine all data
+  const transitHistory: TransitRecord[] = (transitData || []).map(record => ({
+    id: record.id,
+    status: record.delivery_status,
+    pickup_date: record.pickup_confirmation || record.created_at,
+    delivery_date: record.delivery_confirmation,
+    vehicle_id: record.vehicle_id
+  }));
+
   return {
     ...vehicleData,
     damage_reports: damageReports || [],
-    transit_history: transitHistory || []
+    condition_logs: conditionLogs || [],
+    inspections: inspections || [],
+    transit_history: transitHistory
   };
 }
 
@@ -172,7 +201,6 @@ export async function uploadVehiclePhotos(
   return Promise.all(uploadPromises);
 }
 
-// Scanner Helper Functions
 export async function scanAndValidateVIN(): Promise<{ 
   vin: string; 
   isValid: boolean;
