@@ -7,10 +7,13 @@ import { LoadTable } from "@/components/transport/LoadTable";
 import { useAuth } from "@/components/auth/AuthProvider";
 import { supabase } from "@/integrations/supabase/client";
 import type { Load } from "@/lib/types/load";
+import { parseLocation, isValidLoadStatus } from "@/lib/types/load";
+import { useToast } from "@/components/ui/use-toast";
 
 export default function TransportRequests() {
   const { organization } = useAuth();
   const [isOptimizing, setIsOptimizing] = useState(false);
+  const { toast } = useToast();
 
   const { data: loads = [], isLoading } = useQuery({
     queryKey: ['transport-loads', organization?.id],
@@ -23,17 +26,18 @@ export default function TransportRequests() {
 
       if (error) throw error;
 
-      return data.map((load): Load => ({
-        ...load,
-        pickup_location: {
-          address: load.pickup_location.address,
-          coordinates: load.pickup_location.coordinates
-        },
-        delivery_location: {
-          address: load.delivery_location.address,
-          coordinates: load.delivery_location.coordinates
-        }
-      }));
+      return data.map((load): Load => {
+        const status = isValidLoadStatus(load.status) ? load.status : 'open';
+        
+        return {
+          ...load,
+          pickup_location: parseLocation(load.pickup_location),
+          delivery_location: parseLocation(load.delivery_location),
+          status,
+          requirements: Array.isArray(load.requirements) ? load.requirements : [],
+          photos: Array.isArray(load.photos) ? load.photos : [],
+        };
+      });
     },
     enabled: !!organization?.id,
   });
@@ -43,6 +47,12 @@ export default function TransportRequests() {
     try {
       // Implement route optimization logic here
       console.log('Optimizing route for load:', load.id);
+    } catch (error) {
+      toast({
+        variant: "destructive",
+        title: "Optimization failed",
+        description: error instanceof Error ? error.message : "An error occurred"
+      });
     } finally {
       setIsOptimizing(false);
     }
