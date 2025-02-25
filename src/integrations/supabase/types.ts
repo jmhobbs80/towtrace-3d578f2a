@@ -800,6 +800,45 @@ export type Database = {
           },
         ]
       }
+      vehicle_damage_reports: {
+        Row: {
+          created_at: string
+          damage_locations: Json
+          description: string | null
+          id: string
+          inspector_id: string
+          photos: string[] | null
+          repair_estimate: number | null
+          severity: Database["public"]["Enums"]["vehicle_damage_severity"]
+          updated_at: string
+          vehicle_id: string
+        }
+        Insert: {
+          created_at?: string
+          damage_locations: Json
+          description?: string | null
+          id?: string
+          inspector_id: string
+          photos?: string[] | null
+          repair_estimate?: number | null
+          severity: Database["public"]["Enums"]["vehicle_damage_severity"]
+          updated_at?: string
+          vehicle_id: string
+        }
+        Update: {
+          created_at?: string
+          damage_locations?: Json
+          description?: string | null
+          id?: string
+          inspector_id?: string
+          photos?: string[] | null
+          repair_estimate?: number | null
+          severity?: Database["public"]["Enums"]["vehicle_damage_severity"]
+          updated_at?: string
+          vehicle_id?: string
+        }
+        Relationships: []
+      }
       vehicle_inspections: {
         Row: {
           completed_at: string | null
@@ -922,9 +961,49 @@ export type Database = {
         }
         Returns: boolean
       }
+      create_damage_report: {
+        Args: {
+          vehicle_id_param: string
+          inspector_id_param: string
+          damage_locations_param: Json
+          severity_param: Database["public"]["Enums"]["vehicle_damage_severity"]
+          description_param?: string
+          repair_estimate_param?: number
+          photos_param?: string[]
+        }
+        Returns: {
+          created_at: string
+          damage_locations: Json
+          description: string | null
+          id: string
+          inspector_id: string
+          photos: string[] | null
+          repair_estimate: number | null
+          severity: Database["public"]["Enums"]["vehicle_damage_severity"]
+          updated_at: string
+          vehicle_id: string
+        }
+      }
       get_user_organizations: {
         Args: Record<PropertyKey, never>
         Returns: string[]
+      }
+      get_vehicle_damage_reports: {
+        Args: {
+          vehicle_id_param: string
+        }
+        Returns: {
+          id: string
+          vehicle_id: string
+          inspector_id: string
+          damage_locations: Json
+          severity: Database["public"]["Enums"]["vehicle_damage_severity"]
+          description: string
+          repair_estimate: number
+          photos: string[]
+          created_at: string
+          updated_at: string
+        }[]
       }
       has_role: {
         Args: {
@@ -996,6 +1075,7 @@ export type Database = {
         | "poor"
         | "damaged"
         | "salvage"
+      vehicle_damage_severity: "none" | "minor" | "moderate" | "severe"
     }
     CompositeTypes: {
       [_ in never]: never
