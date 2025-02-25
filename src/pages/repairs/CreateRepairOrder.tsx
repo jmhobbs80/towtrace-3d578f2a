@@ -1,0 +1,28 @@
+
+import { useNavigate } from 'react-router-dom';
+import { useQuery } from '@tanstack/react-query';
+import { getRepairFacilities } from '@/lib/api/repair';
+import { RepairOrderForm } from '@/components/repair/RepairOrderForm';
+
+export default function CreateRepairOrder() {
+  const navigate = useNavigate();
+  
+  const { data: facilities = [] } = useQuery({
+    queryKey: ['repair-facilities'],
+    queryFn: getRepairFacilities,
+  });
+
+  return (
+    <div className="container mx-auto py-6 space-y-6">
+      <h1 className="text-2xl font-semibold">Create Repair Order</h1>
+      
+      <div className="bg-white p-6 rounded-lg shadow">
+        <RepairOrderForm 
+          facilities={facilities}
+          onSuccess={() => navigate('/repairs')}
+          onCancel={() => navigate('/repairs')}
+        />
+      </div>
+    </div>
+  );
+}

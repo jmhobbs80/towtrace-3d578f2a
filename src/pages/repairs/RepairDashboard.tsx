@@ -1,9 +1,10 @@
-
+import { Link } from 'react-router-dom';
 import { useQuery } from '@tanstack/react-query';
 import { getRepairFacilities, getRepairOrders, getRepairStats } from '@/lib/api/repair';
 import { RepairFacilityCard } from '@/components/repair/RepairFacilityCard';
 import { RepairOrderCard } from '@/components/repair/RepairOrderCard';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
+import { Button } from '@/components/ui/button';
 import { formatCurrency } from '@/lib/utils';
 import { useToast } from '@/components/ui/use-toast';
 import { useAuth } from '@/components/auth/AuthProvider';
@@ -30,7 +31,6 @@ export default function RepairDashboard() {
 
   const handleStatusUpdate = async (orderId: string, status: 'completed') => {
     try {
-      // Implementation will be added in the next step
       toast({
         title: "Status Updated",
         description: "The repair order has been marked as completed.",
@@ -46,7 +46,12 @@ export default function RepairDashboard() {
 
   return (
     <div className="container mx-auto py-6 space-y-6">
-      <h1 className="text-2xl font-semibold">Repair Management</h1>
+      <div className="flex justify-between items-center">
+        <h1 className="text-2xl font-semibold">Repair Management</h1>
+        <Link to="/repairs/create">
+          <Button>Create Repair Order</Button>
+        </Link>
+      </div>
 
       {/* Stats Overview */}
       <div className="grid grid-cols-1 md:grid-cols-4 gap-4">

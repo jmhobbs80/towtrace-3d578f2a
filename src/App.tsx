@@ -18,6 +18,7 @@ import FleetManagement from './pages/fleet/FleetManagement';
 import ProfileSettings from './pages/profile/ProfileSettings';
 import RepairDashboard from './pages/repairs/RepairDashboard';
 import RepairFacilityManagement from './pages/repairs/RepairFacilityManagement';
+import CreateRepairOrder from './pages/repairs/CreateRepairOrder';
 
 function App() {
   return (
@@ -202,6 +203,19 @@ function App() {
                   <Sidebar />
                   <SidebarInset>
                     <RepairFacilityManagement />
+                  </SidebarInset>
+                </SidebarProvider>
+              </ProtectedRoute>
+            }
+          />
+          <Route
+            path="/repairs/create"
+            element={
+              <ProtectedRoute>
+                <SidebarProvider>
+                  <Sidebar />
+                  <SidebarInset>
+                    <CreateRepairOrder />
                   </SidebarInset>
                 </SidebarProvider>
               </ProtectedRoute>
