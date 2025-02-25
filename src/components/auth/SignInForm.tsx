@@ -4,7 +4,6 @@ import { useNavigate } from "react-router-dom";
 import { supabase } from "@/integrations/supabase/client";
 import { useToast } from "@/hooks/use-toast";
 import { isValidEmail } from "./utils/validation";
-import { FormHeader } from "./components/FormHeader";
 import { SignInFields } from "./components/SignInFields";
 import { AuthLinks } from "./components/AuthLinks";
 
@@ -134,10 +133,6 @@ export function SignInForm() {
 
   return (
     <div className="w-full max-w-md mx-auto space-y-8">
-      {/* ✅ Fix: Ensure TowTrace Logo is at the top */}
-      <FormHeader />
-
-      {/* ✅ Fix: Ensure correct login fields are used */}
       <SignInFields
         email={email}
         setEmail={setEmail}
@@ -147,7 +142,6 @@ export function SignInForm() {
         onSubmit={handleSubmit}
       />
 
-      {/* ✅ Fix: Remove extra "Forgot Password" links */}
       <AuthLinks
         isDialogOpen={isDialogOpen}
         onOpenChange={setIsDialogOpen}

@@ -91,17 +91,6 @@ export default function AuthPage() {
     
     return (
       <Card className="w-full max-w-md p-6 space-y-6">
-        <div className="space-y-2 text-center">
-          <h1 className="text-2xl font-bold tracking-tight">
-            {isSignUp ? "Create an Account" : "Welcome Back"}
-          </h1>
-          <p className="text-muted-foreground text-sm">
-            {isSignUp
-              ? "Create an account to manage your fleet with TowTrace."
-              : "Sign in to continue managing your fleet."}
-          </p>
-        </div>
-
         {isSignUp ? <SignUpForm /> : <SignInForm />}
 
         <div className="relative">
@@ -136,18 +125,6 @@ export default function AuthPage() {
 
   return (
     <div className="min-h-screen flex flex-col items-center justify-center bg-background py-12 px-4 sm:px-6 lg:px-8">
-      <div className="mb-8">
-        <img 
-          src="/logo.png" 
-          alt="TowTrace" 
-          className="h-12 mx-auto"
-          onError={(e) => {
-            e.currentTarget.onerror = null;
-            e.currentTarget.src = '/placeholder.svg';
-          }}
-        />
-      </div>
-
       {renderAuthContent()}
     </div>
   );
