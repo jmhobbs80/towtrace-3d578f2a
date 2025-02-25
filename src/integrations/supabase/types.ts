@@ -823,9 +823,21 @@ export type Database = {
         }
         Returns: boolean
       }
+      is_org_member: {
+        Args: {
+          org_id: string
+        }
+        Returns: boolean
+      }
     }
     Enums: {
-      app_role: "admin" | "dispatcher" | "provider" | "consumer"
+      app_role:
+        | "admin"
+        | "dispatcher"
+        | "provider"
+        | "consumer"
+        | "dealer"
+        | "wholesaler"
       inspection_status: "pending" | "in_progress" | "completed" | "failed"
       inventory_status:
         | "available"
