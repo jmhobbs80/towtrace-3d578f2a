@@ -1,6 +1,6 @@
 
 import { useEffect } from "react";
-import { useNavigate } from "react-router-dom";
+import { useNavigate, useSearchParams } from "react-router-dom";
 import { supabase } from "@/integrations/supabase/client";
 import { Button } from "@/components/ui/button";
 import {
@@ -17,6 +17,7 @@ import { useToast } from "@/hooks/use-toast";
 
 export default function AuthPage() {
   const [isSignUp, setIsSignUp] = useState(false);
+  const [searchParams] = useSearchParams();
   const navigate = useNavigate();
   const { toast } = useToast();
 
@@ -37,8 +38,32 @@ export default function AuthPage() {
       }
     };
 
-    checkSession();
-  }, [navigate, toast]);
+    // Check if we're in a password reset flow
+    const isReset = searchParams.get('type') === 'recovery';
+    if (isReset) {
+      // Handle password reset
+      const handlePasswordReset = async () => {
+        try {
+          // The URL already contains the necessary tokens
+          // Just show a message to the user
+          toast({
+            title: "Reset Password",
+            description: "You can now set your new password by signing in.",
+          });
+        } catch (error) {
+          console.error('Password reset error:', error);
+          toast({
+            variant: "destructive",
+            title: "Reset error",
+            description: "Failed to process password reset",
+          });
+        }
+      };
+      handlePasswordReset();
+    } else {
+      checkSession();
+    }
+  }, [navigate, toast, searchParams]);
 
   return (
     <div className="min-h-screen flex items-center justify-center bg-gray-50 py-12 px-4 sm:px-6 lg:px-8">
