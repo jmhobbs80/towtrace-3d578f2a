@@ -15,9 +15,38 @@ export default function AuthPage() {
   const navigate = useNavigate();
   const { toast } = useToast();
   const [loading, setLoading] = useState(true);
+  const [inviteData, setInviteData] = useState<{
+    organization_id: string;
+    is_valid: boolean;
+    message: string;
+  } | null>(null);
 
   useEffect(() => {
     let mounted = true;
+
+    const validateInvite = async (token: string) => {
+      try {
+        const { data, error } = await supabase.functions.invoke('driver-invites', {
+          method: 'GET',
+          query: { token },
+        });
+
+        if (error) throw error;
+        if (mounted) {
+          setInviteData(data);
+          setIsSignUp(true);
+        }
+      } catch (error) {
+        console.error("Error validating invite:", error);
+        if (mounted) {
+          toast({
+            variant: "destructive",
+            title: "Invalid Invite Link",
+            description: error.message,
+          });
+        }
+      }
+    };
 
     const checkSession = async () => {
       try {
@@ -35,7 +64,6 @@ export default function AuthPage() {
 
           if (roleError) throw roleError;
 
-          // Make sure component is still mounted before navigating
           if (!mounted) return;
 
           switch (roleData?.role) {
@@ -69,10 +97,13 @@ export default function AuthPage() {
       }
     };
 
-    // Initial session check
+    const inviteToken = searchParams.get("invite");
+    if (inviteToken) {
+      validateInvite(inviteToken);
+    }
+
     checkSession();
 
-    // Set up auth state listener
     const { data: authListener } = supabase.auth.onAuthStateChange(async (event, session) => {
       if (!mounted) return;
       
@@ -84,7 +115,6 @@ export default function AuthPage() {
       }
     });
 
-    // Handle recovery flow
     if (searchParams.get("type") === "recovery") {
       toast({
         title: "Reset Password",
@@ -92,7 +122,6 @@ export default function AuthPage() {
       });
     }
 
-    // Cleanup function
     return () => {
       mounted = false;
       authListener?.subscription?.unsubscribe();
@@ -117,34 +146,42 @@ export default function AuthPage() {
     
     return (
       <Card className="w-full max-w-md p-6 space-y-6">
-        {isSignUp ? <SignUpForm /> : <SignInForm />}
+        {isSignUp ? (
+          <SignUpForm organizationId={inviteData?.organization_id} />
+        ) : (
+          <SignInForm />
+        )}
 
-        <div className="relative">
-          <div className="absolute inset-0 flex items-center">
-            <span className="w-full border-t" />
-          </div>
-          <div className="relative flex justify-center text-xs uppercase">
-            <span className="bg-background px-2 text-muted-foreground">
-              {isSignUp ? "Already have an account?" : "New to TowTrace?"}
-            </span>
-          </div>
-        </div>
+        {!inviteData && (
+          <>
+            <div className="relative">
+              <div className="absolute inset-0 flex items-center">
+                <span className="w-full border-t" />
+              </div>
+              <div className="relative flex justify-center text-xs uppercase">
+                <span className="bg-background px-2 text-muted-foreground">
+                  {isSignUp ? "Already have an account?" : "New to TowTrace?"}
+                </span>
+              </div>
+            </div>
 
-        <Button
-          variant="outline"
-          className="w-full"
-          onClick={() => {
-            const params = new URLSearchParams(searchParams);
-            if (isSignUp) {
-              params.delete("signup");
-            } else {
-              params.set("signup", "true");
-            }
-            navigate(`/auth?${params.toString()}`);
-          }}
-        >
-          {isSignUp ? "Sign In" : "Create Account"}
-        </Button>
+            <Button
+              variant="outline"
+              className="w-full"
+              onClick={() => {
+                const params = new URLSearchParams(searchParams);
+                if (isSignUp) {
+                  params.delete("signup");
+                } else {
+                  params.set("signup", "true");
+                }
+                navigate(`/auth?${params.toString()}`);
+              }}
+            >
+              {isSignUp ? "Sign In" : "Create Account"}
+            </Button>
+          </>
+        )}
       </Card>
     );
   };

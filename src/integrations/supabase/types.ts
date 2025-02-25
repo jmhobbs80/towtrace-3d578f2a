@@ -400,6 +400,53 @@ export type Database = {
           },
         ]
       }
+      driver_invites: {
+        Row: {
+          created_at: string
+          created_by: string
+          email: string | null
+          expires_at: string
+          id: string
+          metadata: Json | null
+          organization_id: string
+          phone: string | null
+          status: string
+          token: string
+        }
+        Insert: {
+          created_at?: string
+          created_by: string
+          email?: string | null
+          expires_at?: string
+          id?: string
+          metadata?: Json | null
+          organization_id: string
+          phone?: string | null
+          status?: string
+          token: string
+        }
+        Update: {
+          created_at?: string
+          created_by?: string
+          email?: string | null
+          expires_at?: string
+          id?: string
+          metadata?: Json | null
+          organization_id?: string
+          phone?: string | null
+          status?: string
+          token?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "driver_invites_organization_id_fkey"
+            columns: ["organization_id"]
+            isOneToOne: false
+            referencedRelation: "organizations"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       driver_locations: {
         Row: {
           coordinates: Json
@@ -3231,6 +3278,16 @@ export type Database = {
         Returns: {
           is_valid: boolean
           impound_id: string
+        }[]
+      }
+      validate_driver_invite: {
+        Args: {
+          token_input: string
+        }
+        Returns: {
+          is_valid: boolean
+          organization_id: string
+          message: string
         }[]
       }
       validate_promo_code: {
