@@ -1,4 +1,3 @@
-
 import React from 'react';
 import { BrowserRouter as Router, Route, Routes } from 'react-router-dom';
 import AuthPage from './pages/auth/AuthPage';
@@ -16,6 +15,7 @@ import InventoryManagement from './pages/inventory/InventoryManagement';
 import VehicleDetails from './pages/inventory/VehicleDetails';
 import VehiclesInTransit from './pages/transport/VehiclesInTransit';
 import FleetManagement from './pages/fleet/FleetManagement';
+import ProfileSettings from './pages/profile/ProfileSettings';
 
 function App() {
   return (
@@ -161,6 +161,19 @@ function App() {
                   <Sidebar />
                   <SidebarInset>
                     <VehiclesInTransit />
+                  </SidebarInset>
+                </SidebarProvider>
+              </ProtectedRoute>
+            }
+          />
+          <Route
+            path="/profile"
+            element={
+              <ProtectedRoute>
+                <SidebarProvider>
+                  <Sidebar />
+                  <SidebarInset>
+                    <ProfileSettings />
                   </SidebarInset>
                 </SidebarProvider>
               </ProtectedRoute>
