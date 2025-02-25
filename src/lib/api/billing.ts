@@ -1,3 +1,4 @@
+
 import { supabase } from "@/integrations/supabase/client";
 import type { Payment, PaymentMethod, SubscriptionPlan, OrganizationType, RoleFeature, OrganizationRole, VolumeDiscount, ProviderBalance, ProviderPayout, JobEarnings } from "../types/billing";
 
@@ -199,7 +200,12 @@ export const getProviderPayouts = async (organizationId: string): Promise<Provid
     .order('created_at', { ascending: false });
 
   if (error) throw error;
-  return data || [];
+  
+  // Cast the status to the correct type
+  return (data || []).map(payout => ({
+    ...payout,
+    status: payout.status as ProviderPayout['status']
+  }));
 };
 
 export const getJobEarnings = async (organizationId: string): Promise<JobEarnings[]> => {
@@ -210,7 +216,12 @@ export const getJobEarnings = async (organizationId: string): Promise<JobEarning
     .order('created_at', { ascending: false });
 
   if (error) throw error;
-  return data || [];
+  
+  // Cast the status to the correct type
+  return (data || []).map(earning => ({
+    ...earning,
+    status: earning.status as JobEarnings['status']
+  }));
 };
 
 export const requestPayout = async (data: {
@@ -225,5 +236,10 @@ export const requestPayout = async (data: {
     .single();
 
   if (error) throw error;
-  return payout;
+  
+  // Cast the status to the correct type
+  return {
+    ...payout,
+    status: payout.status as ProviderPayout['status']
+  };
 };
