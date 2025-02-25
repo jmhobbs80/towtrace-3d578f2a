@@ -5,15 +5,16 @@ import { supabase } from '@/integrations/supabase/client';
 import { AdvancedSearchForm } from '@/components/search/AdvancedSearchForm';
 import { VehicleSearchResults } from '@/components/search/VehicleSearchResults';
 import { toast } from '@/components/ui/use-toast';
+import type { VehicleStatus, VehicleCondition } from '@/lib/types/vehicles';
 
 interface SearchCriteria {
   make?: string;
   model?: string;
   year?: string;
   vin?: string;
-  status?: string;
+  status?: VehicleStatus;
   location?: string;
-  condition?: string;
+  condition?: VehicleCondition;
 }
 
 export default function VehicleSearch() {
@@ -41,10 +42,10 @@ export default function VehicleSearch() {
         query = query.ilike('vin', `%${searchCriteria.vin}%`);
       }
       if (searchCriteria.status) {
-        query = query.eq('status', searchCriteria.status);
+        query = query.eq('status', searchCriteria.status as VehicleStatus);
       }
       if (searchCriteria.condition) {
-        query = query.eq('condition', searchCriteria.condition);
+        query = query.eq('condition', searchCriteria.condition as VehicleCondition);
       }
 
       const { data, error } = await query;

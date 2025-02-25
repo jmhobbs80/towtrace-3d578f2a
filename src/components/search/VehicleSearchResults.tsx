@@ -11,6 +11,7 @@ import {
 import { Badge } from '@/components/ui/badge';
 import { Button } from '@/components/ui/button';
 import { useNavigate } from 'react-router-dom';
+import type { VehicleStatus, VehicleCondition } from '@/lib/types/vehicles';
 
 interface Vehicle {
   id: string;
@@ -18,8 +19,8 @@ interface Vehicle {
   model: string;
   year: number;
   vin: string;
-  status: string;
-  condition: string;
+  status: VehicleStatus;
+  condition: VehicleCondition;
   location?: string;
 }
 
@@ -43,18 +44,18 @@ export function VehicleSearchResults({ vehicles, isLoading }: VehicleSearchResul
     );
   }
 
-  const getStatusColor = (status: string) => {
+  const getStatusColor = (status: VehicleStatus): "default" | "destructive" | "outline" | "secondary" => {
     switch (status.toLowerCase()) {
       case 'available':
-        return 'success';
+        return 'secondary';
       case 'in_transit':
-        return 'warning';
+        return 'default';
       case 'sold':
         return 'secondary';
       case 'maintenance':
         return 'destructive';
       default:
-        return 'default';
+        return 'outline';
     }
   };
 
