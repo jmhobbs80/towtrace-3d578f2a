@@ -8,7 +8,11 @@ import { useSignUpForm } from "@/hooks/use-signup-form";
 import { PersonalInfoSection } from "./PersonalInfoSection";
 import { PasswordStrengthIndicator } from "./PasswordStrengthIndicator";
 
-export function SignUpForm() {
+interface SignUpFormProps {
+  organizationId?: string;
+}
+
+export function SignUpForm({ organizationId }: SignUpFormProps) {
   const {
     email,
     setEmail,

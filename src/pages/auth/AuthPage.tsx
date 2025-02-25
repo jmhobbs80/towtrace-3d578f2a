@@ -28,7 +28,7 @@ export default function AuthPage() {
       try {
         const { data, error } = await supabase.functions.invoke('driver-invites', {
           method: 'GET',
-          query: { token },
+          body: { token }, // Changed from query to body
         });
 
         if (error) throw error;
@@ -147,7 +147,7 @@ export default function AuthPage() {
     return (
       <Card className="w-full max-w-md p-6 space-y-6">
         {isSignUp ? (
-          <SignUpForm organizationId={inviteData?.organization_id} />
+          <SignUpForm organizationId={inviteData?.organization_id ?? undefined} />
         ) : (
           <SignInForm />
         )}
