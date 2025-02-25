@@ -1,4 +1,3 @@
-
 import type { Config } from "tailwindcss";
 
 export default {
@@ -28,36 +27,38 @@ export default {
         border: "hsl(var(--border))",
         input: "hsl(var(--input))",
         ring: "hsl(var(--ring))",
-        background: "#F9F9F9",
-        foreground: "#333333",
+        background: "hsl(var(--background))",
+        foreground: "hsl(var(--foreground))",
         primary: {
           DEFAULT: "#C8102E", // TowTrace Red
+          dark: "#A50D25", // Darker red for dark mode
+          light: "#E31837", // Lighter red for light mode
           foreground: "#ffffff",
         },
         secondary: {
-          DEFAULT: "#333333", // Dark Gray
-          foreground: "#ffffff",
+          DEFAULT: "hsl(var(--secondary))",
+          foreground: "hsl(var(--secondary-foreground))",
         },
         destructive: {
-          DEFAULT: "#C8102E", // Using brand red for destructive actions
+          DEFAULT: "#C8102E",
+          dark: "#A50D25",
           foreground: "#ffffff",
         },
         muted: {
-          DEFAULT: "#666666",
-          foreground: "#F9F9F9",
+          DEFAULT: "hsl(var(--muted))",
+          foreground: "hsl(var(--muted-foreground))",
         },
         accent: {
-          DEFAULT: "#C8102E",
-          hover: "#A50D25",
-          foreground: "#ffffff",
+          DEFAULT: "hsl(var(--accent))",
+          foreground: "hsl(var(--accent-foreground))",
         },
         popover: {
-          DEFAULT: "#F9F9F9",
-          foreground: "#333333",
+          DEFAULT: "hsl(var(--popover))",
+          foreground: "hsl(var(--popover-foreground))",
         },
         card: {
-          DEFAULT: "#FFFFFF",
-          foreground: "#333333",
+          DEFAULT: "hsl(var(--card))",
+          foreground: "hsl(var(--card-foreground))",
         }
       },
       keyframes: {
