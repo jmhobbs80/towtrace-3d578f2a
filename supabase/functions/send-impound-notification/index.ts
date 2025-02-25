@@ -2,6 +2,7 @@
 import { serve } from 'https://deno.land/std@0.168.0/http/server.ts'
 import { createClient } from 'https://esm.sh/@supabase/supabase-js@2'
 import { Resend } from 'npm:resend@2.0.0'
+import { Twilio } from 'npm:twilio@4.19.0'
 
 const corsHeaders = {
   'Access-Control-Allow-Origin': '*',
@@ -9,6 +10,10 @@ const corsHeaders = {
 }
 
 const resend = new Resend(Deno.env.get('RESEND_API_KEY'))
+const twilioClient = new Twilio(
+  Deno.env.get('TWILIO_ACCOUNT_SID'),
+  Deno.env.get('TWILIO_AUTH_TOKEN')
+);
 
 interface NotificationPayload {
   impoundId: string
@@ -48,6 +53,22 @@ const getEmailTemplate = (data: {
       </p>
     </div>
   `;
+};
+
+const getSMSTemplate = (data: {
+  type: string
+  message: string
+  vehicle?: {
+    make: string
+    model: string
+    year: number
+  }
+}) => {
+  const vehicleInfo = data.vehicle 
+    ? `Vehicle: ${data.vehicle.year} ${data.vehicle.make} ${data.vehicle.model}`
+    : '';
+
+  return `${data.message}\n${vehicleInfo}`;
 };
 
 serve(async (req) => {
@@ -90,10 +111,12 @@ serve(async (req) => {
 
     if (impoundError) throw impoundError
 
+    const notificationPromises = []
+
     // Send email notification if recipient email is provided
     if (recipientEmail) {
-      try {
-        const emailResponse = await resend.emails.send({
+      notificationPromises.push(
+        resend.emails.send({
           from: 'notifications@yourdomain.com', // Replace with your verified domain
           to: recipientEmail,
           subject: `Impound Notification: ${type.replace(/_/g, ' ').toUpperCase()}`,
@@ -102,14 +125,33 @@ serve(async (req) => {
             message,
             vehicle: impound.inventory_vehicles
           })
-        });
-
-        console.log('Email sent successfully:', emailResponse);
-      } catch (emailError) {
-        console.error('Failed to send email:', emailError);
-        // Don't throw here - we still want to update the notification status
-      }
+        }).catch(error => {
+          console.error('Failed to send email:', error);
+          return null;
+        })
+      );
     }
+
+    // Send SMS notification if recipient phone is provided
+    if (recipientPhone) {
+      notificationPromises.push(
+        twilioClient.messages.create({
+          body: getSMSTemplate({
+            type,
+            message,
+            vehicle: impound.inventory_vehicles
+          }),
+          to: recipientPhone,
+          from: Deno.env.get('TWILIO_PHONE_NUMBER')
+        }).catch(error => {
+          console.error('Failed to send SMS:', error);
+          return null;
+        })
+      );
+    }
+
+    // Wait for all notifications to be sent
+    await Promise.all(notificationPromises);
 
     // Update notification status
     const { error: updateError } = await supabaseClient
