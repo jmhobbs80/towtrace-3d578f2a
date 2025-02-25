@@ -1,3 +1,4 @@
+
 import { useState, useEffect } from "react";
 import { useQuery } from "@tanstack/react-query";
 import { useAuth } from "@/components/auth/AuthProvider";
@@ -154,28 +155,31 @@ export default function DealerTrades() {
   }
 
   return (
-    <div className="p-6 space-y-6">
-      <div className="flex justify-between items-center">
-        <h1 className="text-2xl font-bold">Dealer Trades</h1>
+    <div className="container p-6 mx-auto space-y-6 animate-fade-in">
+      <div className="flex items-center justify-between">
+        <h1 className="text-2xl font-bold tracking-tight text-foreground font-display">
+          Dealer Trades
+        </h1>
         <Button 
           onClick={handleInitiateTrade} 
           disabled={!selectedVehicle || !organization?.id}
+          className="bg-primary hover:bg-primary/90 text-primary-foreground"
         >
-          <ArrowLeftRight className="mr-2 h-4 w-4" />
+          <ArrowLeftRight className="w-4 h-4 mr-2" />
           Initiate Trade
         </Button>
       </div>
 
-      <Card>
-        <CardHeader>
-          <CardTitle className="flex items-center gap-2">
-            <Building2 className="h-5 w-5" />
+      <Card className="overflow-hidden border border-border/5 shadow-lg transition-shadow hover:shadow-xl">
+        <CardHeader className="border-b border-border/5 bg-card">
+          <CardTitle className="flex items-center gap-2 text-lg font-semibold text-foreground">
+            <Building2 className="w-5 h-5 text-primary" />
             Active Trades
           </CardTitle>
         </CardHeader>
-        <CardContent>
+        <CardContent className="p-0">
           <Table>
-            <TableHeader>
+            <TableHeader className="bg-muted/50">
               <TableRow>
                 <TableHead>Vehicle</TableHead>
                 <TableHead>From</TableHead>
@@ -187,23 +191,36 @@ export default function DealerTrades() {
             </TableHeader>
             <TableBody>
               {trades?.map((trade) => (
-                <TableRow key={trade.id}>
-                  <TableCell>
+                <TableRow key={trade.id} className="hover:bg-muted/5">
+                  <TableCell className="font-medium">
                     {trade.vehicle.year} {trade.vehicle.make} {trade.vehicle.model}
                     <br />
-                    <span className="text-sm text-gray-500">
+                    <span className="text-sm text-muted-foreground">
                       VIN: {trade.vehicle.vin}
                     </span>
                   </TableCell>
                   <TableCell>{trade.source_dealer}</TableCell>
                   <TableCell>{trade.destination_dealer || 'Open'}</TableCell>
-                  <TableCell>{trade.status}</TableCell>
                   <TableCell>
+                    <span className={`inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium ${
+                      trade.status === 'pending' ? 'bg-yellow-100 text-yellow-800' :
+                      trade.status === 'accepted' ? 'bg-green-100 text-green-800' :
+                      trade.status === 'rejected' ? 'bg-red-100 text-red-800' :
+                      'bg-blue-100 text-blue-800'
+                    }`}>
+                      {trade.status}
+                    </span>
+                  </TableCell>
+                  <TableCell className="text-muted-foreground">
                     {new Date(trade.created_at).toLocaleDateString()}
                   </TableCell>
                   <TableCell>
                     {trade.status === 'pending' && (
-                      <Button variant="outline" size="sm">
+                      <Button 
+                        variant="outline" 
+                        size="sm"
+                        className="hover:bg-primary/5 hover:text-primary"
+                      >
                         View Details
                       </Button>
                     )}

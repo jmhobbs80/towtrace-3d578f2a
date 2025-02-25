@@ -53,16 +53,22 @@ const InventoryManagement = () => {
   }
 
   return (
-    <div className="container mx-auto px-4 py-8">
-      <div className="flex justify-between items-center mb-6">
-        <h1 className="text-2xl font-bold">Inventory Management</h1>
+    <div className="container p-8 mx-auto animate-fade-in">
+      <div className="flex items-center justify-between mb-6">
+        <h1 className="text-2xl font-bold tracking-tight text-foreground font-display">
+          Inventory Management
+        </h1>
         <div className="flex gap-4">
-          <Button onClick={() => setIsAddModalOpen(true)}>
+          <Button 
+            onClick={() => setIsAddModalOpen(true)}
+            className="bg-primary hover:bg-primary/90 text-primary-foreground"
+          >
             Add Vehicle
           </Button>
           <Button 
             variant="outline"
             onClick={() => setIsBulkUploadOpen(true)}
+            className="border-primary/20 hover:bg-primary/5 hover:text-primary"
           >
             Bulk Upload
           </Button>
@@ -76,35 +82,55 @@ const InventoryManagement = () => {
       />
 
       <Tabs defaultValue="all" className="mt-6">
-        <TabsList>
-          <TabsTrigger value="all">All Vehicles</TabsTrigger>
-          <TabsTrigger value="pending">Pending Inspection</TabsTrigger>
-          <TabsTrigger value="available">Available</TabsTrigger>
-          <TabsTrigger value="in_transit">In Transit</TabsTrigger>
+        <TabsList className="bg-card border border-border/5">
+          <TabsTrigger 
+            value="all"
+            className="data-[state=active]:bg-primary data-[state=active]:text-primary-foreground"
+          >
+            All Vehicles
+          </TabsTrigger>
+          <TabsTrigger 
+            value="pending"
+            className="data-[state=active]:bg-primary data-[state=active]:text-primary-foreground"
+          >
+            Pending Inspection
+          </TabsTrigger>
+          <TabsTrigger 
+            value="available"
+            className="data-[state=active]:bg-primary data-[state=active]:text-primary-foreground"
+          >
+            Available
+          </TabsTrigger>
+          <TabsTrigger 
+            value="in_transit"
+            className="data-[state=active]:bg-primary data-[state=active]:text-primary-foreground"
+          >
+            In Transit
+          </TabsTrigger>
         </TabsList>
 
-        <TabsContent value="all">
+        <TabsContent value="all" className="mt-4">
           <InventoryList 
             vehicles={vehicles}
             isLoading={isLoading}
           />
         </TabsContent>
         
-        <TabsContent value="pending">
+        <TabsContent value="pending" className="mt-4">
           <InventoryList 
             vehicles={vehicles.filter(v => v.status === 'pending_inspection')}
             isLoading={isLoading}
           />
         </TabsContent>
 
-        <TabsContent value="available">
+        <TabsContent value="available" className="mt-4">
           <InventoryList 
             vehicles={vehicles.filter(v => v.status === 'available')}
             isLoading={isLoading}
           />
         </TabsContent>
 
-        <TabsContent value="in_transit">
+        <TabsContent value="in_transit" className="mt-4">
           <InventoryList 
             vehicles={vehicles.filter(v => v.status === 'in_transit')}
             isLoading={isLoading}
