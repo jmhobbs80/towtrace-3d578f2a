@@ -1,5 +1,5 @@
 
-import DealerDashboard from "@/pages/dashboard/DealerDashboard";
+import { DealerDashboard } from "@/pages/dashboard/DealerDashboard";
 import InventoryManagement from "@/pages/inventory/InventoryManagement";
 import WholesaleAuctions from "@/pages/wholesale/WholesaleAuctions";
 import RepairTracking from "@/pages/repairs/RepairTracking";

@@ -1,5 +1,5 @@
 
-import AnalyticsDashboard from "@/pages/analytics/AnalyticsDashboard";
+import { AnalyticsDashboard } from "@/pages/analytics/AnalyticsDashboard";
 import AIReports from "@/pages/ai/AIReports";
 import { ROLE_ACCESS } from "./role-access";
 import type { RouteConfig } from "./types";
