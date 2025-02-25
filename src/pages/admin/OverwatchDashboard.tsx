@@ -2,6 +2,7 @@
 import { useState } from "react";
 import { PlatformControls } from "@/components/admin/PlatformControls";
 import { BusinessVerification } from "@/components/admin/BusinessVerification";
+import { Shield } from "lucide-react";
 
 export default function OverwatchDashboard() {
   const [autoVerification, setAutoVerification] = useState(false);
@@ -12,14 +13,23 @@ export default function OverwatchDashboard() {
   };
 
   return (
-    <div className="container mx-auto py-6 space-y-6">
-      <h1 className="text-3xl font-bold">Overwatch Dashboard</h1>
-      <div className="grid gap-6">
-        <PlatformControls />
-        <BusinessVerification 
-          autoVerification={autoVerification}
-          onToggleAutoVerification={handleToggleAutoVerification}
-        />
+    <div className="container mx-auto py-8 space-y-8 animate-fade-in">
+      <div className="flex items-center space-x-4 mb-8">
+        <Shield className="w-8 h-8 text-primary" />
+        <h1 className="text-4xl font-display font-bold tracking-tight">Overwatch Dashboard</h1>
+      </div>
+      
+      <div className="grid gap-8">
+        <div className="rounded-2xl bg-card p-6 shadow-lg border border-border/5 transition-all hover:shadow-xl">
+          <PlatformControls />
+        </div>
+        
+        <div className="rounded-2xl bg-card p-6 shadow-lg border border-border/5 transition-all hover:shadow-xl">
+          <BusinessVerification 
+            autoVerification={autoVerification}
+            onToggleAutoVerification={handleToggleAutoVerification}
+          />
+        </div>
       </div>
     </div>
   );
