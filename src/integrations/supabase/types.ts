@@ -2580,6 +2580,10 @@ export type Database = {
         Args: Record<PropertyKey, never>
         Returns: boolean
       }
+      is_master_overwatch_admin: {
+        Args: Record<PropertyKey, never>
+        Returns: boolean
+      }
       is_org_admin: {
         Args: {
           org_id: string
