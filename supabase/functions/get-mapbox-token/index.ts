@@ -2,8 +2,6 @@
 import { serve } from "https://deno.land/std@0.168.0/http/server.ts"
 import { corsHeaders } from "../_shared/cors.ts"
 
-const MAPBOX_PUBLIC_TOKEN = "pk.eyJ1IjoiYXVkaW9pbnN0YWxyIiwiYSI6ImNtN2Zpcmg5MDAybHUybHB5Mm9odWhyMGkifQ.6LAoIZGRvi7Sgfty-C4qsA"
-
 serve(async (req) => {
   // Handle CORS
   if (req.method === 'OPTIONS') {
@@ -11,10 +9,15 @@ serve(async (req) => {
   }
 
   try {
+    const token = Deno.env.get('MAPBOX_PUBLIC_KEY')
+    if (!token) {
+      throw new Error('MAPBOX_PUBLIC_KEY is not set in environment variables')
+    }
+
     // Return the Mapbox token
     return new Response(
       JSON.stringify({
-        token: MAPBOX_PUBLIC_TOKEN,
+        token,
       }),
       {
         headers: { ...corsHeaders, 'Content-Type': 'application/json' },
@@ -22,6 +25,7 @@ serve(async (req) => {
       },
     )
   } catch (error) {
+    console.error('Error getting Mapbox token:', error.message)
     return new Response(
       JSON.stringify({ error: error.message }),
       {
