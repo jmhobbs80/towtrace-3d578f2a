@@ -32,9 +32,33 @@ export function TowDetails({ jobId, onComplete }: TowDetailsProps) {
         (payload) => {
           const rawJob = payload.new;
           
+          if (!rawJob) return;
+          
           // Convert the raw job data to match our Job type
           const updatedJob: Job = {
             ...rawJob,
+            charge_amount: rawJob.charge_amount || 0,
+            completed_at: rawJob.completed_at || null,
+            created_at: rawJob.created_at || new Date().toISOString(),
+            customer_id: rawJob.customer_id || null,
+            description: rawJob.description || '',
+            dispatcher_id: rawJob.dispatcher_id || null,
+            driver_id: rawJob.driver_id || null,
+            driver_notes: rawJob.driver_notes || '',
+            eta: rawJob.eta || null,
+            id: rawJob.id,
+            mileage: rawJob.mileage || null,
+            notes: rawJob.notes || '',
+            organization_id: rawJob.organization_id,
+            payment_status: rawJob.payment_status || 'pending',
+            photos: rawJob.photos || [],
+            priority: rawJob.priority || 3,
+            scheduled_time: rawJob.scheduled_time || null,
+            service_type: rawJob.service_type,
+            signature_url: rawJob.signature_url || null,
+            status: rawJob.status || 'pending',
+            updated_at: rawJob.updated_at || new Date().toISOString(),
+            vehicle_id: rawJob.vehicle_id || null,
             pickup_location: toLocation(rawJob.pickup_location) || { address: 'Unknown location' },
             delivery_location: toLocation(rawJob.delivery_location),
           };
@@ -85,9 +109,33 @@ export function TowDetails({ jobId, onComplete }: TowDetailsProps) {
         return;
       }
 
+      if (!rawJob) return;
+
       // Convert the raw job data to match our Job type
       const job: Job = {
         ...rawJob,
+        charge_amount: rawJob.charge_amount || 0,
+        completed_at: rawJob.completed_at || null,
+        created_at: rawJob.created_at || new Date().toISOString(),
+        customer_id: rawJob.customer_id || null,
+        description: rawJob.description || '',
+        dispatcher_id: rawJob.dispatcher_id || null,
+        driver_id: rawJob.driver_id || null,
+        driver_notes: rawJob.driver_notes || '',
+        eta: rawJob.eta || null,
+        id: rawJob.id,
+        mileage: rawJob.mileage || null,
+        notes: rawJob.notes || '',
+        organization_id: rawJob.organization_id,
+        payment_status: rawJob.payment_status || 'pending',
+        photos: rawJob.photos || [],
+        priority: rawJob.priority || 3,
+        scheduled_time: rawJob.scheduled_time || null,
+        service_type: rawJob.service_type,
+        signature_url: rawJob.signature_url || null,
+        status: rawJob.status || 'pending',
+        updated_at: rawJob.updated_at || new Date().toISOString(),
+        vehicle_id: rawJob.vehicle_id || null,
         pickup_location: toLocation(rawJob.pickup_location) || { address: 'Unknown location' },
         delivery_location: toLocation(rawJob.delivery_location),
       };
