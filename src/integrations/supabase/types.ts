@@ -148,6 +148,80 @@ export type Database = {
           },
         ]
       }
+      auction_results: {
+        Row: {
+          auction_id: string | null
+          buyer_id: string | null
+          created_at: string | null
+          delivery_status: string | null
+          id: string
+          payment_status: string | null
+          seller_id: string | null
+          status: string | null
+          transaction_date: string | null
+          updated_at: string | null
+          vehicle_id: string | null
+          winning_bid_amount: number | null
+        }
+        Insert: {
+          auction_id?: string | null
+          buyer_id?: string | null
+          created_at?: string | null
+          delivery_status?: string | null
+          id?: string
+          payment_status?: string | null
+          seller_id?: string | null
+          status?: string | null
+          transaction_date?: string | null
+          updated_at?: string | null
+          vehicle_id?: string | null
+          winning_bid_amount?: number | null
+        }
+        Update: {
+          auction_id?: string | null
+          buyer_id?: string | null
+          created_at?: string | null
+          delivery_status?: string | null
+          id?: string
+          payment_status?: string | null
+          seller_id?: string | null
+          status?: string | null
+          transaction_date?: string | null
+          updated_at?: string | null
+          vehicle_id?: string | null
+          winning_bid_amount?: number | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "auction_results_auction_id_fkey"
+            columns: ["auction_id"]
+            isOneToOne: false
+            referencedRelation: "auctions"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "auction_results_buyer_id_fkey"
+            columns: ["buyer_id"]
+            isOneToOne: false
+            referencedRelation: "profiles"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "auction_results_seller_id_fkey"
+            columns: ["seller_id"]
+            isOneToOne: false
+            referencedRelation: "profiles"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "auction_results_vehicle_id_fkey"
+            columns: ["vehicle_id"]
+            isOneToOne: false
+            referencedRelation: "inventory_vehicles"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       auctions: {
         Row: {
           created_at: string | null
@@ -767,6 +841,7 @@ export type Database = {
       inventory_vehicles: {
         Row: {
           auction_date: string | null
+          auction_status: string | null
           color: string | null
           condition: Database["public"]["Enums"]["vehicle_condition"] | null
           created_at: string
@@ -792,6 +867,7 @@ export type Database = {
         }
         Insert: {
           auction_date?: string | null
+          auction_status?: string | null
           color?: string | null
           condition?: Database["public"]["Enums"]["vehicle_condition"] | null
           created_at?: string
@@ -817,6 +893,7 @@ export type Database = {
         }
         Update: {
           auction_date?: string | null
+          auction_status?: string | null
           color?: string | null
           condition?: Database["public"]["Enums"]["vehicle_condition"] | null
           created_at?: string
