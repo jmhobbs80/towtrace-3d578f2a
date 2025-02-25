@@ -1,4 +1,3 @@
-
 import { supabase } from "@/integrations/supabase/client";
 import type { Vehicle, VehicleDetails, VehicleSearchFilters, VehicleStatus, VehicleDamageReport } from "../types/vehicles";
 import type { VehicleInspection } from "../types/inspection";
@@ -10,18 +9,7 @@ import type { Database } from "@/integrations/supabase/types";
 export type { VINScannerHardware };
 
 type Tables = Database['public']['Tables']
-type DamageReportRow = {
-  id: string;
-  vehicle_id: string;
-  inspector_id: string;
-  damage_locations: Record<string, any>;
-  severity: 'none' | 'minor' | 'moderate' | 'severe';
-  description: string | null;
-  repair_estimate: number | null;
-  photos: string[];
-  created_at: string;
-  updated_at: string;
-}
+type DamageReportRow = Tables['vehicle_damage_reports']['Row'];
 
 export async function searchVehicles(filters: VehicleSearchFilters): Promise<Vehicle[]> {
   let query = supabase
@@ -74,7 +62,7 @@ export async function getVehicleDetails(vehicleId: string): Promise<VehicleDetai
 
   if (transitError) throw transitError;
 
-  // Fetch damage reports using raw query
+  // Fetch damage reports using RPC
   const { data: damageReportsRaw, error: damageError } = await supabase
     .rpc('get_vehicle_damage_reports', { vehicle_id_param: vehicleId });
 
@@ -145,7 +133,6 @@ export async function createDamageReport(
   };
 }
 
-// VIN validation and scanning functionality
 export function validateVIN(vin: string): boolean {
   // Basic VIN validation (17 characters, alphanumeric)
   return /^[A-HJ-NPR-Z0-9]{17}$/.test(vin);

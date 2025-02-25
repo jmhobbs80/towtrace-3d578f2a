@@ -1,6 +1,7 @@
 
 import type { VehicleInspection } from "./inspection";
 import type { VehicleInTransit } from "./fleet";
+import type { Json } from "@/integrations/supabase/types";
 
 export type VehicleStatus = 'available' | 'in_transit' | 'pending_inspection' | 'sold' | 'auction_ready' | 'maintenance';
 export type VehicleDamageSeverity = 'none' | 'minor' | 'moderate' | 'severe';
@@ -35,7 +36,7 @@ export interface VehicleDamageReport {
   id: string;
   vehicle_id: string;
   inspector_id: string;
-  damage_locations: Record<string, any>;
+  damage_locations: Json;
   severity: VehicleDamageSeverity;
   description?: string;
   repair_estimate?: number;
