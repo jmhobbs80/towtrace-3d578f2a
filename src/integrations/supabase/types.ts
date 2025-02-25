@@ -432,6 +432,42 @@ export type Database = {
           },
         ]
       }
+      feature_toggles: {
+        Row: {
+          category: Database["public"]["Enums"]["feature_category"]
+          created_at: string | null
+          description: string | null
+          id: string
+          is_enabled: boolean | null
+          metadata: Json | null
+          name: string
+          updated_at: string | null
+          updated_by: string | null
+        }
+        Insert: {
+          category: Database["public"]["Enums"]["feature_category"]
+          created_at?: string | null
+          description?: string | null
+          id?: string
+          is_enabled?: boolean | null
+          metadata?: Json | null
+          name: string
+          updated_at?: string | null
+          updated_by?: string | null
+        }
+        Update: {
+          category?: Database["public"]["Enums"]["feature_category"]
+          created_at?: string | null
+          description?: string | null
+          id?: string
+          is_enabled?: boolean | null
+          metadata?: Json | null
+          name?: string
+          updated_at?: string | null
+          updated_by?: string | null
+        }
+        Relationships: []
+      }
       fleet_vehicles: {
         Row: {
           capacity: number
@@ -3113,6 +3149,13 @@ export type Database = {
         | "billing_manager"
       auction_status: "draft" | "scheduled" | "live" | "ended" | "canceled"
       bid_status: "pending" | "accepted" | "rejected" | "expired"
+      feature_category:
+        | "core"
+        | "billing"
+        | "dispatch"
+        | "inventory"
+        | "auction"
+        | "reporting"
       impound_status:
         | "impounded"
         | "waiting_for_payment"

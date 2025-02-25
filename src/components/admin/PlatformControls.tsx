@@ -1,4 +1,5 @@
 
+import { useEffect } from "react";
 import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Switch } from "@/components/ui/switch";
@@ -16,10 +17,10 @@ export function PlatformControls() {
       const { data, error } = await supabase
         .from('feature_toggles')
         .select('*')
-        .order('category');
+        .order('category') as { data: FeatureToggle[] | null; error: Error | null };
 
       if (error) throw error;
-      return data as FeatureToggle[];
+      return data || [];
     },
   });
 
@@ -50,7 +51,7 @@ export function PlatformControls() {
       const { error } = await supabase
         .from('feature_toggles')
         .update({ is_enabled: isEnabled })
-        .eq('id', id);
+        .eq('id', id) as { error: Error | null };
 
       if (error) throw error;
     },
