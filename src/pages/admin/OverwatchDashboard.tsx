@@ -2,7 +2,6 @@
 import { useEffect, useState } from "react";
 import { useAuth } from "@/lib/auth";
 import { supabase } from "@/integrations/supabase/client";
-import { Button } from "@/components/ui/button";
 import {
   Card,
   CardContent,
@@ -13,17 +12,9 @@ import {
 import { AdminAuditLog } from "@/lib/types/auth";
 import { useToast } from "@/hooks/use-toast";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
-import { Switch } from "@/components/ui/switch";
-import { Label } from "@/components/ui/label";
-import { AlertTriangle, CheckCircle2, Shield, XCircle } from "lucide-react";
-import {
-  Table,
-  TableBody,
-  TableCell,
-  TableHead,
-  TableHeader,
-  TableRow,
-} from "@/components/ui/table";
+import { PlatformControls } from "@/components/admin/PlatformControls";
+import { BusinessVerification } from "@/components/admin/BusinessVerification";
+import { AuditLog } from "@/components/admin/AuditLog";
 
 export default function OverwatchDashboard() {
   const { user } = useAuth();
@@ -88,6 +79,7 @@ export default function OverwatchDashboard() {
       await supabase.rpc('log_admin_action', {
         action_type: `toggle_${feature}`,
         entity_type: 'platform_settings',
+        entity_id: 'global',
         previous_state: { [feature]: !enabled },
         new_state: { [feature]: enabled }
       });
@@ -110,31 +102,6 @@ export default function OverwatchDashboard() {
     }
   };
 
-  const forceCompleteJob = async (jobId: string) => {
-    try {
-      const { error } = await supabase
-        .from('tow_jobs')
-        .update({ 
-          status: 'completed',
-          completed_at: new Date().toISOString()
-        })
-        .eq('id', jobId);
-
-      if (error) throw error;
-
-      toast({
-        title: "Job Force Completed",
-        description: "The job has been marked as completed"
-      });
-    } catch (error) {
-      toast({
-        variant: "destructive",
-        title: "Error",
-        description: "Failed to force complete job"
-      });
-    }
-  };
-
   return (
     <div className="container py-6 space-y-6">
       <Card>
@@ -152,167 +119,23 @@ export default function OverwatchDashboard() {
               <TabsTrigger value="compliance">Compliance & Audit</TabsTrigger>
             </TabsList>
 
-            <TabsContent value="controls" className="space-y-4">
-              <Card>
-                <CardHeader>
-                  <CardTitle className="text-lg">Global System Controls</CardTitle>
-                </CardHeader>
-                <CardContent className="space-y-4">
-                  <div className="flex items-center justify-between">
-                    <div className="space-y-0.5">
-                      <Label>Job Operations</Label>
-                      <p className="text-sm text-muted-foreground">
-                        Enable or disable all job operations platform-wide
-                      </p>
-                    </div>
-                    <Switch
-                      checked={platformSettings.jobsEnabled}
-                      onCheckedChange={(checked) => togglePlatformFeature('jobsEnabled', checked)}
-                    />
-                  </div>
-                  <div className="flex items-center justify-between">
-                    <div className="space-y-0.5">
-                      <Label>Payment Processing</Label>
-                      <p className="text-sm text-muted-foreground">
-                        Control all payment processing activities
-                      </p>
-                    </div>
-                    <Switch
-                      checked={platformSettings.paymentsEnabled}
-                      onCheckedChange={(checked) => togglePlatformFeature('paymentsEnabled', checked)}
-                    />
-                  </div>
-                  <div className="flex items-center justify-between">
-                    <div className="space-y-0.5">
-                      <Label>New Registrations</Label>
-                      <p className="text-sm text-muted-foreground">
-                        Allow or block new business registrations
-                      </p>
-                    </div>
-                    <Switch
-                      checked={platformSettings.registrationEnabled}
-                      onCheckedChange={(checked) => togglePlatformFeature('registrationEnabled', checked)}
-                    />
-                  </div>
-                </CardContent>
-              </Card>
-
-              <Card>
-                <CardHeader>
-                  <CardTitle className="text-lg">System Health</CardTitle>
-                </CardHeader>
-                <CardContent>
-                  <div className="space-y-2">
-                    <div className="flex justify-between">
-                      <span>API Status</span>
-                      <span className="text-green-500">
-                        <CheckCircle2 className="h-4 w-4 inline mr-1" />
-                        Operational
-                      </span>
-                    </div>
-                    <div className="flex justify-between">
-                      <span>Database</span>
-                      <span className="text-green-500">
-                        <CheckCircle2 className="h-4 w-4 inline mr-1" />
-                        Connected
-                      </span>
-                    </div>
-                    <div className="flex justify-between">
-                      <span>Active Users</span>
-                      <span>Loading...</span>
-                    </div>
-                  </div>
-                </CardContent>
-              </Card>
+            <TabsContent value="controls">
+              <PlatformControls
+                platformSettings={platformSettings}
+                systemHealth={systemHealth}
+                onToggleFeature={togglePlatformFeature}
+              />
             </TabsContent>
 
-            <TabsContent value="verification" className="space-y-4">
-              <Card>
-                <CardHeader>
-                  <CardTitle className="text-lg">Business Verification Settings</CardTitle>
-                </CardHeader>
-                <CardContent className="space-y-4">
-                  <div className="flex items-center justify-between">
-                    <div className="space-y-0.5">
-                      <Label>Automatic Verification</Label>
-                      <p className="text-sm text-muted-foreground">
-                        Enable automatic verification for businesses meeting basic criteria
-                      </p>
-                    </div>
-                    <Switch
-                      checked={platformSettings.autoVerification}
-                      onCheckedChange={(checked) => togglePlatformFeature('autoVerification', checked)}
-                    />
-                  </div>
-                  <Table>
-                    <TableHeader>
-                      <TableRow>
-                        <TableHead>Business Name</TableHead>
-                        <TableHead>Status</TableHead>
-                        <TableHead>Documents</TableHead>
-                        <TableHead>Action</TableHead>
-                      </TableRow>
-                    </TableHeader>
-                    <TableBody>
-                      <TableRow>
-                        <TableCell>Example Towing LLC</TableCell>
-                        <TableCell>
-                          <span className="text-yellow-500">
-                            <AlertTriangle className="h-4 w-4 inline mr-1" />
-                            Pending
-                          </span>
-                        </TableCell>
-                        <TableCell>3/4 Submitted</TableCell>
-                        <TableCell>
-                          <Button variant="outline" size="sm">Review</Button>
-                        </TableCell>
-                      </TableRow>
-                    </TableBody>
-                  </Table>
-                </CardContent>
-              </Card>
+            <TabsContent value="verification">
+              <BusinessVerification
+                autoVerification={platformSettings.autoVerification}
+                onToggleAutoVerification={(enabled) => togglePlatformFeature('autoVerification', enabled)}
+              />
             </TabsContent>
 
-            <TabsContent value="compliance" className="space-y-4">
-              <Card>
-                <CardHeader>
-                  <CardTitle className="text-lg">Audit Log</CardTitle>
-                </CardHeader>
-                <CardContent>
-                  <div className="space-y-4">
-                    {auditLogs.map((log) => (
-                      <div key={log.id} className="border-b pb-4">
-                        <div className="flex justify-between items-start">
-                          <div>
-                            <h4 className="font-medium">{log.action_type}</h4>
-                            <p className="text-sm text-muted-foreground">
-                              Entity: {log.entity_type} {log.entity_id}
-                            </p>
-                          </div>
-                          <p className="text-sm text-muted-foreground">
-                            {new Date(log.created_at).toLocaleString()}
-                          </p>
-                        </div>
-                        {(log.previous_state || log.new_state) && (
-                          <div className="mt-2 text-sm">
-                            <p>Changes:</p>
-                            <pre className="bg-muted p-2 rounded mt-1 text-xs overflow-x-auto">
-                              {JSON.stringify(
-                                {
-                                  previous: log.previous_state,
-                                  new: log.new_state
-                                },
-                                null,
-                                2
-                              )}
-                            </pre>
-                          </div>
-                        )}
-                      </div>
-                    ))}
-                  </div>
-                </CardContent>
-              </Card>
+            <TabsContent value="compliance">
+              <AuditLog logs={auditLogs} />
             </TabsContent>
           </Tabs>
         </CardContent>
