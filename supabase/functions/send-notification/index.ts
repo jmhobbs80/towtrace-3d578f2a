@@ -8,7 +8,6 @@ const corsHeaders = {
   'Access-Control-Allow-Headers': 'authorization, x-client-info, apikey, content-type',
 }
 
-// Initialize WebPush with VAPID keys
 const vapidPublicKey = Deno.env.get('VAPID_PUBLIC_KEY')
 const vapidPrivateKey = Deno.env.get('VAPID_PRIVATE_KEY')
 
@@ -22,6 +21,20 @@ webpush.setVapidDetails(
   vapidPrivateKey
 )
 
+interface NotificationPayload {
+  userId: string;
+  title: string;
+  body: string;
+  url?: string;
+  jobId?: string;
+  type?: string;
+  actions?: Array<{
+    action: string;
+    title: string;
+  }>;
+  tag?: string;
+}
+
 serve(async (req) => {
   // Handle CORS preflight requests
   if (req.method === 'OPTIONS') {
@@ -34,14 +47,13 @@ serve(async (req) => {
       Deno.env.get('SUPABASE_SERVICE_ROLE_KEY') ?? ''
     )
 
-    // Parse the request body
-    const { userId, title, body, url } = await req.json()
+    const payload: NotificationPayload = await req.json()
 
     // Get user's push subscription
     const { data: subscriptions, error: fetchError } = await supabaseClient
       .from('push_subscriptions')
       .select('subscription')
-      .eq('user_id', userId)
+      .eq('user_id', payload.userId)
 
     if (fetchError || !subscriptions?.length) {
       console.error('Error fetching subscription:', fetchError)
@@ -56,11 +68,25 @@ serve(async (req) => {
     await webpush.sendNotification(
       subscription,
       JSON.stringify({
-        title,
-        body,
-        url,
+        title: payload.title,
+        body: payload.body,
+        url: payload.url,
+        jobId: payload.jobId,
+        type: payload.type,
+        actions: payload.actions,
+        tag: payload.tag
       })
     )
+
+    // Log successful notification
+    await supabaseClient
+      .from('notification_logs')
+      .insert({
+        user_id: payload.userId,
+        type: payload.type || 'general',
+        status: 'sent',
+        payload: payload
+      })
 
     return new Response(
       JSON.stringify({ message: 'Notification sent successfully' }),

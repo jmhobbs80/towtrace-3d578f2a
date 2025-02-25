@@ -1,9 +1,12 @@
 
 import { supabase } from "@/integrations/supabase/client";
+import { toast } from "@/components/ui/use-toast";
 
 export class PushNotificationService {
   private static instance: PushNotificationService;
   private swRegistration: ServiceWorkerRegistration | null = null;
+  private notificationQueue: { title: string; options: NotificationOptions }[] = [];
+  private isProcessing = false;
 
   private constructor() {
     this.init();
@@ -20,10 +23,52 @@ export class PushNotificationService {
     if ('serviceWorker' in navigator && 'PushManager' in window) {
       try {
         this.swRegistration = await navigator.serviceWorker.register('/service-worker.js');
-        console.log('Service Worker registered');
+        console.log('Service Worker registered successfully');
+        
+        // Check if we already have permission
+        if (Notification.permission === 'granted') {
+          this.subscribeToExistingPush();
+        }
       } catch (error) {
         console.error('Service Worker registration failed:', error);
+        toast({
+          variant: "destructive",
+          title: "Notification Setup Failed",
+          description: "Failed to initialize push notifications. Please try again."
+        });
       }
+    }
+  }
+
+  private async subscribeToExistingPush() {
+    if (!this.swRegistration) return;
+
+    try {
+      const subscription = await this.swRegistration.pushManager.getSubscription();
+      if (subscription) {
+        console.log('Existing push subscription found');
+        // Update the subscription in the database
+        await this.updateSubscriptionInDatabase(subscription);
+      }
+    } catch (error) {
+      console.error('Error checking existing subscription:', error);
+    }
+  }
+
+  private async updateSubscriptionInDatabase(subscription: PushSubscription) {
+    const userId = (await supabase.auth.getUser()).data.user?.id;
+    if (!userId) return;
+
+    const { error } = await supabase
+      .from('push_subscriptions')
+      .upsert({
+        user_id: userId,
+        subscription: this.serializeSubscription(subscription),
+        updated_at: new Date().toISOString()
+      });
+
+    if (error) {
+      console.error('Error updating subscription in database:', error);
     }
   }
 
@@ -32,8 +77,19 @@ export class PushNotificationService {
       throw new Error('This browser does not support notifications');
     }
 
-    const permission = await Notification.requestPermission();
-    return permission;
+    try {
+      const permission = await Notification.requestPermission();
+      if (permission === 'granted') {
+        toast({
+          title: "Notifications Enabled",
+          description: "You'll now receive important updates about your jobs and vehicles."
+        });
+      }
+      return permission;
+    } catch (error) {
+      console.error('Error requesting notification permission:', error);
+      throw error;
+    }
   }
 
   private serializeSubscription(subscription: PushSubscription): Record<string, any> {
@@ -68,16 +124,7 @@ export class PushNotificationService {
         throw new Error('User not authenticated');
       }
 
-      // Store the serialized subscription in Supabase
-      const { error } = await supabase
-        .from('push_subscriptions')
-        .upsert({
-          user_id: userId,
-          subscription: this.serializeSubscription(subscription)
-        });
-
-      if (error) throw error;
-
+      await this.updateSubscriptionInDatabase(subscription);
       return subscription;
     } catch (error) {
       console.error('Failed to subscribe to push notifications:', error);
@@ -96,17 +143,35 @@ export class PushNotificationService {
         const userId = (await supabase.auth.getUser()).data.user?.id;
         if (!userId) return;
 
-        // Remove subscription from Supabase
         const { error } = await supabase
           .from('push_subscriptions')
           .delete()
           .eq('user_id', userId);
 
         if (error) throw error;
+
+        toast({
+          title: "Notifications Disabled",
+          description: "You've successfully unsubscribed from notifications."
+        });
       }
     } catch (error) {
       console.error('Error unsubscribing from push notifications:', error);
       throw error;
+    }
+  }
+
+  // Method to test notifications
+  async sendTestNotification() {
+    if (Notification.permission !== 'granted') {
+      await this.requestPermission();
+    }
+
+    if (Notification.permission === 'granted') {
+      new Notification('Test Notification', {
+        body: 'This is a test notification from TowTrace',
+        icon: '/icons/icon-192x192.png'
+      });
     }
   }
 }
