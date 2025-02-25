@@ -1,5 +1,6 @@
+
 import { supabase } from "@/integrations/supabase/client";
-import type { Payment, PaymentMethod, SubscriptionPlan, OrganizationType, RoleFeature, OrganizationRole } from "../types/billing";
+import type { Payment, PaymentMethod, SubscriptionPlan, OrganizationType, RoleFeature, OrganizationRole, VolumeDiscount } from "../types/billing";
 
 export const createPayment = async (data: {
   job_id: string;
@@ -68,28 +69,42 @@ export const fetchSubscriptionPlans = async (organizationType: OrganizationType)
 
   if (error) throw error;
   
-  const plans: SubscriptionPlan[] = rawData.map(plan => ({
-    id: plan.id,
-    name: plan.name,
-    description: plan.description || undefined,
-    organization_type: plan.organization_type,
-    base_price: plan.base_price,
-    per_user_price: plan.per_user_price || 0,
-    per_vehicle_price: plan.per_vehicle_price || 0,
-    interval: plan.interval as 'month' | 'year',
-    tier: plan.tier || 'standard',
-    features: Array.isArray(plan.features) ? plan.features.map(String) : [],
-    limits: plan.limits as Record<string, number>,
-    addon_roles: plan.addon_roles || [],
-    addon_price: plan.addon_price || 0,
-    volume_discount: Array.isArray(plan.volume_discount) 
-      ? plan.volume_discount.map(discount => ({
-          threshold: discount.threshold || 0,
-          discount_percentage: discount.discount_percentage || 0
-        }))
-      : undefined,
-    is_active: Boolean(plan.is_active)
-  }));
+  const plans: SubscriptionPlan[] = rawData.map(plan => {
+    // Safely parse volume_discount array
+    let volumeDiscount: VolumeDiscount[] | undefined;
+    if (Array.isArray(plan.volume_discount)) {
+      volumeDiscount = plan.volume_discount.map(discount => {
+        if (typeof discount === 'object' && discount !== null) {
+          return {
+            threshold: Number(discount.threshold) || 0,
+            discount_percentage: Number(discount.discount_percentage) || 0
+          };
+        }
+        return {
+          threshold: 0,
+          discount_percentage: 0
+        };
+      });
+    }
+
+    return {
+      id: plan.id,
+      name: plan.name,
+      description: plan.description || undefined,
+      organization_type: plan.organization_type,
+      base_price: plan.base_price,
+      per_user_price: plan.per_user_price || 0,
+      per_vehicle_price: plan.per_vehicle_price || 0,
+      interval: plan.interval as 'month' | 'year',
+      tier: plan.tier || 'standard',
+      features: Array.isArray(plan.features) ? plan.features.map(String) : [],
+      limits: plan.limits as Record<string, number>,
+      addon_roles: plan.addon_roles || [],
+      addon_price: plan.addon_price || 0,
+      volume_discount: volumeDiscount,
+      is_active: Boolean(plan.is_active)
+    };
+  });
 
   return plans;
 };
