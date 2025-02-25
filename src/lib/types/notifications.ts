@@ -10,3 +10,18 @@ export interface NotificationPreferences {
   created_at: string;
   updated_at: string;
 }
+
+// Add Supabase Database Types
+declare global {
+  type Database = {
+    public: {
+      Tables: {
+        notification_preferences: {
+          Row: NotificationPreferences;
+          Insert: Omit<NotificationPreferences, 'id' | 'created_at' | 'updated_at'>;
+          Update: Partial<NotificationPreferences>;
+        };
+      };
+    };
+  };
+}

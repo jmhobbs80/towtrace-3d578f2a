@@ -1,4 +1,3 @@
-
 import { supabase } from "@/integrations/supabase/client";
 import { toast } from "@/hooks/use-toast";
 
@@ -190,8 +189,7 @@ export class PushNotificationService {
           notification_types: preferences.types,
           phone_number: preferences.phone,
           updated_at: new Date().toISOString()
-        })
-        .select();
+        });
 
       if (error) throw error;
 
@@ -211,7 +209,6 @@ export class PushNotificationService {
     }
   }
 
-  // Method to test notifications
   async sendTestNotification() {
     if (Notification.permission !== 'granted') {
       await this.requestPermission();
