@@ -9,11 +9,11 @@ import { SidebarLayout } from "@/components/layouts/SidebarLayout";
 import { AnalyticsDashboard } from "@/pages/analytics/AnalyticsDashboard";
 import { DealerDashboard } from "@/pages/dashboard/DealerDashboard";
 import { TransporterDashboard } from "@/pages/dashboard/TransporterDashboard";
-import { FleetManagement } from "@/pages/fleet/FleetManagement";
-import { InventoryManagement } from "@/pages/inventory/InventoryManagement";
-import { BillingDashboard } from "@/pages/billing/BillingDashboard";
-import { ProfileSettings } from "@/pages/profile/ProfileSettings";
-import { OverwatchDashboard } from "@/pages/admin/OverwatchDashboard";
+import FleetManagement from "@/pages/fleet/FleetManagement";
+import InventoryManagement from "@/pages/inventory/InventoryManagement";
+import BillingDashboard from "@/pages/billing/BillingDashboard";
+import ProfileSettings from "@/pages/profile/ProfileSettings";
+import OverwatchDashboard from "@/pages/admin/OverwatchDashboard";
 
 const RootLayout = () => {
   return (
@@ -53,7 +53,7 @@ export const router = createBrowserRouter([
           {
             path: "/fleet",
             element: (
-              <ProtectedRoute allowedRoles={["transporter"]}>
+              <ProtectedRoute allowedRoles={["transporter" as const]}>
                 <FleetManagement />
               </ProtectedRoute>
             ),
@@ -69,7 +69,7 @@ export const router = createBrowserRouter([
           {
             path: "/analytics",
             element: (
-              <ProtectedRoute allowedRoles={["admin", "dealer", "wholesaler", "transporter"]}>
+              <ProtectedRoute allowedRoles={["admin", "dealer", "wholesaler", "transporter" as const]}>
                 <AnalyticsDashboard />
               </ProtectedRoute>
             ),
