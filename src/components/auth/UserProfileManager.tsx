@@ -27,8 +27,26 @@ export const useUserProfileManager = () => {
     }
   }, []);
 
+  const switchRole = useCallback(async (newRole: UserRole) => {
+    const { data: currentUser } = await supabase.auth.getUser();
+    if (!currentUser?.user?.id) throw new Error("No authenticated user");
+
+    // Verify user has the role they're trying to switch to
+    const { data: roleCheck } = await supabase
+      .from('user_roles')
+      .select('role')
+      .eq('user_id', currentUser.user.id)
+      .eq('role', newRole)
+      .single();
+
+    if (!roleCheck) throw new Error("User does not have permission for this role");
+
+    setUserRole(newRole);
+  }, []);
+
   return {
     userRole,
-    fetchUserRole
+    fetchUserRole,
+    switchRole
   };
 };

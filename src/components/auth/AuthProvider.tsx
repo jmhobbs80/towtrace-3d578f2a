@@ -7,6 +7,7 @@ import { useSessionManager } from "./SessionManager";
 import { useOrganizationManager, Organization } from "./OrganizationManager";
 import { useUserProfileManager } from "./UserProfileManager";
 import { useIsMobile } from "@/hooks/use-mobile";
+import { toast } from "sonner";
 
 interface AuthContextType {
   user: User | null;
@@ -15,6 +16,7 @@ interface AuthContextType {
   userRole: UserRole | null;
   signOut: () => Promise<void>;
   switchOrganization: (orgId: string) => Promise<void>;
+  switchRole: (role: UserRole) => Promise<void>;
 }
 
 const AuthContext = createContext<AuthContextType>({
@@ -24,6 +26,7 @@ const AuthContext = createContext<AuthContextType>({
   userRole: null,
   signOut: async () => {},
   switchOrganization: async () => {},
+  switchRole: async () => {}
 });
 
 export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children }) => {
@@ -40,7 +43,7 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
   } = useSessionManager();
   
   const { organization, switchOrganization } = useOrganizationManager();
-  const { userRole, fetchUserRole } = useUserProfileManager();
+  const { userRole, fetchUserRole, switchRole: handleSwitchRole } = useUserProfileManager();
 
   // Update user role when user changes
   React.useEffect(() => {
@@ -61,6 +64,17 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
     navigate("/auth");
   };
 
+  const switchRole = async (role: UserRole) => {
+    try {
+      await handleSwitchRole(role);
+      toast.success(`Switched to ${role} role`);
+      navigate("/"); // Redirect to home to refresh the view
+    } catch (error) {
+      console.error('Error switching role:', error);
+      toast.error('Failed to switch role');
+    }
+  };
+
   return (
     <AuthContext.Provider value={{ 
       user, 
@@ -68,7 +82,8 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
       organization, 
       userRole, 
       signOut, 
-      switchOrganization 
+      switchOrganization,
+      switchRole 
     }}>
       {isReconnecting && (
         <div 
