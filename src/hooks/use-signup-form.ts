@@ -29,43 +29,17 @@ export function useSignUpForm() {
       return null;
     }
 
-    // First get the user
-    const { data: { user } } = await supabase.auth.getUser();
-    if (!user) {
-      setPromoCodeValid(false);
-      setPromoCodeMessage("Please sign in to validate promo code");
-      return null;
-    }
-
     // Get the promo code details directly from the table
     const { data: promoData, error: promoError } = await supabase
       .from('promo_codes')
       .select('*')
       .eq('code', promoCode)
       .eq('is_active', true)
-      .single();
+      .maybeSingle();
 
     if (promoError || !promoData) {
       setPromoCodeValid(false);
       setPromoCodeMessage("Invalid or expired promo code");
-      return null;
-    }
-
-    // Check if code has been used by this user
-    const { data: existingRedemption } = await supabase
-      .from('promo_codes')
-      .select(`
-        promo_code_redemptions!inner(
-          user_id
-        )
-      `)
-      .eq('code', promoCode)
-      .eq('promo_code_redemptions.user_id', user.id)
-      .maybeSingle();
-
-    if (existingRedemption) {
-      setPromoCodeValid(false);
-      setPromoCodeMessage("You have already used this promo code");
       return null;
     }
 
