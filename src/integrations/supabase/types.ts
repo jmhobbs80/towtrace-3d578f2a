@@ -138,6 +138,132 @@ export type Database = {
           },
         ]
       }
+      impound_lots: {
+        Row: {
+          address: Json
+          capacity: number | null
+          created_at: string | null
+          daily_rate: number
+          id: string
+          late_fee_rate: number
+          name: string
+          organization_id: string
+          updated_at: string | null
+        }
+        Insert: {
+          address: Json
+          capacity?: number | null
+          created_at?: string | null
+          daily_rate?: number
+          id?: string
+          late_fee_rate?: number
+          name: string
+          organization_id: string
+          updated_at?: string | null
+        }
+        Update: {
+          address?: Json
+          capacity?: number | null
+          created_at?: string | null
+          daily_rate?: number
+          id?: string
+          late_fee_rate?: number
+          name?: string
+          organization_id?: string
+          updated_at?: string | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "impound_lots_organization_id_fkey"
+            columns: ["organization_id"]
+            isOneToOne: false
+            referencedRelation: "organizations"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      impounded_vehicles: {
+        Row: {
+          created_at: string | null
+          daily_rate: number
+          id: string
+          impound_date: string
+          insurance_claim_number: string | null
+          lot_id: string
+          metadata: Json | null
+          notes: string | null
+          organization_id: string
+          police_report_number: string | null
+          release_authorization_by: string | null
+          release_authorization_date: string | null
+          release_date: string | null
+          status: Database["public"]["Enums"]["impound_status"]
+          total_fees: number
+          updated_at: string | null
+          vehicle_id: string | null
+        }
+        Insert: {
+          created_at?: string | null
+          daily_rate: number
+          id?: string
+          impound_date?: string
+          insurance_claim_number?: string | null
+          lot_id: string
+          metadata?: Json | null
+          notes?: string | null
+          organization_id: string
+          police_report_number?: string | null
+          release_authorization_by?: string | null
+          release_authorization_date?: string | null
+          release_date?: string | null
+          status?: Database["public"]["Enums"]["impound_status"]
+          total_fees?: number
+          updated_at?: string | null
+          vehicle_id?: string | null
+        }
+        Update: {
+          created_at?: string | null
+          daily_rate?: number
+          id?: string
+          impound_date?: string
+          insurance_claim_number?: string | null
+          lot_id?: string
+          metadata?: Json | null
+          notes?: string | null
+          organization_id?: string
+          police_report_number?: string | null
+          release_authorization_by?: string | null
+          release_authorization_date?: string | null
+          release_date?: string | null
+          status?: Database["public"]["Enums"]["impound_status"]
+          total_fees?: number
+          updated_at?: string | null
+          vehicle_id?: string | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "impounded_vehicles_lot_id_fkey"
+            columns: ["lot_id"]
+            isOneToOne: false
+            referencedRelation: "impound_lots"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "impounded_vehicles_organization_id_fkey"
+            columns: ["organization_id"]
+            isOneToOne: false
+            referencedRelation: "organizations"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "impounded_vehicles_vehicle_id_fkey"
+            columns: ["vehicle_id"]
+            isOneToOne: false
+            referencedRelation: "inventory_vehicles"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       inspection_checklist_items: {
         Row: {
           category: string
@@ -1363,6 +1489,12 @@ export type Database = {
         }
         Returns: number
       }
+      calculate_storage_fees: {
+        Args: {
+          impound_id: string
+        }
+        Returns: number
+      }
       check_subscription_limit: {
         Args: {
           org_id: string
@@ -1464,6 +1596,12 @@ export type Database = {
         | "consumer"
         | "dealer"
         | "wholesaler"
+      impound_status:
+        | "impounded"
+        | "waiting_for_payment"
+        | "pending_release"
+        | "released"
+        | "unclaimed"
       inspection_status: "pending" | "in_progress" | "completed" | "failed"
       inspection_type: "pre_trip" | "post_trip"
       inventory_status:
