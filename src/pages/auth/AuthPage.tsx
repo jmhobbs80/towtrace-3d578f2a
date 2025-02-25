@@ -1,3 +1,4 @@
+
 import { useEffect, useState } from "react";
 import { useNavigate, useSearchParams } from "react-router-dom";
 import { supabase } from "@/integrations/supabase/client";
@@ -16,9 +17,12 @@ export default function AuthPage() {
   const [loading, setLoading] = useState(true);
 
   useEffect(() => {
+    let mounted = true;
+
     const checkSession = async () => {
       try {
-        setLoading(true);
+        if (!mounted) return;
+        
         const { data: { session }, error } = await supabase.auth.getSession();
         if (error) throw error;
 
@@ -30,6 +34,9 @@ export default function AuthPage() {
             .single();
 
           if (roleError) throw roleError;
+
+          // Make sure component is still mounted before navigating
+          if (!mounted) return;
 
           switch (roleData?.role) {
             case "admin":
@@ -48,30 +55,46 @@ export default function AuthPage() {
         }
       } catch (error) {
         console.error("Session check error:", error);
-        toast({
-          variant: "destructive",
-          title: "Authentication error",
-          description: "Failed to check authentication status",
-        });
+        if (mounted) {
+          toast({
+            variant: "destructive",
+            title: "Authentication error",
+            description: "Failed to check authentication status",
+          });
+        }
       } finally {
-        setLoading(false);
+        if (mounted) {
+          setLoading(false);
+        }
       }
     };
 
-    const { data: authListener } = supabase.auth.onAuthStateChange((_event, session) => {
-      if (session) checkSession();
+    // Initial session check
+    checkSession();
+
+    // Set up auth state listener
+    const { data: authListener } = supabase.auth.onAuthStateChange(async (event, session) => {
+      if (!mounted) return;
+      
+      console.log("Auth state changed:", event);
+      if (session) {
+        checkSession();
+      } else {
+        setLoading(false);
+      }
     });
 
+    // Handle recovery flow
     if (searchParams.get("type") === "recovery") {
       toast({
         title: "Reset Password",
         description: "You can now set your new password by signing in.",
       });
-    } else {
-      checkSession();
     }
 
+    // Cleanup function
     return () => {
+      mounted = false;
       authListener?.subscription?.unsubscribe();
     };
   }, [navigate, toast, searchParams]);
@@ -83,8 +106,11 @@ export default function AuthPage() {
   const renderAuthContent = () => {
     if (loading) {
       return (
-        <div className="text-muted-foreground text-sm animate-pulse">
-          Checking authentication...
+        <div className="flex items-center justify-center space-x-2">
+          <div className="h-4 w-4 animate-spin rounded-full border-2 border-primary border-t-transparent"></div>
+          <div className="text-muted-foreground text-sm">
+            Checking authentication...
+          </div>
         </div>
       );
     }
