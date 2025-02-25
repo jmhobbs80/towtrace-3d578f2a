@@ -1,5 +1,5 @@
+
 import React, { useState, useRef } from 'react';
-import { X } from 'lucide-react';
 import Papa from 'papaparse';
 import {
   Dialog,
@@ -45,7 +45,7 @@ interface VehicleData {
 }
 
 interface ValidationError {
-  row: number;
+  row: number; // Changed from 'index' to 'row' for clarity
   vin: string;
   error: string;
 }
@@ -89,31 +89,44 @@ export function BulkUploadModal({
         const validData: VehicleData[] = [];
         let processedCount = 0;
 
-        for (const [index, row] of results.data.entries()) {
+        if (!Array.isArray(results.data)) {
+          toast({
+            variant: "destructive",
+            title: "Upload Error",
+            description: "Invalid CSV format. Please check the file structure.",
+          });
+          setIsUploading(false);
+          return;
+        }
+
+        results.data.forEach((row: any, index: number) => {
           const vehicle = row as VehicleData;
           processedCount++;
           setProgress((processedCount / results.data.length) * 100);
 
+          // Add 2 to index to account for header row and 0-based indexing
+          const rowNumber = index + 2;
+
           if (!vehicle.vin || !validateVIN(vehicle.vin)) {
             errors.push({
-              row: index + 2,
+              row: rowNumber,
               vin: vehicle.vin || 'Missing',
-              error: 'Invalid VIN',
+              error: !vehicle.vin ? 'Missing VIN' : 'Invalid VIN',
             });
-            continue;
+            return;
           }
 
           if (!vehicle.make || !vehicle.model || !vehicle.year) {
             errors.push({
-              row: index + 2,
+              row: rowNumber,
               vin: vehicle.vin,
               error: 'Missing required fields (make, model, or year)',
             });
-            continue;
+            return;
           }
 
           validData.push(vehicle);
-        }
+        });
 
         setValidationErrors(errors);
         setValidatedData(validData);
@@ -177,10 +190,6 @@ export function BulkUploadModal({
     }
   };
 
-  const handleDownloadTemplate = () => {
-    downloadTemplate('vehicle_upload_template.csv');
-  };
-
   return (
     <Dialog open={open} onOpenChange={onClose}>
       <DialogContent className="max-w-3xl">
@@ -195,7 +204,7 @@ export function BulkUploadModal({
           <div className="flex justify-between items-center">
             <Button
               variant="outline"
-              onClick={handleDownloadTemplate}
+              onClick={() => downloadTemplate('vehicle_upload_template.csv')}
             >
               Download Template
             </Button>
