@@ -64,64 +64,69 @@ export function SignUpForm() {
   }
 
   return (
-    <form onSubmit={handleSubmit} className="space-y-4">
+    <form onSubmit={handleSubmit} className="space-y-6 animate-fade-in">
       <div className="grid grid-cols-2 gap-4">
-        <div className="space-y-2">
-          <Label htmlFor="firstName">First Name</Label>
+        <div className="space-y-3">
+          <Label htmlFor="firstName" className="text-sm font-medium">First Name</Label>
           <Input
             id="firstName"
             value={firstName}
             onChange={(e) => setFirstName(e.target.value)}
+            className="h-11 text-base bg-white/5 backdrop-blur-sm border-white/10 hover:border-white/20 transition-colors"
             required
           />
         </div>
-        <div className="space-y-2">
-          <Label htmlFor="lastName">Last Name</Label>
+        <div className="space-y-3">
+          <Label htmlFor="lastName" className="text-sm font-medium">Last Name</Label>
           <Input
             id="lastName"
             value={lastName}
             onChange={(e) => setLastName(e.target.value)}
+            className="h-11 text-base bg-white/5 backdrop-blur-sm border-white/10 hover:border-white/20 transition-colors"
             required
           />
         </div>
       </div>
 
-      <div className="space-y-2">
-        <Label htmlFor="email">Email</Label>
+      <div className="space-y-3">
+        <Label htmlFor="email" className="text-sm font-medium">Email</Label>
         <Input
           id="email"
           type="email"
           value={email}
           onChange={(e) => setEmail(e.target.value)}
+          className="h-11 text-base bg-white/5 backdrop-blur-sm border-white/10 hover:border-white/20 transition-colors"
           required
         />
       </div>
 
-      <div className="space-y-2">
-        <Label htmlFor="password">Password</Label>
+      <div className="space-y-3">
+        <Label htmlFor="password" className="text-sm font-medium">Password</Label>
         <Input
           id="password"
           type="password"
           value={password}
           onChange={(e) => setPassword(e.target.value)}
+          className="h-11 text-base bg-white/5 backdrop-blur-sm border-white/10 hover:border-white/20 transition-colors"
           required
         />
       </div>
 
-      <div className="space-y-2">
-        <Label htmlFor="companyName">Company Name</Label>
+      <div className="space-y-3">
+        <Label htmlFor="companyName" className="text-sm font-medium">Company Name</Label>
         <Input
           id="companyName"
           value={companyName}
           onChange={(e) => setCompanyName(e.target.value)}
+          className="h-11 text-base bg-white/5 backdrop-blur-sm border-white/10 hover:border-white/20 transition-colors"
           required
         />
       </div>
 
-      <div className="space-y-2">
-        <Label htmlFor="role">Role</Label>
+      <div className="space-y-3">
+        <Label htmlFor="role" className="text-sm font-medium">Role</Label>
         <Select value={role} onValueChange={(value) => setRole(value as UserRole)}>
-          <SelectTrigger>
+          <SelectTrigger className="h-11 text-base bg-white/5 backdrop-blur-sm border-white/10 hover:border-white/20 transition-colors">
             <SelectValue placeholder="Select a role" />
           </SelectTrigger>
           <SelectContent>
@@ -133,7 +138,11 @@ export function SignUpForm() {
         </Select>
       </div>
 
-      <Button type="submit" className="w-full" disabled={loading}>
+      <Button
+        type="submit"
+        className="w-full h-11 text-base font-medium rounded-xl transition-all duration-300 hover:scale-[1.02]"
+        disabled={loading}
+      >
         {loading ? "Creating account..." : "Sign Up"}
       </Button>
     </form>

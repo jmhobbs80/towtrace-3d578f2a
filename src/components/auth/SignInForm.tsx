@@ -35,9 +35,9 @@ export function SignInForm() {
   }
 
   return (
-    <form onSubmit={handleSubmit} className="space-y-4">
-      <div className="space-y-2">
-        <Label htmlFor="email">Email</Label>
+    <form onSubmit={handleSubmit} className="space-y-6 animate-fade-in">
+      <div className="space-y-3">
+        <Label htmlFor="email" className="text-sm font-medium">Email</Label>
         <div className="relative">
           <MailIcon className="absolute left-3 top-2.5 h-5 w-5 text-muted-foreground" />
           <Input
@@ -46,14 +46,14 @@ export function SignInForm() {
             placeholder="name@example.com"
             value={email}
             onChange={(e) => setEmail(e.target.value)}
-            className="pl-10"
+            className="pl-10 h-11 text-base bg-white/5 backdrop-blur-sm border-white/10 hover:border-white/20 transition-colors"
             required
           />
         </div>
       </div>
 
-      <div className="space-y-2">
-        <Label htmlFor="password">Password</Label>
+      <div className="space-y-3">
+        <Label htmlFor="password" className="text-sm font-medium">Password</Label>
         <div className="relative">
           <LockIcon className="absolute left-3 top-2.5 h-5 w-5 text-muted-foreground" />
           <Input
@@ -62,7 +62,7 @@ export function SignInForm() {
             placeholder="••••••••"
             value={password}
             onChange={(e) => setPassword(e.target.value)}
-            className="pl-10"
+            className="pl-10 h-11 text-base bg-white/5 backdrop-blur-sm border-white/10 hover:border-white/20 transition-colors"
             required
           />
         </div>
@@ -70,10 +70,10 @@ export function SignInForm() {
 
       <Button
         type="submit"
-        className="w-full"
+        className="w-full h-11 text-base font-medium rounded-xl transition-all duration-300 hover:scale-[1.02]"
         disabled={loading}
       >
-        {loading ? "Loading..." : "Sign In"}
+        {loading ? "Signing in..." : "Sign In"}
       </Button>
     </form>
   );
