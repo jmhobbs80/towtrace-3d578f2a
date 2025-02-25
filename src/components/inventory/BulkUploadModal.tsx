@@ -1,4 +1,3 @@
-
 import React, { useState, useRef } from 'react';
 import { X } from 'lucide-react';
 import Papa from 'papaparse';
@@ -23,11 +22,15 @@ import { supabase } from "@/integrations/supabase/client";
 import { useToast } from "@/hooks/use-toast";
 import { validateVIN } from '@/lib/api/vin-validator';
 import { downloadTemplate } from '@/lib/utils';
+import type { Database } from "@/integrations/supabase/types";
+
+type InventoryStatus = Database['public']['Enums']['inventory_status'];
 
 interface BulkUploadModalProps {
   open: boolean;
   onClose: () => void;
   onSuccess: () => void;
+  locationId?: string;
 }
 
 interface VehicleData {
@@ -36,7 +39,7 @@ interface VehicleData {
   model?: string;
   year?: string;
   color?: string;
-  status?: string;
+  status?: InventoryStatus;
   location?: string;
 }
 
@@ -46,7 +49,7 @@ interface ValidationError {
   error: string;
 }
 
-export function BulkUploadModal({ open, onClose, onSuccess }: BulkUploadModalProps) {
+export function BulkUploadModal({ open, onClose, onSuccess, locationId }: BulkUploadModalProps) {
   const [isUploading, setIsUploading] = useState(false);
   const [progress, setProgress] = useState(0);
   const [validationErrors, setValidationErrors] = useState<ValidationError[]>([]);
@@ -135,12 +138,12 @@ export function BulkUploadModal({ open, onClose, onSuccess }: BulkUploadModalPro
           .from('inventory_vehicles')
           .insert({
             vin: vehicle.vin,
-            make: vehicle.make,
-            model: vehicle.model,
+            make: vehicle.make || '',
+            model: vehicle.model || '',
             year: parseInt(vehicle.year || '0'),
             color: vehicle.color,
-            status: vehicle.status || 'available',
-            location: vehicle.location,
+            status: (vehicle.status as InventoryStatus) || 'pending_inspection',
+            location_id: locationId,
           });
 
         if (error) throw error;
