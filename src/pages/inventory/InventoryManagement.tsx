@@ -9,12 +9,14 @@ import { BulkUploadModal } from "@/components/inventory/BulkUploadModal";
 import { AddVehicleModal } from "@/components/inventory/AddVehicleModal";
 import { getInventoryVehicles, getLocations } from "@/lib/api/inventory";
 import { useToast } from "@/components/ui/use-toast";
+import { useAuth } from "@/lib/auth";
 
 const InventoryManagement = () => {
   const [selectedLocationId, setSelectedLocationId] = useState<string>();
   const [isAddModalOpen, setIsAddModalOpen] = useState(false);
   const [isBulkUploadOpen, setIsBulkUploadOpen] = useState(false);
   const { toast } = useToast();
+  const { organization } = useAuth();
 
   const { data: locations = [] } = useQuery({
     queryKey: ['locations'],
@@ -37,6 +39,10 @@ const InventoryManagement = () => {
       description: "Inventory updated successfully",
     });
   };
+
+  if (!organization?.id) {
+    return null; // or show a loading state or error message
+  }
 
   return (
     <div className="container mx-auto px-4 py-8">
@@ -110,6 +116,7 @@ const InventoryManagement = () => {
         onClose={() => setIsBulkUploadOpen(false)}
         onSuccess={handleSuccess}
         locationId={selectedLocationId}
+        organizationId={organization.id}
       />
     </div>
   );
