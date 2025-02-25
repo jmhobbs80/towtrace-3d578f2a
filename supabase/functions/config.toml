@@ -4,6 +4,8 @@ project_id = "pfraresupodbfeggrwiy"
 [api]
 enabled = true
 cors = ["*"]
+max_request_per_second = 10
+request_timeout = 30
 
 [[functions]]
 name = "optimize-route"
