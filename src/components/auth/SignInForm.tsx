@@ -146,21 +146,21 @@ export function SignInForm() {
   return (
     <div className="w-full max-w-md mx-auto space-y-8">
       <div className="text-center space-y-2">
-        <h1 className="text-2xl font-semibold text-secondary">
+        <h1 className="text-2xl font-semibold text-foreground">
           Sign in to your account
         </h1>
       </div>
 
       <form onSubmit={handleSubmit} className="space-y-6">
         <div className="space-y-2">
-          <Label htmlFor="email" className="text-sm font-medium text-secondary">
+          <Label htmlFor="email" className="text-sm font-medium text-foreground">
             Email
           </Label>
           <EmailInput value={email} onChange={setEmail} />
         </div>
 
         <div className="space-y-2">
-          <Label htmlFor="password" className="text-sm font-medium text-secondary">
+          <Label htmlFor="password" className="text-sm font-medium text-foreground">
             Password
           </Label>
           <PasswordInput value={password} onChange={setPassword} />
@@ -169,20 +169,7 @@ export function SignInForm() {
         <SubmitButton loading={loading} />
       </form>
 
-      <div className="text-center space-y-4">
-        <button
-          type="button"
-          onClick={() => setIsDialogOpen(true)}
-          className="text-sm text-primary hover:text-primary/80 transition-colors duration-200"
-        >
-          Forgot password?
-        </button>
-        <div className="text-sm">
-          <span className="text-muted-foreground">Don't have an account? </span>
-          <a href="/auth/signup" className="text-primary hover:text-primary/80 transition-colors duration-200">
-            Sign up
-          </a>
-        </div>
+      <div className="text-center">
         <PasswordResetDialog
           isOpen={isDialogOpen}
           onOpenChange={setIsDialogOpen}
@@ -192,6 +179,24 @@ export function SignInForm() {
           isResetting={isResetting}
           onSubmit={handleResetSubmit}
         />
+        <div className="text-sm flex flex-col space-y-2">
+          <button
+            type="button"
+            onClick={() => setIsDialogOpen(true)}
+            className="text-primary hover:text-primary/80 transition-colors duration-200"
+          >
+            Forgot password?
+          </button>
+          <p>
+            <span className="text-muted-foreground">Don't have an account? </span>
+            <a 
+              href="/auth/signup" 
+              className="text-primary hover:text-primary/80 transition-colors duration-200"
+            >
+              Sign up
+            </a>
+          </p>
+        </div>
       </div>
     </div>
   );
