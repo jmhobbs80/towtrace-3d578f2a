@@ -1,23 +1,72 @@
 
 import { useState } from "react";
-import { Menu, X, Home, Truck, Users, FileText, Settings, LogOut } from "lucide-react";
+import { Menu, X, Home, Truck, Users, FileText, Settings, LogOut, Building, Tool, CarFront } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { cn } from "@/lib/utils";
 import { useAuth } from "@/components/auth/AuthProvider";
 import { OrganizationSwitcher } from "@/components/organization/OrganizationSwitcher";
+import type { Database } from "@/integrations/supabase/types";
+
+type OrganizationType = Database['public']['Enums']['organization_type'];
+
+interface NavigationItem {
+  name: string;
+  icon: typeof Home;
+  href: string;
+  orgTypes?: OrganizationType[];
+}
 
 export const Sidebar = () => {
   const [isOpen, setIsOpen] = useState(true);
   const { signOut, organization } = useAuth();
 
-  const navigationItems = [
+  const navigationItems: NavigationItem[] = [
     { name: "Dashboard", icon: Home, href: "/" },
-    { name: "Jobs", icon: Truck, href: "/jobs" },
-    { name: "Drivers", icon: Users, href: "/drivers" },
-    { name: "Transport", icon: Truck, href: "/transport" },
+    { 
+      name: "Fleet Management", 
+      icon: Truck, 
+      href: "/fleet",
+      orgTypes: ['transporter']
+    },
+    { 
+      name: "Drivers", 
+      icon: Users, 
+      href: "/drivers",
+      orgTypes: ['transporter'] 
+    },
+    { 
+      name: "Inventory", 
+      icon: CarFront, 
+      href: "/inventory",
+      orgTypes: ['dealer', 'wholesaler']
+    },
+    { 
+      name: "Repairs", 
+      icon: Tool, 
+      href: "/repairs",
+      orgTypes: ['dealer', 'wholesaler']
+    },
+    { 
+      name: "Transport Jobs", 
+      icon: Truck, 
+      href: "/transport",
+      orgTypes: ['dealer', 'wholesaler', 'transporter']
+    },
+    { 
+      name: "Organizations", 
+      icon: Building, 
+      href: "/organizations",
+      orgTypes: ['dealer', 'wholesaler', 'transporter']
+    },
     { name: "Reports", icon: FileText, href: "/reports" },
     { name: "Settings", icon: Settings, href: "/settings" },
   ];
+
+  const filteredNavItems = organization
+    ? navigationItems.filter(item => 
+        !item.orgTypes || item.orgTypes.includes(organization.type)
+      )
+    : navigationItems;
 
   return (
     <>
@@ -47,7 +96,7 @@ export const Sidebar = () => {
 
         <nav className="mt-4">
           <ul className="space-y-2 px-4">
-            {navigationItems.map((item) => (
+            {filteredNavItems.map((item) => (
               <li key={item.name}>
                 <a
                   href={item.href}

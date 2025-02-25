@@ -11,15 +11,18 @@ import {
   SelectValue,
 } from '@/components/ui/select';
 import { Building } from 'lucide-react';
+import type { Database } from '@/integrations/supabase/types';
+
+type OrganizationType = Database['public']['Enums']['organization_type'];
 
 interface Organization {
   id: string;
   name: string;
-  type: 'dealer' | 'wholesaler' | 'transporter' | null;
+  type: OrganizationType;
 }
 
 export function OrganizationSwitcher() {
-  const { user, organization } = useAuth();
+  const { user, organization, switchOrganization } = useAuth();
   const [selectedOrgId, setSelectedOrgId] = useState<string | null>(organization?.id || null);
 
   const { data: organizations = [] } = useQuery({
@@ -45,11 +48,9 @@ export function OrganizationSwitcher() {
 
   useEffect(() => {
     if (selectedOrgId) {
-      supabase.auth.updateUser({
-        data: { current_organization_id: selectedOrgId }
-      });
+      switchOrganization(selectedOrgId);
     }
-  }, [selectedOrgId]);
+  }, [selectedOrgId, switchOrganization]);
 
   if (!organizations.length) return null;
 
