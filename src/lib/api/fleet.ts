@@ -1,5 +1,6 @@
+
 import { supabase } from "@/integrations/supabase/client";
-import type { VehicleInTransit, FleetVehicle, Dealership } from "../types/fleet";
+import type { VehicleInTransit, FleetVehicle, Dealership, VehicleAssignment } from "../types/fleet";
 
 export async function getVehiclesInTransit(jobId: string): Promise<VehicleInTransit[]> {
   const { data, error } = await supabase
@@ -13,6 +14,21 @@ export async function getVehiclesInTransit(jobId: string): Promise<VehicleInTran
   }
 
   return data as VehicleInTransit[];
+}
+
+export async function updateVehicleTransitStatus(
+  vehicleId: string, 
+  updates: Partial<Pick<VehicleInTransit, 'pickup_status' | 'delivery_status' | 'pickup_confirmation' | 'delivery_confirmation'>>
+): Promise<VehicleInTransit> {
+  const { data, error } = await supabase
+    .from('vehicles_in_transit')
+    .update(updates)
+    .eq('id', vehicleId)
+    .select()
+    .single();
+
+  if (error) throw error;
+  return data;
 }
 
 export async function getFleetVehicles(): Promise<FleetVehicle[]> {
@@ -41,18 +57,6 @@ export async function getDealerships(): Promise<Dealership[]> {
   return data as Dealership[];
 }
 
-export interface VehicleAssignment {
-  id: string;
-  vehicle_id: string;
-  driver_id: string;
-  assigned_by: string | null;
-  status: 'pending' | 'active' | 'completed';
-  started_at: string | null;
-  ended_at: string | null;
-  created_at: string;
-  updated_at: string;
-}
-
 export async function assignVehicleToDriver(
   vehicleId: string,
   driverId: string
@@ -69,7 +73,7 @@ export async function assignVehicleToDriver(
     .single();
 
   if (error) throw error;
-  return assignment;
+  return assignment as VehicleAssignment;
 }
 
 export async function startVehicleAssignment(
@@ -86,7 +90,7 @@ export async function startVehicleAssignment(
     .single();
 
   if (error) throw error;
-  return assignment;
+  return assignment as VehicleAssignment;
 }
 
 export async function completeVehicleAssignment(
@@ -109,7 +113,7 @@ export async function getActiveAssignment(
     .maybeSingle();
 
   if (error) throw error;
-  return data;
+  return data as VehicleAssignment;
 }
 
 export async function getDriverAssignments(
@@ -122,5 +126,5 @@ export async function getDriverAssignments(
     .order('created_at', { ascending: false });
 
   if (error) throw error;
-  return data || [];
+  return (data || []) as VehicleAssignment[];
 }
