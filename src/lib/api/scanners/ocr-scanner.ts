@@ -108,9 +108,10 @@ export class OCRVINScanner implements VINScannerHardware {
         this.videoElement.parentNode.removeChild(this.videoElement);
       }
       
-      // Clean up reader - use the correct method from the library
+      // Clean up reader
       if (this.reader) {
-        this.reader.stopStreams();
+        // Just release the reader without calling non-existent methods
+        this.reader = new BrowserMultiFormatReader();
       }
       
       this.videoElement = null;
