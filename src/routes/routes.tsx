@@ -24,6 +24,7 @@ import DealerTrades from "@/pages/dealer/DealerTrades";
 import { SidebarLayout } from "@/components/layouts/SidebarLayout";
 import PreferredTransporters from "@/pages/transport/PreferredTransporters";
 import RequestTow from "@/pages/public/RequestTow";
+import OverwatchDashboard from "@/pages/admin/OverwatchDashboard";
 
 export const routes: RouteObject[] = [
   {
@@ -39,6 +40,14 @@ export const routes: RouteObject[] = [
     element: (
       <ProtectedRoute>
         <AnalyticsDashboard />
+      </ProtectedRoute>
+    ),
+  },
+  {
+    path: "/admin/overwatch",
+    element: (
+      <ProtectedRoute allowedRoles={["overwatch_admin", "super_admin"]}>
+        <OverwatchDashboard />
       </ProtectedRoute>
     ),
   },
