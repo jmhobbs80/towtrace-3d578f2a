@@ -6,6 +6,25 @@ import { supabase } from "@/integrations/supabase/client";
 import { useAuth } from "@/components/auth/AuthProvider";
 import { Car, Warehouse, DollarSign } from "lucide-react";
 
+// Define the database types that match Supabase schema
+interface ImpoundLotDB {
+  id: string;
+  name: string;
+  address: {
+    street: string;
+    city: string;
+    state: string;
+    zip: string;
+  } | string; // Allow both structured object and string JSON
+  capacity: number;
+  daily_rate: number;
+  organization_id: string;
+  created_at: string;
+  updated_at: string;
+  late_fee_rate: number;
+}
+
+// Frontend type for processed data
 interface ImpoundLot {
   id: string;
   name: string;
@@ -41,7 +60,17 @@ export default function ImpoundDashboard() {
         .eq('organization_id', organization?.id);
       
       if (error) throw error;
-      return data as ImpoundLot[];
+      
+      // Process the data to ensure address is properly structured
+      return (data as ImpoundLotDB[]).map(lot => ({
+        id: lot.id,
+        name: lot.name,
+        address: typeof lot.address === 'string' 
+          ? JSON.parse(lot.address)
+          : lot.address,
+        capacity: lot.capacity,
+        daily_rate: lot.daily_rate
+      })) as ImpoundLot[];
     },
     enabled: !!organization?.id
   });
