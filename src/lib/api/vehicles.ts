@@ -75,12 +75,7 @@ export async function decodeVIN(vin: string): Promise<any> {
 export async function getVehicles(organizationId: string) {
   const { data, error } = await supabase
     .from('inventory_vehicles')
-    .select(`
-      *,
-      location:inventory_locations(name, address),
-      condition_logs:vehicle_condition_logs(*),
-      inspections:vehicle_inspections(*)
-    `)
+    .select('*, location:inventory_locations(name, address), condition_logs:vehicle_condition_logs(*), inspections:vehicle_inspections(*)')
     .eq('organization_id', organizationId);
 
   if (error) throw error;
@@ -90,10 +85,7 @@ export async function getVehicles(organizationId: string) {
 export async function getVehicleDetails(vehicleId: string) {
   const { data: vehicleData, error: vehicleError } = await supabase
     .from('inventory_vehicles')
-    .select(`
-      *,
-      location:inventory_locations(name, address)
-    `)
+    .select('*, location:inventory_locations(name, address)')
     .eq('id', vehicleId)
     .single();
 
@@ -122,24 +114,17 @@ export async function getVehicleDetails(vehicleId: string) {
 
   const { data: transitData, error: transitError } = await supabase
     .from('vehicles_in_transit')
-    .select(`
-      id,
-      delivery_status,
-      pickup_confirmation,
-      delivery_confirmation,
-      created_at,
-      vehicle_id
-    `)
-    .eq('vehicle_id', vehicleId);
+    .select('id, make, model, delivery_status, pickup_status, pickup_confirmation, delivery_confirmation, created_at')
+    .eq('vin', vehicleData.vin);
 
   if (transitError) throw transitError;
 
   const transitHistory: TransitRecord[] = (transitData || []).map(record => ({
     id: record.id,
-    status: record.delivery_status,
+    status: record.delivery_status || record.pickup_status,
     pickup_date: record.pickup_confirmation || record.created_at,
     delivery_date: record.delivery_confirmation,
-    vehicle_id: record.vehicle_id
+    vehicle_id: vehicleId
   }));
 
   return {
