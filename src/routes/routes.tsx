@@ -25,6 +25,7 @@ import { SidebarLayout } from "@/components/layouts/SidebarLayout";
 import PreferredTransporters from "@/pages/transport/PreferredTransporters";
 import RequestTow from "@/pages/public/RequestTow";
 import OverwatchDashboard from "@/pages/admin/OverwatchDashboard";
+import { UserRole } from "@/lib/types/auth";
 
 export const routes: RouteObject[] = [
   {
@@ -46,7 +47,7 @@ export const routes: RouteObject[] = [
   {
     path: "/admin/overwatch",
     element: (
-      <ProtectedRoute allowedRoles={["overwatch_admin", "super_admin"]}>
+      <ProtectedRoute allowedRoles={['overwatch_admin', 'super_admin'] as UserRole[]}>
         <OverwatchDashboard />
       </ProtectedRoute>
     ),

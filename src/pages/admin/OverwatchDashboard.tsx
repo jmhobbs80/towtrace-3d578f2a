@@ -18,6 +18,10 @@ export default function OverwatchDashboard() {
   const { toast } = useToast();
   const [auditLogs, setAuditLogs] = useState<AdminAuditLog[]>([]);
   const [loading, setLoading] = useState(true);
+  const [systemHealth, setSystemHealth] = useState({
+    api: 'operational',
+    database: 'connected'
+  });
 
   useEffect(() => {
     fetchAuditLogs();
@@ -32,7 +36,16 @@ export default function OverwatchDashboard() {
         .limit(50);
 
       if (error) throw error;
-      setAuditLogs(data || []);
+      
+      // Transform the data to match AdminAuditLog type
+      const transformedData: AdminAuditLog[] = data.map(log => ({
+        ...log,
+        previous_state: log.previous_state as Record<string, any> | null,
+        new_state: log.new_state as Record<string, any> | null,
+        metadata: log.metadata as Record<string, any> | null
+      }));
+      
+      setAuditLogs(transformedData);
     } catch (error) {
       toast({
         variant: "destructive",
@@ -46,6 +59,14 @@ export default function OverwatchDashboard() {
 
   const suspendOrganization = async (orgId: string) => {
     try {
+      // First get the organization's current state
+      const { data: prevState } = await supabase
+        .from('organizations')
+        .select('*')
+        .eq('id', orgId)
+        .single();
+
+      // Update organization status
       const { error } = await supabase
         .from('organizations')
         .update({ subscription_status: 'suspended' })
@@ -53,10 +74,21 @@ export default function OverwatchDashboard() {
 
       if (error) throw error;
 
+      // Log the admin action
+      await supabase.rpc('log_admin_action', {
+        action_type: 'suspend_organization',
+        entity_type: 'organizations',
+        entity_id: orgId,
+        previous_state: prevState,
+        new_state: { ...prevState, subscription_status: 'suspended' }
+      });
+
       toast({
         title: "Organization Suspended",
         description: "The organization has been suspended successfully."
       });
+      
+      fetchAuditLogs(); // Refresh logs
     } catch (error) {
       toast({
         variant: "destructive",
@@ -77,6 +109,7 @@ export default function OverwatchDashboard() {
         </CardHeader>
         <CardContent>
           <div className="grid grid-cols-1 md:grid-cols-3 gap-4 mb-6">
+            {/* Quick Actions */}
             <Card>
               <CardHeader>
                 <CardTitle className="text-lg">Quick Actions</CardTitle>
@@ -94,6 +127,7 @@ export default function OverwatchDashboard() {
               </CardContent>
             </Card>
 
+            {/* System Health */}
             <Card>
               <CardHeader>
                 <CardTitle className="text-lg">System Health</CardTitle>
@@ -108,10 +142,15 @@ export default function OverwatchDashboard() {
                     <span>Database</span>
                     <span className="text-green-500">Connected</span>
                   </div>
+                  <div className="flex justify-between">
+                    <span>Active Users</span>
+                    <span>Loading...</span>
+                  </div>
                 </div>
               </CardContent>
             </Card>
 
+            {/* Recent Activity */}
             <Card>
               <CardHeader>
                 <CardTitle className="text-lg">Recent Activity</CardTitle>
@@ -134,47 +173,48 @@ export default function OverwatchDashboard() {
               </CardContent>
             </Card>
           </div>
-        </CardContent>
-      </Card>
 
-      <Card>
-        <CardHeader>
-          <CardTitle>Audit Log</CardTitle>
-          <CardDescription>Track all administrative actions</CardDescription>
-        </CardHeader>
-        <CardContent>
-          <div className="space-y-4">
-            {auditLogs.map((log) => (
-              <div key={log.id} className="border-b pb-4">
-                <div className="flex justify-between items-start">
-                  <div>
-                    <h4 className="font-medium">{log.action_type}</h4>
-                    <p className="text-sm text-muted-foreground">
-                      Entity: {log.entity_type} {log.entity_id}
-                    </p>
+          {/* Audit Log Section */}
+          <Card>
+            <CardHeader>
+              <CardTitle>Audit Log</CardTitle>
+              <CardDescription>Track all administrative actions</CardDescription>
+            </CardHeader>
+            <CardContent>
+              <div className="space-y-4">
+                {auditLogs.map((log) => (
+                  <div key={log.id} className="border-b pb-4">
+                    <div className="flex justify-between items-start">
+                      <div>
+                        <h4 className="font-medium">{log.action_type}</h4>
+                        <p className="text-sm text-muted-foreground">
+                          Entity: {log.entity_type} {log.entity_id}
+                        </p>
+                      </div>
+                      <p className="text-sm text-muted-foreground">
+                        {new Date(log.created_at).toLocaleString()}
+                      </p>
+                    </div>
+                    {(log.previous_state || log.new_state) && (
+                      <div className="mt-2 text-sm">
+                        <p>Changes:</p>
+                        <pre className="bg-muted p-2 rounded mt-1 text-xs overflow-x-auto">
+                          {JSON.stringify(
+                            {
+                              previous: log.previous_state,
+                              new: log.new_state
+                            },
+                            null,
+                            2
+                          )}
+                        </pre>
+                      </div>
+                    )}
                   </div>
-                  <p className="text-sm text-muted-foreground">
-                    {new Date(log.created_at).toLocaleString()}
-                  </p>
-                </div>
-                {(log.previous_state || log.new_state) && (
-                  <div className="mt-2 text-sm">
-                    <p>Changes:</p>
-                    <pre className="bg-muted p-2 rounded mt-1 text-xs overflow-x-auto">
-                      {JSON.stringify(
-                        { 
-                          previous: log.previous_state,
-                          new: log.new_state
-                        },
-                        null,
-                        2
-                      )}
-                    </pre>
-                  </div>
-                )}
+                ))}
               </div>
-            ))}
-          </div>
+            </CardContent>
+          </Card>
         </CardContent>
       </Card>
     </div>

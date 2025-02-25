@@ -17,10 +17,10 @@ export interface AdminAuditLog {
   user_id: string;
   action_type: string;
   entity_type: string;
-  entity_id?: string;
-  previous_state?: Record<string, any>;
-  new_state?: Record<string, any>;
-  metadata?: Record<string, any>;
-  ip_address?: string;
+  entity_id?: string | null;
+  previous_state?: Record<string, any> | null;
+  new_state?: Record<string, any> | null;
+  metadata?: Record<string, any> | null;
+  ip_address?: string | null;
   created_at: string;
 }
