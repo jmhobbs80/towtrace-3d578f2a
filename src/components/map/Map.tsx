@@ -20,7 +20,7 @@ interface MapProps {
   initialZoom?: number;
 }
 
-export const Map = ({ jobId, initialCenter = [-95.7129, 37.0902], initialZoom = 4 }: MapProps) => {
+export const LocationMap = ({ jobId, initialCenter = [-95.7129, 37.0902], initialZoom = 4 }: MapProps) => {
   const mapContainer = useRef<HTMLDivElement>(null);
   const map = useRef<mapboxgl.Map | null>(null);
   const markersRef = useRef<{ [key: string]: mapboxgl.Marker }>({});
