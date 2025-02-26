@@ -3233,6 +3233,12 @@ export type Database = {
         }
         Returns: boolean
       }
+      is_organization_member: {
+        Args: {
+          org_id: string
+        }
+        Returns: boolean
+      }
       is_overwatch_admin: {
         Args: Record<PropertyKey, never>
         Returns: boolean
