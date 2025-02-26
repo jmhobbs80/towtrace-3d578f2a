@@ -1,3 +1,4 @@
+
 export type AuctionStatus = 'draft' | 'scheduled' | 'live' | 'ended' | 'canceled';
 
 export interface Auction {
@@ -11,6 +12,7 @@ export interface Auction {
   minimum_participants: number;
   created_at: string;
   updated_at: string;
+  items?: AuctionItem[]; // Added this property as optional since it comes from a join
 }
 
 export interface AuctionItem {
