@@ -5,12 +5,11 @@ import { supabase } from "@/integrations/supabase/client";
 import { Button } from "@/components/ui/button";
 import { useToast } from "@/components/ui/use-toast";
 
-interface Driver {
+type Profile = {
   id: string;
   first_name: string | null;
   last_name: string | null;
   email: string | null;
-  role: 'driver';
 }
 
 export function AssignDriver() {
@@ -21,8 +20,8 @@ export function AssignDriver() {
     queryFn: async () => {
       const { data, error } = await supabase
         .from('profiles')
-        .select('id, first_name, last_name, email, role')
-        .eq('role', 'driver');
+        .select('id, first_name, last_name, email')
+        .returns<Profile[]>();
 
       if (error) {
         toast({
@@ -33,7 +32,7 @@ export function AssignDriver() {
         throw error;
       }
 
-      return (data as Driver[]) || [];
+      return data || [];
     }
   });
 
