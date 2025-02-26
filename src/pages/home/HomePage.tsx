@@ -77,9 +77,9 @@ export default function HomePage() {
             <div className="relative">
               <div className="absolute -inset-1 bg-gradient-to-r from-primary/20 to-blue-500/20 rounded-lg blur"></div>
               <img
-                src="/placeholder.svg"
+                src="https://images.unsplash.com/photo-1482881497185-d4a9ddbe4151"
                 alt="TowTrace Dashboard"
-                className="relative w-full max-w-[500px] rounded-lg shadow-2xl"
+                className="relative w-full max-w-[500px] rounded-lg shadow-2xl object-cover"
               />
             </div>
           </div>
