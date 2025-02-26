@@ -3172,6 +3172,17 @@ export type Database = {
         }
         Returns: Json
       }
+      get_repair_stats: {
+        Args: {
+          org_id: string
+        }
+        Returns: {
+          total_orders: number
+          completed_orders: number
+          average_cost: number
+          total_cost: number
+        }[]
+      }
       get_user_organizations: {
         Args: Record<PropertyKey, never>
         Returns: string[]
