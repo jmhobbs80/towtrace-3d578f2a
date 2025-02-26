@@ -8,6 +8,7 @@ import { SignUpForm } from "@/components/auth/SignUpForm";
 import { Card } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Logo } from "@/components/branding/Logo";
+import { Loader2 } from "lucide-react";
 
 export default function AuthPage() {
   const [isSignUp, setIsSignUp] = useState(false);
@@ -28,7 +29,7 @@ export default function AuthPage() {
       try {
         const { data, error } = await supabase.functions.invoke('driver-invites', {
           method: 'GET',
-          body: { token }, // Changed from query to body
+          body: { token },
         });
 
         if (error) throw error;
@@ -49,36 +50,53 @@ export default function AuthPage() {
     };
 
     const checkSession = async () => {
+      console.log("Checking session...");
       try {
         if (!mounted) return;
         
         const { data: { session }, error } = await supabase.auth.getSession();
+        console.log("Session check result:", { session, error });
+        
         if (error) throw error;
 
         if (session) {
-          const { data: roleData, error: roleError } = await supabase
-            .from("user_roles")
-            .select("role")
-            .eq("user_id", session.user.id)
-            .single();
+          try {
+            console.log("Fetching user role...");
+            const { data: roleData, error: roleError } = await supabase
+              .from("user_roles")
+              .select("role")
+              .eq("user_id", session.user.id)
+              .maybeSingle();
 
-          if (roleError) throw roleError;
+            console.log("Role check result:", { roleData, roleError });
 
-          if (!mounted) return;
+            if (roleError) throw roleError;
+            if (!mounted) return;
 
-          switch (roleData?.role) {
-            case "admin":
-            case "overwatch_admin":
-              navigate("/admin");
-              break;
-            case "dispatcher":
-              navigate("/dispatch");
-              break;
-            case "fleet_manager":
-              navigate("/fleet");
-              break;
-            default:
-              navigate("/");
+            // Default to dashboard if no specific role route
+            const defaultRoute = "/dashboard";
+            
+            if (roleData?.role) {
+              switch (roleData.role) {
+                case "admin":
+                case "overwatch_admin":
+                  navigate("/admin");
+                  break;
+                case "dispatcher":
+                  navigate("/dispatch");
+                  break;
+                case "fleet_manager":
+                  navigate("/fleet");
+                  break;
+                default:
+                  navigate(defaultRoute);
+              }
+            } else {
+              navigate(defaultRoute);
+            }
+          } catch (roleError) {
+            console.error("Error checking role:", roleError);
+            navigate("/dashboard"); // Fallback to dashboard on role check error
           }
         }
       } catch (error) {
@@ -132,11 +150,11 @@ export default function AuthPage() {
     setIsSignUp(searchParams.get("signup") === "true");
   }, [searchParams]);
 
-  const renderAuthContent = () => {
+  const renderContent = () => {
     if (loading) {
       return (
         <div className="flex items-center justify-center space-x-2">
-          <div className="h-4 w-4 animate-spin rounded-full border-2 border-primary border-t-transparent"></div>
+          <Loader2 className="h-4 w-4 animate-spin" />
           <div className="text-muted-foreground text-sm">
             Checking authentication...
           </div>
@@ -147,7 +165,7 @@ export default function AuthPage() {
     return (
       <Card className="w-full max-w-md p-6 space-y-6">
         {isSignUp ? (
-          <SignUpForm organizationId={inviteData?.organization_id ?? undefined} />
+          <SignUpForm organizationId={inviteData?.organization_id} />
         ) : (
           <SignInForm />
         )}
@@ -193,7 +211,7 @@ export default function AuthPage() {
           <Logo size="lg" className="animate-fade-in" />
         </div>
       </div>
-      {renderAuthContent()}
+      {renderContent()}
     </div>
   );
 }
