@@ -1,4 +1,3 @@
-
 import { Suspense, lazy } from "react";
 import { createBrowserRouter, Navigate, Outlet } from "react-router-dom";
 import { Loader2 } from "lucide-react";
@@ -22,7 +21,7 @@ import { UserRole } from "@/lib/types/auth";
 
 // Lazy load the Dashboard component
 const Dashboard = lazy(() => import("@/pages/dashboard/Dashboard"));
-const CustomerPortal = lazy(() => import("@/pages/customer/CustomerPortal"));
+const CustomerPortal = lazy(() => import("@/pages/impound/customer/CustomerPortal"));
 
 // Loading fallback component
 const LoadingFallback = () => (
