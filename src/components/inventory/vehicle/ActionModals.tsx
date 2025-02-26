@@ -10,7 +10,7 @@ interface ActionModalsProps {
   onDamageReportClose: () => void;
   onRepairOrderClose: () => void;
   onDamageReportSuccess: () => void;
-  onRepairOrderSubmit: (data: any) => void;
+  onRepairOrderSubmit: (data: { vehicleId?: string; facilityId?: string; estimatedCompletionDate?: string; notes?: string; }) => Promise<void>;
 }
 
 export function ActionModals({

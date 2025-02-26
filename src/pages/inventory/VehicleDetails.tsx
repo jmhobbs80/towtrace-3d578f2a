@@ -68,13 +68,22 @@ export default function VehicleDetails() {
     setIsDamageReportOpen(false);
   };
 
-  const handleRepairOrderSubmit = async (data: any) => {
-    console.log('Repair order data:', data);
-    setIsRepairOrderOpen(false);
-    toast({
-      title: "Repair Order Created",
-      description: "Your repair order has been successfully created.",
-    });
+  const handleRepairOrderSubmit = async (data: { vehicleId?: string; facilityId?: string; estimatedCompletionDate?: string; notes?: string; }) => {
+    try {
+      console.log('Repair order data:', data);
+      setIsRepairOrderOpen(false);
+      toast({
+        title: "Repair Order Created",
+        description: "Your repair order has been successfully created.",
+      });
+    } catch (error) {
+      console.error('Error creating repair order:', error);
+      toast({
+        title: "Error",
+        description: "Failed to create repair order",
+        variant: "destructive",
+      });
+    }
   };
 
   if (!vehicleId) {
