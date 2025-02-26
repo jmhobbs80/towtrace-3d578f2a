@@ -87,6 +87,9 @@ export const InventoryList = ({ vehicles, isLoading }: InventoryListProps) => {
   const startIndex = (currentPage - 1) * ITEMS_PER_PAGE;
   const paginatedVehicles = vehicles.slice(startIndex, startIndex + ITEMS_PER_PAGE);
 
+  const handlePrevious = () => setCurrentPage(prev => Math.max(1, prev - 1));
+  const handleNext = () => setCurrentPage(prev => Math.min(totalPages, prev + 1));
+
   return (
     <div className="space-y-4">
       <DataTable
@@ -98,19 +101,29 @@ export const InventoryList = ({ vehicles, isLoading }: InventoryListProps) => {
           <Pagination>
             <PaginationContent>
               <PaginationItem>
-                <PaginationPrevious 
-                  onClick={() => setCurrentPage(prev => Math.max(1, prev - 1))}
-                  disabled={currentPage === 1}
-                />
+                <Button
+                  variant="ghost"
+                  size="sm"
+                  onClick={handlePrevious}
+                  className={currentPage === 1 ? "opacity-50 cursor-not-allowed" : ""}
+                >
+                  <PaginationPrevious className="h-4 w-4" />
+                </Button>
               </PaginationItem>
               <PaginationItem>
-                Page {currentPage} of {totalPages}
+                <span className="px-4">
+                  Page {currentPage} of {totalPages}
+                </span>
               </PaginationItem>
               <PaginationItem>
-                <PaginationNext
-                  onClick={() => setCurrentPage(prev => Math.min(totalPages, prev + 1))}
-                  disabled={currentPage === totalPages}
-                />
+                <Button
+                  variant="ghost"
+                  size="sm"
+                  onClick={handleNext}
+                  className={currentPage === totalPages ? "opacity-50 cursor-not-allowed" : ""}
+                >
+                  <PaginationNext className="h-4 w-4" />
+                </Button>
               </PaginationItem>
             </PaginationContent>
           </Pagination>
