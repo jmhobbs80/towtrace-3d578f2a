@@ -1,14 +1,13 @@
 
 import { useEffect, useState } from "react";
-import { useParams } from "react-router-dom";
+import { useParams, useNavigate } from "react-router-dom";
 import { getVehicleDetails } from "@/lib/api/vehicles";
-import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
-import { useNavigate } from 'react-router-dom';
-import { DamageReportForm } from "@/components/inventory/DamageReportForm";
-import { RepairOrderForm } from "@/components/repair/RepairOrderForm";
 import { useToast } from "@/components/ui/use-toast";
-import type { Json } from "@/integrations/supabase/types";
+import { TransitHistoryCard } from "@/components/inventory/vehicle/TransitHistoryCard";
+import { DamageReportsCard } from "@/components/inventory/vehicle/DamageReportsCard";
+import { VehicleInfoCard } from "@/components/inventory/vehicle/VehicleInfoCard";
+import { ActionModals } from "@/components/inventory/vehicle/ActionModals";
 import type { DamageReport, TransitRecord, VehicleLocation } from "@/lib/api/vehicles";
 
 interface VehicleDetailsData {
@@ -92,67 +91,19 @@ export default function VehicleDetails() {
       {vehicle && (
         <>
           <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-            <Card>
-              <CardHeader>
-                <CardTitle>Transit History</CardTitle>
-              </CardHeader>
-              <CardContent>
-                {vehicle.transit_history?.length > 0 ? (
-                  <div className="space-y-4">
-                    {vehicle.transit_history.map((transit) => (
-                      <div key={transit.id} className="border p-4 rounded">
-                        <p>Status: {transit.status}</p>
-                        <p>Pickup Date: {new Date(transit.pickup_date).toLocaleDateString()}</p>
-                        <p>Delivery Date: {transit.delivery_date ? new Date(transit.delivery_date).toLocaleDateString() : 'Pending'}</p>
-                      </div>
-                    ))}
-                  </div>
-                ) : (
-                  <p className="text-muted-foreground">No transit history available</p>
-                )}
-              </CardContent>
-            </Card>
-
-            <Card>
-              <CardHeader>
-                <CardTitle>Damage Reports</CardTitle>
-              </CardHeader>
-              <CardContent>
-                {vehicle.damage_reports?.length > 0 ? (
-                  <div className="space-y-4">
-                    {vehicle.damage_reports.map((report) => (
-                      <div key={report.id} className="border p-4 rounded">
-                        <p>Severity: {report.severity}</p>
-                        <p>Date: {new Date(report.created_at).toLocaleDateString()}</p>
-                        {report.description && <p>Description: {report.description}</p>}
-                      </div>
-                    ))}
-                  </div>
-                ) : (
-                  <p className="text-muted-foreground">No damage reports available</p>
-                )}
-              </CardContent>
-            </Card>
+            <TransitHistoryCard transitHistory={vehicle.transit_history} />
+            <DamageReportsCard damageReports={vehicle.damage_reports} />
           </div>
 
-          <Card>
-            <CardHeader>
-              <CardTitle>Vehicle Information</CardTitle>
-            </CardHeader>
-            <CardContent>
-              <div className="space-y-2">
-                <p><strong>VIN:</strong> {vehicle.vin}</p>
-                <p><strong>Make:</strong> {vehicle.make}</p>
-                <p><strong>Model:</strong> {vehicle.model}</p>
-                <p><strong>Year:</strong> {vehicle.year}</p>
-                <p><strong>Status:</strong> {vehicle.status}</p>
-                <p><strong>Condition:</strong> {vehicle.condition}</p>
-                {vehicle.location && (
-                  <p><strong>Location:</strong> {vehicle.location.name}</p>
-                )}
-              </div>
-            </CardContent>
-          </Card>
+          <VehicleInfoCard
+            vin={vehicle.vin}
+            make={vehicle.make}
+            model={vehicle.model}
+            year={vehicle.year}
+            status={vehicle.status}
+            condition={vehicle.condition}
+            location={vehicle.location}
+          />
 
           <div className="flex justify-end space-x-4">
             <Button onClick={() => setIsDamageReportOpen(true)}>
@@ -163,47 +114,15 @@ export default function VehicleDetails() {
             </Button>
           </div>
 
-          {isDamageReportOpen && (
-            <div className="fixed inset-0 bg-gray-600 bg-opacity-50 overflow-y-auto h-full w-full">
-              <div className="relative top-20 mx-auto p-5 border w-96 shadow-lg rounded-md bg-white">
-                <h3 className="text-lg font-medium leading-6 text-gray-900">
-                  Add Damage Report
-                </h3>
-                <div className="mt-2">
-                  <DamageReportForm
-                    vehicleId={vehicleId}
-                    onSuccess={handleDamageReportSuccess}
-                  />
-                </div>
-                <div className="mt-4 flex justify-end">
-                  <Button onClick={() => setIsDamageReportOpen(false)}>
-                    Close
-                  </Button>
-                </div>
-              </div>
-            </div>
-          )}
-
-          {isRepairOrderOpen && (
-            <div className="fixed inset-0 bg-gray-600 bg-opacity-50 overflow-y-auto h-full w-full">
-              <div className="relative top-20 mx-auto p-5 border w-96 shadow-lg rounded-md bg-white">
-                <h3 className="text-lg font-medium leading-6 text-gray-900">
-                  Create Repair Order
-                </h3>
-                <div className="mt-2">
-                  <RepairOrderForm
-                    vehicleId={vehicleId}
-                    onSubmit={handleRepairOrderSubmit}
-                  />
-                </div>
-                <div className="mt-4 flex justify-end">
-                  <Button onClick={() => setIsRepairOrderOpen(false)}>
-                    Close
-                  </Button>
-                </div>
-              </div>
-            </div>
-          )}
+          <ActionModals
+            vehicleId={vehicleId}
+            isDamageReportOpen={isDamageReportOpen}
+            isRepairOrderOpen={isRepairOrderOpen}
+            onDamageReportClose={() => setIsDamageReportOpen(false)}
+            onRepairOrderClose={() => setIsRepairOrderOpen(false)}
+            onDamageReportSuccess={handleDamageReportSuccess}
+            onRepairOrderSubmit={handleRepairOrderSubmit}
+          />
         </>
       )}
     </div>
