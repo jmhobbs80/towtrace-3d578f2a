@@ -8,6 +8,9 @@ url = "https://pfraresupodbfeggrwiy.supabase.co"
 [analytics]
 enabled = true
 
+[functions.get-road-conditions]
+verify_jwt = true
+
 [functions.get-auction-analytics]
 verify_jwt = true
 
