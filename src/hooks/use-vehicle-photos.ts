@@ -24,11 +24,20 @@ export const useVehiclePhotos = (vehicleId: string) => {
         .from('vehicle-photos')
         .getPublicUrl(fileName);
 
+      // Get current photos array first
+      const { data: currentVehicle } = await supabase
+        .from('inventory_vehicles')
+        .select('photos')
+        .eq('id', vehicleId)
+        .single();
+
+      const updatedPhotos = [...(currentVehicle?.photos || []), data.publicUrl];
+
       // Update vehicle photos array
       const { error: updateError } = await supabase
         .from('inventory_vehicles')
         .update({
-          photos: supabase.sql`array_append(photos, ${data.publicUrl})`
+          photos: updatedPhotos
         })
         .eq('id', vehicleId);
 
@@ -61,11 +70,20 @@ export const useVehiclePhotos = (vehicleId: string) => {
         .from('vehicle-photos')
         .remove([`${vehicleId}/${fileName}`]);
 
+      // Get current photos array
+      const { data: currentVehicle } = await supabase
+        .from('inventory_vehicles')
+        .select('photos')
+        .eq('id', vehicleId)
+        .single();
+
+      const updatedPhotos = (currentVehicle?.photos || []).filter(url => url !== photoUrl);
+
       // Update vehicle photos array
       await supabase
         .from('inventory_vehicles')
         .update({
-          photos: supabase.sql`array_remove(photos, ${photoUrl})`
+          photos: updatedPhotos
         })
         .eq('id', vehicleId);
 
