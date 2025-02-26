@@ -1,48 +1,71 @@
 
 import { Button } from "@/components/ui/button";
+import { NavigationMenu } from "@/components/ui/navigation-menu";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
+import { Link } from "react-router-dom";
 
 export function HomePage() {
   return (
-    <div className="container mx-auto p-6">
-      <div className="text-center mb-12">
-        <h1 className="text-4xl font-bold mb-4">Welcome to TowTrace</h1>
-        <p className="text-xl text-muted-foreground">
-          The complete towing management solution
-        </p>
-      </div>
+    <div className="min-h-screen bg-background">
+      <header className="container mx-auto py-6">
+        <NavigationMenu>
+          <Link to="/" className="text-2xl font-bold">TowTrace</Link>
+          <div className="flex-1" />
+          <Link to="/about" className="px-4 py-2">About</Link>
+          <Link to="/pricing" className="px-4 py-2">Pricing</Link>
+          <Link to="/contact" className="px-4 py-2">Contact</Link>
+          <Link to="/help" className="px-4 py-2">Help</Link>
+          <Link to="/auth">
+            <Button>Sign In</Button>
+          </Link>
+        </NavigationMenu>
+      </header>
 
-      <div className="grid gap-6 md:grid-cols-2 lg:grid-cols-3">
-        <Card>
-          <CardHeader>
-            <CardTitle>For Towing Companies</CardTitle>
-          </CardHeader>
-          <CardContent>
-            <p className="mb-4">Streamline your operations and grow your business.</p>
-            <Button>Learn More</Button>
-          </CardContent>
-        </Card>
+      <main className="container mx-auto py-12">
+        <div className="text-center mb-12">
+          <h1 className="text-4xl font-bold mb-4">
+            Next-Generation Vehicle Management Platform
+          </h1>
+          <p className="text-xl text-muted-foreground mb-8">
+            Streamline your towing operations with real-time tracking, automated dispatch, and seamless fleet management.
+          </p>
+          <Link to="/auth?type=register">
+            <Button size="lg" className="mr-4">Get Started</Button>
+          </Link>
+          <Link to="/schedule-demo">
+            <Button variant="outline" size="lg">Schedule Demo</Button>
+          </Link>
+        </div>
 
-        <Card>
-          <CardHeader>
-            <CardTitle>For Vehicle Owners</CardTitle>
-          </CardHeader>
-          <CardContent>
-            <p className="mb-4">Request and track towing services in real-time.</p>
-            <Button>Get Started</Button>
-          </CardContent>
-        </Card>
+        <div className="grid md:grid-cols-3 gap-6 mt-12">
+          <Card>
+            <CardHeader>
+              <CardTitle>Real-Time Tracking</CardTitle>
+            </CardHeader>
+            <CardContent>
+              <p>Monitor your entire fleet in real-time with advanced GPS tracking and status updates.</p>
+            </CardContent>
+          </Card>
 
-        <Card>
-          <CardHeader>
-            <CardTitle>For Dealerships</CardTitle>
-          </CardHeader>
-          <CardContent>
-            <p className="mb-4">Manage your fleet and transportation needs.</p>
-            <Button>Learn More</Button>
-          </CardContent>
-        </Card>
-      </div>
+          <Card>
+            <CardHeader>
+              <CardTitle>Smart Dispatch</CardTitle>
+            </CardHeader>
+            <CardContent>
+              <p>AI-powered dispatch system optimizes routes and automatically assigns the best driver for each job.</p>
+            </CardContent>
+          </Card>
+
+          <Card>
+            <CardHeader>
+              <CardTitle>Customer Portal</CardTitle>
+            </CardHeader>
+            <CardContent>
+              <p>Give your customers real-time updates and easy access to service requests and payment processing.</p>
+            </CardContent>
+          </Card>
+        </div>
+      </main>
     </div>
   );
 }
