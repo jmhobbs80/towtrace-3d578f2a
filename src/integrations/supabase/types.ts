@@ -3211,6 +3211,13 @@ export type Database = {
         }
         Returns: boolean
       }
+      has_organization_permission: {
+        Args: {
+          org_id: string
+          required_roles: Database["public"]["Enums"]["app_role"][]
+        }
+        Returns: boolean
+      }
       has_role: {
         Args: {
           required_role: Database["public"]["Enums"]["app_role"]
