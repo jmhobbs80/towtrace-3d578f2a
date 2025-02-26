@@ -20,9 +20,10 @@ import { supportRoutes } from "./support-routes";
 import { wholesalerRoutes } from "./wholesaler-routes";
 import { UserRole } from "@/lib/types/auth";
 
-// Lazy load the Dashboard component
+// Lazy load components
 const Dashboard = lazy(() => import("@/pages/dashboard/Dashboard"));
 const CustomerPortal = lazy(() => import("@/pages/impound/customer/CustomerPortal"));
+const HomePage = lazy(() => import("@/pages/home/HomePage"));
 
 // Loading fallback component
 const LoadingFallback = () => (
@@ -33,7 +34,7 @@ const LoadingFallback = () => (
 
 const protectedRoutes = [
   {
-    path: "/dashboard",  // Changed from "/" to "/dashboard"
+    path: "/dashboard",
     element: (
       <Suspense fallback={<LoadingFallback />}>
         <Dashboard />
@@ -54,6 +55,14 @@ const protectedRoutes = [
 ];
 
 const publicRoutes = [
+  {
+    path: "/",
+    element: (
+      <Suspense fallback={<LoadingFallback />}>
+        <HomePage />
+      </Suspense>
+    ),
+  },
   ...legalRoutes,
   {
     path: "/customer/book",
@@ -77,10 +86,6 @@ export const router = createBrowserRouter([
   {
     element: <AppLayout />,
     children: [
-      {
-        path: "/",
-        element: <Navigate to="/auth" replace />,  // You can change this to any route you want as the initial route
-      },
       ...authRoutes,
       ...publicRoutes,
       {
