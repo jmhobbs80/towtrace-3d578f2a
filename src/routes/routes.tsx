@@ -1,4 +1,3 @@
-
 import { Suspense, lazy } from "react";
 import { createBrowserRouter, Navigate, Outlet } from "react-router-dom";
 import { Loader2 } from "lucide-react";
@@ -24,6 +23,7 @@ import { UserRole } from "@/lib/types/auth";
 const Dashboard = lazy(() => import("@/pages/dashboard/Dashboard"));
 const CustomerPortal = lazy(() => import("@/pages/impound/customer/CustomerPortal"));
 const HomePage = lazy(() => import("@/pages/home/HomePage"));
+const ScheduleDemo = lazy(() => import("@/pages/schedule-demo/ScheduleDemo"));
 
 // Loading fallback component
 const LoadingFallback = () => (
@@ -60,6 +60,14 @@ const publicRoutes = [
     element: (
       <Suspense fallback={<LoadingFallback />}>
         <HomePage />
+      </Suspense>
+    ),
+  },
+  {
+    path: "/schedule-demo",
+    element: (
+      <Suspense fallback={<LoadingFallback />}>
+        <ScheduleDemo />
       </Suspense>
     ),
   },

@@ -1,6 +1,5 @@
-
 import { useState } from "react";
-import { Link } from "react-router-dom";
+import { Link, useNavigate } from "react-router-dom";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Card } from "@/components/ui/card";
@@ -8,6 +7,7 @@ import { Logo } from "@/components/branding/Logo";
 import { Car, Map, Truck, ArrowRight } from "lucide-react";
 
 export default function HomePage() {
+  const navigate = useNavigate();
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
   const [orgName, setOrgName] = useState("");
@@ -15,6 +15,15 @@ export default function HomePage() {
   const handleSignUp = (e: React.FormEvent) => {
     e.preventDefault();
     console.log({ email, password, orgName });
+    navigate("/auth?signup=true");
+  };
+
+  const handleStartTrial = () => {
+    navigate("/auth?signup=true&trial=true");
+  };
+
+  const handleScheduleDemo = () => {
+    navigate("/schedule-demo");
   };
 
   return (
@@ -60,6 +69,7 @@ export default function HomePage() {
               <Button
                 size="lg"
                 className="bg-primary hover:bg-primary/90 text-white px-8"
+                onClick={handleStartTrial}
               >
                 Start Free Trial
                 <ArrowRight className="ml-2 h-5 w-5" />
@@ -68,6 +78,7 @@ export default function HomePage() {
                 size="lg"
                 variant="outline"
                 className="border-2"
+                onClick={handleScheduleDemo}
               >
                 Schedule Demo
               </Button>
@@ -77,8 +88,8 @@ export default function HomePage() {
             <div className="relative">
               <div className="absolute -inset-1 bg-gradient-to-r from-primary/20 to-blue-500/20 rounded-lg blur"></div>
               <img
-                src="https://images.unsplash.com/photo-1482881497185-d4a9ddbe4151"
-                alt="TowTrace Dashboard"
+                src="https://images.unsplash.com/photo-1541899481282-d53bffe3c35d"
+                alt="Professional Tow Truck"
                 className="relative w-full max-w-[500px] rounded-lg shadow-2xl object-cover"
               />
             </div>
