@@ -5,10 +5,16 @@ import { supabase } from "@/integrations/supabase/client";
 import { Button } from "@/components/ui/button";
 import { useToast } from "@/components/ui/use-toast";
 
+interface Driver {
+  id: string;
+  first_name: string;
+  last_name: string;
+}
+
 export function AssignDriver() {
   const { toast } = useToast();
 
-  const { data: drivers, isLoading } = useQuery({
+  const { data: drivers, isLoading } = useQuery<Driver[]>({
     queryKey: ['drivers'],
     queryFn: async () => {
       const { data, error } = await supabase
