@@ -82,19 +82,31 @@ serve(async (req) => {
       Deno.env.get('SUPABASE_SERVICE_ROLE_KEY') ?? ''
     )
 
-    const { impoundId, type, recipientEmail, recipientPhone, message } = await req.json() as NotificationPayload
+    // Verify authentication and get user
+    const authHeader = req.headers.get('Authorization')
+    if (!authHeader) {
+      throw new Error('Missing authorization header')
+    }
 
-    // Get the notification details
-    const { data: notification, error: notificationError } = await supabaseClient
-      .from('impound_notifications')
-      .select('*')
-      .eq('impound_id', impoundId)
-      .eq('type', type)
+    const { data: { user }, error: userError } = await supabaseClient.auth.getUser(authHeader.replace('Bearer ', ''))
+    if (userError || !user) {
+      throw new Error('Invalid authentication')
+    }
+
+    // Get user's organization and role
+    const { data: orgMember } = await supabaseClient
+      .from('organization_members')
+      .select('organization_id, role')
+      .eq('user_id', user.id)
       .single()
 
-    if (notificationError) throw notificationError
+    if (!orgMember) {
+      throw new Error('User is not associated with an organization')
+    }
 
-    // Get impound details
+    const { impoundId, type, recipientEmail, recipientPhone, message } = await req.json() as NotificationPayload
+
+    // Verify impound record belongs to user's organization
     const { data: impound, error: impoundError } = await supabaseClient
       .from('impounded_vehicles')
       .select(`
@@ -107,9 +119,25 @@ serve(async (req) => {
         )
       `)
       .eq('id', impoundId)
+      .eq('organization_id', orgMember.organization_id)
       .single()
 
-    if (impoundError) throw impoundError
+    if (impoundError || !impound) {
+      throw new Error('Unauthorized: Cannot send notifications for impounds from another organization')
+    }
+
+    // Rate limit check
+    const rateLimitWindow = 5 * 60 * 1000; // 5 minutes
+    const { count } = await supabaseClient
+      .from('impound_notifications')
+      .select('count')
+      .eq('impound_id', impoundId)
+      .gte('created_at', new Date(Date.now() - rateLimitWindow).toISOString())
+      .single() || { count: 0 }
+
+    if (count > 10) {
+      throw new Error('Rate limit exceeded: Too many notifications sent recently')
+    }
 
     const notificationPromises = []
 
@@ -117,7 +145,7 @@ serve(async (req) => {
     if (recipientEmail) {
       notificationPromises.push(
         resend.emails.send({
-          from: 'notifications@yourdomain.com', // Replace with your verified domain
+          from: 'notifications@yourdomain.com',
           to: recipientEmail,
           subject: `Impound Notification: ${type.replace(/_/g, ' ').toUpperCase()}`,
           html: getEmailTemplate({
@@ -134,6 +162,12 @@ serve(async (req) => {
 
     // Send SMS notification if recipient phone is provided
     if (recipientPhone) {
+      // Validate phone number format
+      const phoneRegex = /^\+[1-9]\d{1,14}$/;
+      if (!phoneRegex.test(recipientPhone)) {
+        throw new Error('Invalid phone number format. Must be E.164 format (e.g., +1234567890)')
+      }
+
       notificationPromises.push(
         twilioClient.messages.create({
           body: getSMSTemplate({
@@ -153,18 +187,24 @@ serve(async (req) => {
     // Wait for all notifications to be sent
     await Promise.all(notificationPromises);
 
-    // Update notification status
-    const { error: updateError } = await supabaseClient
+    // Log notification
+    const { error: notificationError } = await supabaseClient
       .from('impound_notifications')
-      .update({
+      .insert({
+        impound_id: impoundId,
+        organization_id: orgMember.organization_id,
+        type,
         status: 'sent',
-        sent_at: new Date().toISOString(),
+        sent_by: user.id,
         recipient_email: recipientEmail,
-        recipient_phone: recipientPhone
+        recipient_phone: recipientPhone,
+        metadata: {
+          message,
+          vehicle_info: impound.inventory_vehicles
+        }
       })
-      .eq('id', notification.id)
 
-    if (updateError) throw updateError
+    if (notificationError) throw notificationError
 
     return new Response(
       JSON.stringify({ success: true }),
