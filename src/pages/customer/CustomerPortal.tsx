@@ -1,6 +1,7 @@
 
 import { useState, useEffect } from 'react';
 import { useSearchParams } from 'react-router-dom';
+import { loadStripe } from '@stripe/stripe-js';
 import { useToast } from "@/hooks/use-toast";
 import { supabase } from "@/integrations/supabase/client";
 import { VehicleDetailsCard } from './VehicleDetailsCard';
