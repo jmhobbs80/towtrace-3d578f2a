@@ -1,3 +1,4 @@
+
 import { Suspense, lazy } from "react";
 import { createBrowserRouter, Navigate, Outlet } from "react-router-dom";
 import { Loader2 } from "lucide-react";
