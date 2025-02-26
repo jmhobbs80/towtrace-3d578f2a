@@ -11,21 +11,17 @@ interface Driver {
   last_name: string;
 }
 
-interface QueryResponse {
-  data: Driver[] | null;
-  error: Error | null;
-}
-
 export function AssignDriver() {
   const { toast } = useToast();
 
   const { data: drivers, isLoading } = useQuery({
     queryKey: ['drivers'],
-    queryFn: async (): Promise<Driver[]> => {
-      const { data, error }: QueryResponse = await supabase
+    queryFn: async () => {
+      const { data, error } = await supabase
         .from('profiles')
         .select('id, first_name, last_name')
-        .eq('role', 'driver');
+        .eq('role', 'driver')
+        .returns<Driver[]>();
 
       if (error) {
         toast({
