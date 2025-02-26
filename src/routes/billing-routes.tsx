@@ -1,18 +1,30 @@
 
-import BillingDashboard from "@/pages/billing/BillingDashboard";
-import InvoiceList from "@/pages/billing/InvoiceList";
-import { ROLE_ACCESS } from "./role-access";
-import type { RouteConfig } from "./types";
+import { ViewInvoices } from "@/pages/billing/ViewInvoices";
+import { SubscriptionManagement } from "@/pages/billing/SubscriptionManagement";
+import { TransactionHistory } from "@/pages/billing/TransactionHistory";
+import { StripeIntegration } from "@/pages/billing/StripeIntegration";
+import { QuickbooksSync } from "@/pages/billing/QuickbooksSync";
+import { RouteConfig } from "./types";
 
 export const billingRoutes: RouteConfig[] = [
   {
-    path: "/billing",
-    element: <BillingDashboard />,
-    allowedRoles: ROLE_ACCESS.BILLING
+    path: "/billing/invoices",
+    element: <ViewInvoices />,
   },
   {
-    path: "/billing/invoices",
-    element: <InvoiceList />,
-    allowedRoles: ROLE_ACCESS.BILLING
-  }
+    path: "/billing/subscription",
+    element: <SubscriptionManagement />,
+  },
+  {
+    path: "/billing/transactions",
+    element: <TransactionHistory />,
+  },
+  {
+    path: "/billing/stripe",
+    element: <StripeIntegration />,
+  },
+  {
+    path: "/billing/quickbooks",
+    element: <QuickbooksSync />,
+  },
 ];

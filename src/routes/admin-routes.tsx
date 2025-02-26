@@ -1,38 +1,40 @@
 
-import { lazy } from "react";
-import { ROLE_ACCESS } from "./role-access";
-import type { RouteConfig } from "./types";
-
-const OverwatchDashboard = lazy(() => import("@/pages/admin/OverwatchDashboard"));
-const UserManagement = lazy(() => import("@/pages/admin/UserManagement"));
-const SystemLogs = lazy(() => import("@/pages/admin/SystemLogs"));
-const FeatureManagement = lazy(() => import("@/pages/admin/FeatureManagement"));
-const BillingExemptions = lazy(() => import("@/pages/admin/BillingExemptions"));
+import { SystemOverview } from "@/pages/admin/SystemOverview";
+import { ManageUsers } from "@/pages/admin/ManageUsers";
+import { RevenueOverview } from "@/pages/admin/RevenueOverview";
+import { SecurityLogs } from "@/pages/admin/SecurityLogs";
+import { FeatureFlags } from "@/pages/admin/FeatureFlags";
+import { WebhookIntegrations } from "@/pages/admin/WebhookIntegrations";
+import { AuditReports } from "@/pages/admin/AuditReports";
+import { RouteConfig } from "./types";
 
 export const adminRoutes: RouteConfig[] = [
   {
     path: "/admin",
-    element: <OverwatchDashboard />,
-    allowedRoles: ROLE_ACCESS.ADMIN
+    element: <SystemOverview />,
   },
   {
     path: "/admin/users",
-    element: <UserManagement />,
-    allowedRoles: ROLE_ACCESS.ADMIN
+    element: <ManageUsers />,
+  },
+  {
+    path: "/admin/revenue",
+    element: <RevenueOverview />,
   },
   {
     path: "/admin/logs",
-    element: <SystemLogs />,
-    allowedRoles: ROLE_ACCESS.ADMIN
+    element: <SecurityLogs />,
   },
   {
-    path: "/admin/feature-toggles",
-    element: <FeatureManagement />,
-    allowedRoles: ROLE_ACCESS.ADMIN
+    path: "/admin/settings",
+    element: <FeatureFlags />,
   },
   {
-    path: "/admin/billing-exemptions",
-    element: <BillingExemptions />,
-    allowedRoles: ROLE_ACCESS.ADMIN
-  }
+    path: "/admin/webhooks",
+    element: <WebhookIntegrations />,
+  },
+  {
+    path: "/admin/compliance",
+    element: <AuditReports />,
+  },
 ];
