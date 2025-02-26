@@ -4,9 +4,14 @@ import { useQuery } from "@tanstack/react-query";
 import { supabase } from "@/integrations/supabase/client";
 import { Button } from "@/components/ui/button";
 import { useToast } from "@/components/ui/use-toast";
-import type { Database } from "@/integrations/supabase/types";
 
-type Profile = Database['public']['Tables']['profiles']['Row'];
+interface Driver {
+  id: string;
+  first_name: string | null;
+  last_name: string | null;
+  email: string | null;
+  role: 'driver';
+}
 
 export function AssignDriver() {
   const { toast } = useToast();
@@ -17,8 +22,7 @@ export function AssignDriver() {
       const { data, error } = await supabase
         .from('profiles')
         .select('id, first_name, last_name, email, role')
-        .eq('role', 'driver')
-        .returns<Profile[]>();
+        .eq('role', 'driver');
 
       if (error) {
         toast({
@@ -29,7 +33,7 @@ export function AssignDriver() {
         throw error;
       }
 
-      return data || [];
+      return (data as Driver[]) || [];
     }
   });
 
