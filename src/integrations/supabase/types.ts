@@ -269,6 +269,41 @@ export type Database = {
           },
         ]
       }
+      bid_notifications: {
+        Row: {
+          bid_id: string
+          created_at: string | null
+          id: string
+          message: string
+          read: boolean | null
+          user_id: string
+        }
+        Insert: {
+          bid_id: string
+          created_at?: string | null
+          id?: string
+          message: string
+          read?: boolean | null
+          user_id: string
+        }
+        Update: {
+          bid_id?: string
+          created_at?: string | null
+          id?: string
+          message?: string
+          read?: boolean | null
+          user_id?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "fk_bid"
+            columns: ["bid_id"]
+            isOneToOne: false
+            referencedRelation: "load_bids"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       customer_access_tokens: {
         Row: {
           created_at: string | null
@@ -478,6 +513,36 @@ export type Database = {
             referencedColumns: ["id"]
           },
         ]
+      }
+      driver_presence: {
+        Row: {
+          created_at: string | null
+          driver_id: string
+          id: string
+          last_seen: string | null
+          location: Json | null
+          status: string
+          updated_at: string | null
+        }
+        Insert: {
+          created_at?: string | null
+          driver_id: string
+          id?: string
+          last_seen?: string | null
+          location?: Json | null
+          status?: string
+          updated_at?: string | null
+        }
+        Update: {
+          created_at?: string | null
+          driver_id?: string
+          id?: string
+          last_seen?: string | null
+          location?: Json | null
+          status?: string
+          updated_at?: string | null
+        }
+        Relationships: []
       }
       feature_toggles: {
         Row: {

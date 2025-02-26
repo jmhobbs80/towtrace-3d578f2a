@@ -1,4 +1,3 @@
-
 import { useEffect, useState } from "react";
 import { useParams, useNavigate } from "react-router-dom";
 import { getVehicleDetails } from "@/lib/api/vehicles";
@@ -9,7 +8,9 @@ import { DamageReportsCard } from "@/components/inventory/vehicle/DamageReportsC
 import { VehicleInfoCard } from "@/components/inventory/vehicle/VehicleInfoCard";
 import { ActionModals } from "@/components/inventory/vehicle/ActionModals";
 import { Skeleton } from "@/components/ui/skeleton";
-import { Loader2 } from "lucide-react";
+import { Loader2, Upload } from "lucide-react";
+import { useVehiclePhotos } from "@/hooks/use-vehicle-photos";
+import { supabase } from "@/integrations/supabase/client";
 import type { DamageReport, TransitRecord, VehicleLocation } from "@/lib/api/vehicles";
 
 interface VehicleDetailsData {
@@ -25,9 +26,9 @@ interface VehicleDetailsData {
   damage_reports: DamageReport[];
   inspections: any[];
   transit_history: TransitRecord[];
+  photos: string[];
 }
 
-// Loading skeleton component for vehicle details
 const VehicleDetailsSkeleton = () => (
   <div className="space-y-4 sm:space-y-6">
     <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4">
@@ -57,6 +58,7 @@ export default function VehicleDetails() {
   const [isLoading, setIsLoading] = useState(true);
   const navigate = useNavigate();
   const { toast } = useToast();
+  const { isUploading, uploadPhoto, deletePhoto } = useVehiclePhotos(vehicleId || '');
 
   useEffect(() => {
     if (!vehicleId) {
@@ -68,20 +70,7 @@ export default function VehicleDetails() {
       try {
         setIsLoading(true);
         const vehicleData = await getVehicleDetails(vehicleId);
-        setVehicle({
-          id: vehicleData.id,
-          vin: vehicleData.vin,
-          make: vehicleData.make,
-          model: vehicleData.model,
-          year: vehicleData.year,
-          status: vehicleData.status,
-          condition: vehicleData.condition,
-          location: vehicleData.location,
-          condition_logs: vehicleData.condition_logs || [],
-          damage_reports: vehicleData.damage_reports || [],
-          inspections: vehicleData.inspections || [],
-          transit_history: vehicleData.transit_history || []
-        });
+        setVehicle(vehicleData);
       } catch (error) {
         console.error("Error fetching vehicle details:", error);
         toast({
@@ -95,11 +84,60 @@ export default function VehicleDetails() {
     };
 
     fetchVehicle();
+
+    const channel = supabase
+      .channel('vehicle-updates')
+      .on(
+        'postgres_changes',
+        {
+          event: '*',
+          schema: 'public',
+          table: 'inventory_vehicles',
+          filter: `id=eq.${vehicleId}`
+        },
+        async (payload) => {
+          console.log('Vehicle update received:', payload);
+          const vehicleData = await getVehicleDetails(vehicleId);
+          setVehicle(vehicleData);
+          
+          toast({
+            title: "Vehicle Updated",
+            description: "Vehicle information has been updated.",
+          });
+        }
+      )
+      .subscribe();
+
+    return () => {
+      supabase.removeChannel(channel);
+    };
   }, [vehicleId, toast]);
+
+  const handlePhotoUpload = async (event: React.ChangeEvent<HTMLInputElement>) => {
+    const file = event.target.files?.[0];
+    if (!file) return;
+
+    const url = await uploadPhoto(file);
+    if (url && vehicle) {
+      setVehicle({
+        ...vehicle,
+        photos: [...(vehicle.photos || []), url]
+      });
+    }
+  };
+
+  const handlePhotoDelete = async (photoUrl: string) => {
+    await deletePhoto(photoUrl);
+    if (vehicle) {
+      setVehicle({
+        ...vehicle,
+        photos: vehicle.photos.filter(url => url !== photoUrl)
+      });
+    }
+  };
 
   const handleDamageReportSuccess = () => {
     setIsDamageReportOpen(false);
-    // Refresh vehicle data after successful damage report submission
     if (vehicleId) {
       setIsLoading(true);
       getVehicleDetails(vehicleId)
@@ -159,6 +197,45 @@ export default function VehicleDetails() {
             condition={vehicle.condition}
             location={vehicle.location}
           />
+
+          <div className="mt-6">
+            <h2 className="text-xl font-semibold mb-4">Vehicle Photos</h2>
+            <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 gap-4">
+              {vehicle.photos?.map((photo, index) => (
+                <div key={index} className="relative group">
+                  <img
+                    src={photo}
+                    alt={`Vehicle photo ${index + 1}`}
+                    className="w-full h-48 object-cover rounded-lg"
+                  />
+                  <Button
+                    variant="destructive"
+                    size="sm"
+                    className="absolute top-2 right-2 opacity-0 group-hover:opacity-100 transition-opacity"
+                    onClick={() => handlePhotoDelete(photo)}
+                  >
+                    Delete
+                  </Button>
+                </div>
+              ))}
+              <div className="flex items-center justify-center w-full h-48 border-2 border-dashed rounded-lg p-4">
+                <label className="w-full h-full flex flex-col items-center justify-center cursor-pointer">
+                  <Upload className="h-8 w-8 mb-2" />
+                  <span className="text-sm text-muted-foreground">Upload Photo</span>
+                  <input
+                    type="file"
+                    className="hidden"
+                    accept="image/*"
+                    onChange={handlePhotoUpload}
+                    disabled={isUploading}
+                  />
+                  {isUploading && (
+                    <Loader2 className="h-4 w-4 animate-spin mt-2" />
+                  )}
+                </label>
+              </div>
+            </div>
+          </div>
 
           <div className="flex flex-col sm:flex-row justify-end gap-3 sm:gap-4">
             <Button 
