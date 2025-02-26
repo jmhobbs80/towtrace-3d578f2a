@@ -18,7 +18,7 @@ const fetchJobs = async () => {
   return data;
 };
 
-const DispatchBoard = () => {
+export const DispatchBoard = () => {
   const [isCreateModalOpen, setIsCreateModalOpen] = useState(false);
   const { toast } = useToast();
   
@@ -62,5 +62,3 @@ const DispatchBoard = () => {
     </div>
   );
 };
-
-export default DispatchBoard;
