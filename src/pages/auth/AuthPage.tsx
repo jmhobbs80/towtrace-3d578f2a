@@ -24,6 +24,7 @@ export default function AuthPage() {
 
   useEffect(() => {
     let mounted = true;
+    let timeoutId: number;
 
     const validateInvite = async (token: string) => {
       try {
@@ -50,54 +51,29 @@ export default function AuthPage() {
     };
 
     const checkSession = async () => {
-      console.log("Checking session...");
       try {
         if (!mounted) return;
         
         const { data: { session }, error } = await supabase.auth.getSession();
-        console.log("Session check result:", { session, error });
         
-        if (error) throw error;
+        if (error) {
+          console.error("Session check error:", error);
+          setLoading(false);
+          return;
+        }
 
         if (session) {
           try {
-            console.log("Fetching user role...");
-            const { data: roleData, error: roleError } = await supabase
-              .from("user_roles")
-              .select("role")
-              .eq("user_id", session.user.id)
-              .maybeSingle();
-
-            console.log("Role check result:", { roleData, roleError });
-
-            if (roleError) throw roleError;
-            if (!mounted) return;
-
-            // Default to dashboard if no specific role route
-            const defaultRoute = "/dashboard";
-            
-            if (roleData?.role) {
-              switch (roleData.role) {
-                case "admin":
-                case "overwatch_admin":
-                  navigate("/admin");
-                  break;
-                case "dispatcher":
-                  navigate("/dispatch");
-                  break;
-                case "fleet_manager":
-                  navigate("/fleet");
-                  break;
-                default:
-                  navigate(defaultRoute);
-              }
-            } else {
-              navigate(defaultRoute);
-            }
-          } catch (roleError) {
-            console.error("Error checking role:", roleError);
-            navigate("/dashboard"); // Fallback to dashboard on role check error
+            // If there's a session, immediately navigate to dashboard
+            // This prevents hanging on the auth page
+            navigate("/dashboard");
+          } catch (error) {
+            console.error("Navigation error:", error);
+            setLoading(false);
           }
+        } else {
+          // No session, show the auth forms
+          setLoading(false);
         }
       } catch (error) {
         console.error("Session check error:", error);
@@ -107,13 +83,23 @@ export default function AuthPage() {
             title: "Authentication error",
             description: "Failed to check authentication status",
           });
-        }
-      } finally {
-        if (mounted) {
           setLoading(false);
         }
       }
     };
+
+    // Set a timeout to prevent infinite loading
+    timeoutId = window.setTimeout(() => {
+      if (mounted && loading) {
+        console.log("Auth check timed out");
+        setLoading(false);
+        toast({
+          variant: "destructive",
+          title: "Authentication timeout",
+          description: "Please try refreshing the page",
+        });
+      }
+    }, 5000);
 
     const inviteToken = searchParams.get("invite");
     if (inviteToken) {
@@ -122,12 +108,12 @@ export default function AuthPage() {
 
     checkSession();
 
-    const { data: authListener } = supabase.auth.onAuthStateChange(async (event, session) => {
+    const { data: authListener } = supabase.auth.onAuthStateChange((event, session) => {
       if (!mounted) return;
       
       console.log("Auth state changed:", event);
       if (session) {
-        checkSession();
+        navigate("/dashboard");
       } else {
         setLoading(false);
       }
@@ -142,9 +128,10 @@ export default function AuthPage() {
 
     return () => {
       mounted = false;
+      window.clearTimeout(timeoutId);
       authListener?.subscription?.unsubscribe();
     };
-  }, [navigate, toast, searchParams]);
+  }, [navigate, toast, searchParams, loading]);
 
   useEffect(() => {
     setIsSignUp(searchParams.get("signup") === "true");
