@@ -5,7 +5,7 @@ import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Card } from "@/components/ui/card";
 import { Logo } from "@/components/branding/Logo";
-import { Car, Map, Truck } from "lucide-react";
+import { Car, Map, Truck, ArrowRight } from "lucide-react";
 
 export default function HomePage() {
   const [email, setEmail] = useState("");
@@ -18,85 +18,120 @@ export default function HomePage() {
   };
 
   return (
-    <div className="min-h-screen flex flex-col">
+    <div className="min-h-screen flex flex-col bg-gradient-to-br from-white to-gray-50">
       {/* Header */}
-      <header className="fixed top-0 w-full h-16 bg-[#607D8B] z-50">
+      <header className="fixed top-0 w-full h-16 bg-white/80 backdrop-blur-lg border-b border-gray-100 z-50">
         <div className="container h-full flex items-center justify-between">
-          <Logo size="md" className="text-white" />
-          <Link
-            to="/auth"
-            className="text-[#1E88E5] hover:text-[#1976D2] font-medium transition-colors"
-          >
-            Login
-          </Link>
+          <Logo size="md" className="text-primary" />
+          <div className="flex items-center gap-4">
+            <Link
+              to="/auth"
+              className="text-gray-600 hover:text-primary font-medium transition-colors"
+            >
+              Login
+            </Link>
+            <Button
+              asChild
+              variant="default"
+              className="bg-primary hover:bg-primary/90"
+            >
+              <Link to="/auth?signup=true">Get Started</Link>
+            </Button>
+          </div>
         </div>
       </header>
 
       {/* Hero Section */}
-      <section className="pt-24 min-h-[600px] bg-white">
-        <div className="container grid grid-cols-1 lg:grid-cols-2 gap-8 items-center">
-          <div className="space-y-6">
-            <h1 className="text-4xl font-bold text-[#263238] font-display">
-              Streamline Your Towing Operations
-            </h1>
-            <p className="text-lg text-[#607D8B]">
-              A multi-tenant SaaS platform for towing companies, dealers, and drivers
-            </p>
-            <Button
-              size="lg"
-              className="bg-[#1E88E5] hover:bg-[#1976D2] text-white"
-            >
-              Sign Up Now
-            </Button>
+      <section className="pt-32 pb-20 min-h-[600px]">
+        <div className="container grid grid-cols-1 lg:grid-cols-2 gap-12 items-center">
+          <div className="space-y-8">
+            <div className="space-y-4">
+              <h1 className="text-5xl font-bold text-gray-900 font-display leading-tight">
+                Streamline Your{" "}
+                <span className="text-primary">Towing Operations</span>
+              </h1>
+              <p className="text-xl text-gray-600 leading-relaxed">
+                A comprehensive SaaS platform designed for towing companies, dealers,
+                and drivers. Manage your fleet, optimize dispatching, and grow your
+                business.
+              </p>
+            </div>
+            <div className="flex flex-col sm:flex-row gap-4">
+              <Button
+                size="lg"
+                className="bg-primary hover:bg-primary/90 text-white px-8"
+              >
+                Start Free Trial
+                <ArrowRight className="ml-2 h-5 w-5" />
+              </Button>
+              <Button
+                size="lg"
+                variant="outline"
+                className="border-2"
+              >
+                Schedule Demo
+              </Button>
+            </div>
           </div>
-          <div className="flex justify-center">
-            <img
-              src="/placeholder.svg"
-              alt="TowTrace Dashboard"
-              className="w-full max-w-[400px] h-[300px] object-cover rounded-lg shadow-lg"
-            />
+          <div className="flex justify-center lg:justify-end">
+            <div className="relative">
+              <div className="absolute -inset-1 bg-gradient-to-r from-primary/20 to-blue-500/20 rounded-lg blur"></div>
+              <img
+                src="/placeholder.svg"
+                alt="TowTrace Dashboard"
+                className="relative w-full max-w-[500px] rounded-lg shadow-2xl"
+              />
+            </div>
           </div>
         </div>
       </section>
 
       {/* Features Section */}
-      <section className="py-16 bg-[#F5F7FA]">
+      <section className="py-20 bg-gray-50">
         <div className="container">
+          <div className="text-center mb-16">
+            <h2 className="text-3xl font-bold text-gray-900 mb-4">
+              Everything You Need to Run Your Towing Business
+            </h2>
+            <p className="text-lg text-gray-600 max-w-2xl mx-auto">
+              Powerful features designed specifically for towing and transport companies
+            </p>
+          </div>
           <div className="grid grid-cols-1 md:grid-cols-3 gap-8">
-            <Card className="p-6 space-y-4">
-              <div className="h-12 w-12 rounded-full bg-[#1E88E5]/10 flex items-center justify-center">
-                <Truck className="h-6 w-6 text-[#1E88E5]" />
+            <Card className="p-6 space-y-4 hover:shadow-lg transition-shadow duration-300 border-0 shadow">
+              <div className="h-12 w-12 rounded-lg bg-primary/10 flex items-center justify-center">
+                <Truck className="h-6 w-6 text-primary" />
               </div>
-              <h3 className="text-xl font-bold text-[#263238]">
-                Public Ride-Hailing App
+              <h3 className="text-xl font-bold text-gray-900">
+                Smart Dispatch System
               </h3>
-              <p className="text-[#607D8B]">
-                Request towing services with real-time tracking and payments via Stripe,
-                Apple Pay, Google Pay.
+              <p className="text-gray-600">
+                AI-powered dispatch with real-time tracking, automated job assignment,
+                and route optimization.
               </p>
             </Card>
-            <Card className="p-6 space-y-4">
-              <div className="h-12 w-12 rounded-full bg-[#1E88E5]/10 flex items-center justify-center">
-                <Map className="h-6 w-6 text-[#1E88E5]" />
+            <Card className="p-6 space-y-4 hover:shadow-lg transition-shadow duration-300 border-0 shadow">
+              <div className="h-12 w-12 rounded-lg bg-primary/10 flex items-center justify-center">
+                <Map className="h-6 w-6 text-primary" />
               </div>
-              <h3 className="text-xl font-bold text-[#263238]">
-                AI-Powered Dispatch
+              <h3 className="text-xl font-bold text-gray-900">
+                Fleet Management
               </h3>
-              <p className="text-[#607D8B]">
-                Optimize job assignments with live updates and multi-stop route
-                planning.
+              <p className="text-gray-600">
+                Complete fleet oversight with maintenance tracking, driver management,
+                and performance analytics.
               </p>
             </Card>
-            <Card className="p-6 space-y-4">
-              <div className="h-12 w-12 rounded-full bg-[#1E88E5]/10 flex items-center justify-center">
-                <Car className="h-6 w-6 text-[#1E88E5]" />
+            <Card className="p-6 space-y-4 hover:shadow-lg transition-shadow duration-300 border-0 shadow">
+              <div className="h-12 w-12 rounded-lg bg-primary/10 flex items-center justify-center">
+                <Car className="h-6 w-6 text-primary" />
               </div>
-              <h3 className="text-xl font-bold text-[#263238]">
-                Fleet & Inventory Management
+              <h3 className="text-xl font-bold text-gray-900">
+                Customer Portal
               </h3>
-              <p className="text-[#607D8B]">
-                Track vehicles, maintenance, and inventory with VIN scanning and
-                QuickBooks sync.
+              <p className="text-gray-600">
+                Give your customers real-time updates, online payments, and
+                self-service options.
               </p>
             </Card>
           </div>
@@ -104,50 +139,44 @@ export default function HomePage() {
       </section>
 
       {/* Sign-Up Section */}
-      <section className="py-16 bg-white">
+      <section className="py-20 bg-white">
         <div className="container max-w-md mx-auto">
-          <Card className="p-8">
-            <h2 className="text-2xl font-bold text-[#263238] mb-6 text-center">
-              Get Started Today
+          <Card className="p-8 shadow-xl border-0">
+            <h2 className="text-2xl font-bold text-gray-900 mb-6 text-center">
+              Start Your Free Trial
             </h2>
             <form onSubmit={handleSignUp} className="space-y-4">
-              <div>
-                <Input
-                  type="email"
-                  placeholder="Email"
-                  value={email}
-                  onChange={(e) => setEmail(e.target.value)}
-                  className="w-full"
-                  required
-                />
-              </div>
-              <div>
-                <Input
-                  type="password"
-                  placeholder="Password"
-                  value={password}
-                  onChange={(e) => setPassword(e.target.value)}
-                  className="w-full"
-                  required
-                />
-              </div>
-              <div>
-                <Input
-                  type="text"
-                  placeholder="Organization Name"
-                  value={orgName}
-                  onChange={(e) => setOrgName(e.target.value)}
-                  className="w-full"
-                  required
-                />
-              </div>
-              <Button type="submit" className="w-full bg-[#1E88E5] hover:bg-[#1976D2]">
+              <Input
+                type="email"
+                placeholder="Email"
+                value={email}
+                onChange={(e) => setEmail(e.target.value)}
+                className="w-full"
+                required
+              />
+              <Input
+                type="password"
+                placeholder="Password"
+                value={password}
+                onChange={(e) => setPassword(e.target.value)}
+                className="w-full"
+                required
+              />
+              <Input
+                type="text"
+                placeholder="Organization Name"
+                value={orgName}
+                onChange={(e) => setOrgName(e.target.value)}
+                className="w-full"
+                required
+              />
+              <Button type="submit" className="w-full bg-primary hover:bg-primary/90">
                 Create Account
               </Button>
             </form>
-            <p className="mt-4 text-center">
+            <p className="mt-4 text-center text-gray-600">
               Already have an account?{" "}
-              <Link to="/auth" className="text-[#1E88E5] hover:text-[#1976D2]">
+              <Link to="/auth" className="text-primary hover:text-primary/90 font-medium">
                 Login
               </Link>
             </p>
@@ -156,28 +185,33 @@ export default function HomePage() {
       </section>
 
       {/* Footer */}
-      <footer className="bg-[#607D8B] text-white py-6">
-        <div className="container flex flex-col sm:flex-row items-center justify-between text-sm">
-          <p>© 2025 TowTrace</p>
-          <div className="flex items-center gap-4 mt-4 sm:mt-0">
-            <Link
-              to="/legal/terms"
-              className="text-[#1E88E5] hover:text-[#FF5722] transition-colors"
-            >
-              Terms
-            </Link>
-            <Link
-              to="/legal/privacy"
-              className="text-[#1E88E5] hover:text-[#FF5722] transition-colors"
-            >
-              Privacy
-            </Link>
-            <a
-              href="mailto:support@towtrace.com"
-              className="text-[#1E88E5] hover:text-[#FF5722] transition-colors"
-            >
-              support@towtrace.com
-            </a>
+      <footer className="bg-gray-900 text-gray-300 py-12">
+        <div className="container">
+          <div className="flex flex-col sm:flex-row items-center justify-between">
+            <div className="flex items-center space-x-4">
+              <Logo size="md" className="text-white" />
+              <span className="text-sm">© 2024 TowTrace</span>
+            </div>
+            <div className="flex items-center gap-8 mt-4 sm:mt-0 text-sm">
+              <Link
+                to="/legal/terms"
+                className="hover:text-white transition-colors"
+              >
+                Terms
+              </Link>
+              <Link
+                to="/legal/privacy"
+                className="hover:text-white transition-colors"
+              >
+                Privacy
+              </Link>
+              <a
+                href="mailto:support@towtrace.com"
+                className="hover:text-white transition-colors"
+              >
+                Contact
+              </a>
+            </div>
           </div>
         </div>
       </footer>
