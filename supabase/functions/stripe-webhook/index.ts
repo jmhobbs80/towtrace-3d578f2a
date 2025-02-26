@@ -33,6 +33,7 @@ const handler = async (req: Request): Promise<Response> => {
     console.log(`✅ Received Stripe webhook event: ${event.type}`);
 
     switch (event.type) {
+      // Payment Events
       case "payment_intent.succeeded": {
         const paymentIntent = event.data.object;
         const jobId = paymentIntent.metadata.job_id;
@@ -92,6 +93,97 @@ const handler = async (req: Request): Promise<Response> => {
           })
           .eq('id', jobId);
 
+        break;
+      }
+
+      // Subscription Events
+      case "checkout.session.completed": {
+        const session = event.data.object;
+        if (session.mode === 'subscription') {
+          const organizationId = session.metadata.organization_id;
+          const subscriptionId = session.subscription;
+          
+          // Fetch subscription details from Stripe
+          const subscription = await stripe.subscriptions.retrieve(subscriptionId as string);
+          
+          // Update organization subscription details
+          await supabase
+            .from('organizations')
+            .update({
+              subscription_status: 'active',
+              stripe_subscription_id: subscriptionId,
+              subscription_plan_id: session.metadata.plan_id,
+              subscription_period_start: new Date(subscription.current_period_start * 1000).toISOString(),
+              subscription_period_end: new Date(subscription.current_period_end * 1000).toISOString()
+            })
+            .eq('id', organizationId);
+        }
+        break;
+      }
+
+      case "customer.subscription.updated": {
+        const subscription = event.data.object;
+        const organizationId = subscription.metadata.organization_id;
+
+        await supabase
+          .from('organizations')
+          .update({
+            subscription_status: subscription.status,
+            subscription_period_start: new Date(subscription.current_period_start * 1000).toISOString(),
+            subscription_period_end: new Date(subscription.current_period_end * 1000).toISOString()
+          })
+          .eq('id', organizationId);
+
+        break;
+      }
+
+      case "customer.subscription.deleted": {
+        const subscription = event.data.object;
+        const organizationId = subscription.metadata.organization_id;
+
+        await supabase
+          .from('organizations')
+          .update({
+            subscription_status: 'canceled',
+            subscription_period_end: new Date(subscription.canceled_at * 1000).toISOString()
+          })
+          .eq('id', organizationId);
+
+        break;
+      }
+
+      // Invoice Events
+      case "invoice.paid": {
+        const invoice = event.data.object;
+        if (invoice.subscription) {
+          const subscription = await stripe.subscriptions.retrieve(invoice.subscription as string);
+          const organizationId = subscription.metadata.organization_id;
+
+          await supabase
+            .from('organizations')
+            .update({
+              subscription_status: 'active',
+              subscription_period_start: new Date(subscription.current_period_start * 1000).toISOString(),
+              subscription_period_end: new Date(subscription.current_period_end * 1000).toISOString()
+            })
+            .eq('id', organizationId);
+        }
+        break;
+      }
+
+      case "invoice.payment_failed": {
+        const invoice = event.data.object;
+        if (invoice.subscription) {
+          const subscription = await stripe.subscriptions.retrieve(invoice.subscription as string);
+          const organizationId = subscription.metadata.organization_id;
+
+          await supabase
+            .from('organizations')
+            .update({
+              subscription_status: 'past_due'
+            })
+            .eq('id', organizationId);
+        }
         break;
       }
 
