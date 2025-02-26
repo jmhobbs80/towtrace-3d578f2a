@@ -1,9 +1,19 @@
 
+import { useState } from "react";
 import { DataTable } from "@/components/ui/data-table";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import { Eye } from "lucide-react";
 import type { InventoryVehicle } from "@/lib/types/inventory";
+import {
+  Pagination,
+  PaginationContent,
+  PaginationItem,
+  PaginationNext,
+  PaginationPrevious,
+} from "@/components/ui/pagination";
+
+const ITEMS_PER_PAGE = 10;
 
 const columns = [
   {
@@ -46,12 +56,11 @@ const columns = [
         <Button
           variant="ghost"
           size="sm"
-          onClick={() => {
-            // TODO: Implement vehicle details view
-            console.log("View vehicle:", vehicle.id);
-          }}
+          asChild
         >
-          <Eye className="w-4 h-4" />
+          <a href={`/inventory/vehicles/${vehicle.id}`}>
+            <Eye className="w-4 h-4" />
+          </a>
         </Button>
       );
     },
@@ -64,14 +73,49 @@ interface InventoryListProps {
 }
 
 export const InventoryList = ({ vehicles, isLoading }: InventoryListProps) => {
+  const [currentPage, setCurrentPage] = useState(1);
+
   if (isLoading) {
-    return <div>Loading inventory...</div>;
+    return (
+      <div className="flex items-center justify-center h-64">
+        <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-gray-900"></div>
+      </div>
+    );
   }
 
+  const totalPages = Math.ceil(vehicles.length / ITEMS_PER_PAGE);
+  const startIndex = (currentPage - 1) * ITEMS_PER_PAGE;
+  const paginatedVehicles = vehicles.slice(startIndex, startIndex + ITEMS_PER_PAGE);
+
   return (
-    <DataTable
-      columns={columns}
-      data={vehicles}
-    />
+    <div className="space-y-4">
+      <DataTable
+        columns={columns}
+        data={paginatedVehicles}
+      />
+      {totalPages > 1 && (
+        <div className="flex justify-center">
+          <Pagination>
+            <PaginationContent>
+              <PaginationItem>
+                <PaginationPrevious 
+                  onClick={() => setCurrentPage(prev => Math.max(1, prev - 1))}
+                  disabled={currentPage === 1}
+                />
+              </PaginationItem>
+              <PaginationItem>
+                Page {currentPage} of {totalPages}
+              </PaginationItem>
+              <PaginationItem>
+                <PaginationNext
+                  onClick={() => setCurrentPage(prev => Math.min(totalPages, prev + 1))}
+                  disabled={currentPage === totalPages}
+                />
+              </PaginationItem>
+            </PaginationContent>
+          </Pagination>
+        </div>
+      )}
+    </div>
   );
 };
