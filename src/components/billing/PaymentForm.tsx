@@ -39,7 +39,21 @@ export const PaymentForm = ({ jobId, organizationId, onSuccess }: PaymentFormPro
   const onSubmit = async (data: FormData) => {
     setIsSubmitting(true);
     try {
-      // Create payment
+      // Create payment intent
+      const { data: intent, error: intentError } = await supabase.functions.invoke(
+        'create-payment-intent',
+        {
+          body: {
+            jobId,
+            amount: data.amount,
+            organizationId
+          }
+        }
+      );
+
+      if (intentError) throw intentError;
+
+      // Create payment record
       const { data: payment, error: paymentError } = await supabase
         .from('payments')
         .insert({
