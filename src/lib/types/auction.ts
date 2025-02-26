@@ -1,4 +1,3 @@
-
 export type AuctionStatus = 'draft' | 'scheduled' | 'live' | 'ended' | 'canceled';
 
 export interface Auction {
@@ -40,3 +39,18 @@ export interface AuctionBid {
   amount: number;
   created_at: string;
 }
+
+export type AuctionAnalytics = {
+  id: string;
+  auction_id: string;
+  vehicle_id: string;
+  winning_bid_amount: number | null;
+  status: string;
+  created_at: string;
+  vehicle: {
+    year: number;
+    make: string;
+    model: string;
+    condition: string;
+  };
+};

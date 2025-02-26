@@ -1,4 +1,60 @@
 
 project_id = "pfraresupodbfeggrwiy"
+
+[api]
+enabled = true
+url = "https://pfraresupodbfeggrwiy.supabase.co"
+
+[analytics]
+enabled = true
+
+[functions.get-auction-analytics]
+verify_jwt = true
+
+[functions.calculate-tow-cost]
+verify_jwt = true
+
+[functions.create-checkout-session]
+verify_jwt = true
+
+[functions.create-payment-intent]
+verify_jwt = true
+
+[functions.driver-invites]
+verify_jwt = true
+
+[functions.generate-inspection-pdf]
+verify_jwt = true
+
+[functions.generate-invoice-pdf]
+verify_jwt = true
+
+[functions.get-mapbox-token]
+verify_jwt = true
+
+[functions.jobs]
+verify_jwt = true
+
+[functions.optimize-route]
+verify_jwt = true
+
 [functions.payment-notifications]
 verify_jwt = true
+
+[functions.quickbooks-oauth]
+verify_jwt = true
+
+[functions.quickbooks-sync]
+verify_jwt = true
+
+[functions.send-impound-notification]
+verify_jwt = true
+
+[functions.send-notification]
+verify_jwt = true
+
+[functions.send-trial-expiration-alerts]
+verify_jwt = true
+
+[functions.stripe-webhook]
+verify_jwt = false
