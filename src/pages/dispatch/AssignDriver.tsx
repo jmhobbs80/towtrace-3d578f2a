@@ -8,10 +8,6 @@ import type { Database } from "@/integrations/supabase/types";
 
 type Profile = Database['public']['Tables']['profiles']['Row'];
 
-interface DriverProfile extends Profile {
-  role: string;
-}
-
 export function AssignDriver() {
   const { toast } = useToast();
 
@@ -20,8 +16,9 @@ export function AssignDriver() {
     queryFn: async () => {
       const { data, error } = await supabase
         .from('profiles')
-        .select('*')
-        .eq('role', 'driver');
+        .select('id, first_name, last_name, email, role')
+        .eq('role', 'driver')
+        .returns<Profile[]>();
 
       if (error) {
         toast({
@@ -32,7 +29,7 @@ export function AssignDriver() {
         throw error;
       }
 
-      return (data as DriverProfile[]) || [];
+      return data || [];
     }
   });
 
