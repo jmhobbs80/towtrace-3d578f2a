@@ -91,15 +91,15 @@ export default function VehicleDetails() {
   }
 
   return (
-    <div className="container mx-auto p-6 space-y-6">
-      <div className="flex justify-between items-center">
-        <h1 className="text-3xl font-bold">Vehicle Details</h1>
+    <div className="container mx-auto px-4 sm:px-6 py-4 sm:py-6 space-y-4 sm:space-y-6">
+      <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4">
+        <h1 className="text-2xl sm:text-3xl font-bold">Vehicle Details</h1>
         <Button onClick={() => navigate('/inventory')}>Back to Inventory</Button>
       </div>
       
       {vehicle && (
         <>
-          <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+          <div className="grid grid-cols-1 lg:grid-cols-2 gap-4 sm:gap-6">
             <TransitHistoryCard transitHistory={vehicle.transit_history} />
             <DamageReportsCard damageReports={vehicle.damage_reports} />
           </div>
@@ -114,11 +114,17 @@ export default function VehicleDetails() {
             location={vehicle.location}
           />
 
-          <div className="flex justify-end space-x-4">
-            <Button onClick={() => setIsDamageReportOpen(true)}>
+          <div className="flex flex-col sm:flex-row justify-end gap-3 sm:gap-4">
+            <Button 
+              className="w-full sm:w-auto" 
+              onClick={() => setIsDamageReportOpen(true)}
+            >
               Add Damage Report
             </Button>
-            <Button onClick={() => setIsRepairOrderOpen(true)}>
+            <Button 
+              className="w-full sm:w-auto"
+              onClick={() => setIsRepairOrderOpen(true)}
+            >
               Create Repair Order
             </Button>
           </div>
