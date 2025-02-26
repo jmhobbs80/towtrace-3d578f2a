@@ -13,13 +13,14 @@ import { useAuth } from "@/components/auth/AuthProvider";
 import { useToast } from "@/hooks/use-toast";
 import { Gavel } from "lucide-react";
 import { useNavigate } from "react-router-dom";
+import type { Auction } from "@/lib/types/auction";
 
 export default function AuctionsPage() {
   const { organization } = useAuth();
   const navigate = useNavigate();
   const { toast } = useToast();
 
-  const { data: auctions, isLoading, error } = useQuery({
+  const { data: auctions, isLoading, error } = useQuery<Auction[]>({
     queryKey: ['auctions'],
     queryFn: getAuctions,
     meta: {
