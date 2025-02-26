@@ -13,16 +13,21 @@ export function DocumentationCard({ policeReportNumber, insuranceClaimNumber }: 
         <CardTitle>Documentation</CardTitle>
       </CardHeader>
       <CardContent>
-        <div className="space-y-2">
+        <div className="space-y-4">
           {policeReportNumber && (
-            <p className="text-gray-600">
-              Police Report #: {policeReportNumber}
-            </p>
+            <div className="flex justify-between">
+              <span className="font-semibold">Police Report #:</span>
+              <span>{policeReportNumber}</span>
+            </div>
           )}
           {insuranceClaimNumber && (
-            <p className="text-gray-600">
-              Insurance Claim #: {insuranceClaimNumber}
-            </p>
+            <div className="flex justify-between">
+              <span className="font-semibold">Insurance Claim #:</span>
+              <span>{insuranceClaimNumber}</span>
+            </div>
+          )}
+          {!policeReportNumber && !insuranceClaimNumber && (
+            <p className="text-gray-500 text-center">No documentation available</p>
           )}
         </div>
       </CardContent>
