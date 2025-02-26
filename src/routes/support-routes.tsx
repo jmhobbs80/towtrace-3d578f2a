@@ -7,6 +7,6 @@ export const supportRoutes: RouteConfig[] = [
   {
     path: "/support",
     element: <SupportDashboard />,
-    allowedRoles: ROLE_ACCESS.ADMIN
+    allowedRoles: ROLE_ACCESS.SUPPORT
   }
 ];
