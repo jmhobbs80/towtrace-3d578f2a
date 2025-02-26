@@ -1,3 +1,4 @@
+
 import { Suspense, lazy } from "react";
 import { createBrowserRouter, Navigate, Outlet } from "react-router-dom";
 import { Loader2 } from "lucide-react";
@@ -19,9 +20,10 @@ import { supportRoutes } from "./support-routes";
 import { wholesalerRoutes } from "./wholesaler-routes";
 import { UserRole } from "@/lib/types/auth";
 
-// Lazy load the Dashboard component
+// Lazy load components
 const Dashboard = lazy(() => import("@/pages/dashboard/Dashboard"));
 const CustomerPortal = lazy(() => import("@/pages/impound/customer/CustomerPortal"));
+const HomePage = lazy(() => import("@/pages/home/HomePage"));
 
 // Loading fallback component
 const LoadingFallback = () => (
@@ -32,7 +34,7 @@ const LoadingFallback = () => (
 
 const protectedRoutes = [
   {
-    path: "/",
+    path: "/dashboard",
     element: (
       <Suspense fallback={<LoadingFallback />}>
         <Dashboard />
@@ -53,6 +55,14 @@ const protectedRoutes = [
 ];
 
 const publicRoutes = [
+  {
+    path: "/",
+    element: (
+      <Suspense fallback={<LoadingFallback />}>
+        <HomePage />
+      </Suspense>
+    ),
+  },
   ...legalRoutes,
   {
     path: "/customer/book",
@@ -76,10 +86,6 @@ export const router = createBrowserRouter([
   {
     element: <AppLayout />,
     children: [
-      {
-        path: "/",
-        element: <Navigate to="/auth" replace />,
-      },
       ...authRoutes,
       ...publicRoutes,
       {
@@ -114,4 +120,6 @@ export const router = createBrowserRouter([
       }
     ]
   }
-]);
+], {
+  basename: import.meta.env.BASE_URL
+});

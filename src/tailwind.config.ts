@@ -2,111 +2,119 @@
 import type { Config } from "tailwindcss";
 
 export default {
-  darkMode: ["class"],
-  content: ["./pages/**/*.{ts,tsx}", "./components/**/*.{ts,tsx}", "./app/**/*.{ts,tsx}", "./src/**/*.{ts,tsx}"],
-  prefix: "",
+  darkMode: "media", // Automatic dark mode detection (use "class" if manual toggle is preferred)
+  content: [
+    "./pages/**/*.{ts,tsx}",
+    "./components/**/*.{ts,tsx}",
+    "./app/**/*.{ts,tsx}",
+    "./src/**/*.{ts,tsx}",
+  ],
   theme: {
     container: {
       center: true,
       padding: {
-        DEFAULT: '1rem',
-        sm: '2rem',
-        lg: '4rem',
-        xl: '5rem',
-        '2xl': '6rem',
+        DEFAULT: "1rem",
+        sm: "2rem",
+        lg: "4rem",
+        xl: "5rem",
+        "2xl": "6rem",
       },
       screens: {
         "2xl": "1400px",
+        "3xl": "1600px", // Added ultra-wide screen support
       },
     },
     extend: {
       fontFamily: {
-        sans: ["Inter", "system-ui", "sans-serif"],
+        sans: ["Inter", "Roboto", "system-ui", "sans-serif"], // Added Roboto as a fallback
         display: ["SF Pro Display", "Inter", "system-ui", "sans-serif"],
+        mono: ["Courier New", "monospace"], // Added mono font for code blocks
       },
       colors: {
         border: "hsl(var(--border))",
         input: "hsl(var(--input))",
         ring: "hsl(var(--ring))",
-        background: "#F9F9F9",
-        foreground: "#2D2D2D",
+        background: "hsl(var(--background, 0 0% 98%))", // Light mode background
+        foreground: "hsl(var(--foreground, 0 0% 20%))", // Dark mode foreground
         primary: {
-          DEFAULT: "#C8102E", // TowTrace Red
+          DEFAULT: "hsl(var(--primary, 0 84% 40%))", // TowTrace Red
           foreground: "#ffffff",
         },
         secondary: {
-          DEFAULT: "#333333", // Dark Gray
+          DEFAULT: "hsl(var(--secondary, 0 0% 20%))", // Dark Gray
           foreground: "#ffffff",
         },
         destructive: {
-          DEFAULT: "#C8102E", // Using brand red for destructive actions
+          DEFAULT: "hsl(var(--destructive, 0 84% 40%))", // Using brand red for destructive actions
           foreground: "#ffffff",
         },
         muted: {
-          DEFAULT: "#666666",
-          foreground: "#F9F9F9",
+          DEFAULT: "hsl(var(--muted, 0 0% 40%))",
+          foreground: "hsl(var(--muted-foreground, 0 0% 98%))",
         },
         accent: {
-          DEFAULT: "#C8102E",
-          hover: "#A50D25",
+          DEFAULT: "hsl(var(--accent, 0 84% 40%))",
+          hover: "hsl(var(--accent-hover, 0 84% 30%))",
           foreground: "#ffffff",
         },
         popover: {
-          DEFAULT: "#F9F9F9",
-          foreground: "#333333",
+          DEFAULT: "hsl(var(--popover, 0 0% 98%))",
+          foreground: "hsl(var(--foreground, 0 0% 20%))",
         },
         card: {
-          DEFAULT: "#FFFFFF",
+          DEFAULT: "#ffffff",
           foreground: "#333333",
-        }
+        },
       },
       keyframes: {
-        "fade-in": {
+        fadeIn: {
           "0%": { opacity: "0", transform: "translateY(10px)" },
           "100%": { opacity: "1", transform: "translateY(0)" },
         },
-        "fade-out": {
+        fadeOut: {
           "0%": { opacity: "1", transform: "translateY(0)" },
           "100%": { opacity: "0", transform: "translateY(10px)" },
         },
-        "slide-in": {
+        slideIn: {
           "0%": { transform: "translateX(-100%)" },
           "100%": { transform: "translateX(0)" },
         },
-        "pulse-glow": {
+        pulseGlow: {
           "0%, 100%": { opacity: "1" },
           "50%": { opacity: "0.5" },
         },
-        "scale": {
+        scaleUp: {
           "0%": { transform: "scale(0.95)" },
           "100%": { transform: "scale(1)" },
-        }
+        },
       },
       animation: {
-        "fade-in": "fade-in 0.3s ease-out",
-        "fade-out": "fade-out 0.3s ease-out",
-        "slide-in": "slide-in 0.3s ease-out",
-        "pulse-glow": "pulse-glow 2s ease-in-out infinite",
-        "scale": "scale 0.2s ease-out",
+        fadeIn: "fadeIn 0.3s ease-out",
+        fadeOut: "fadeOut 0.3s ease-out",
+        slideIn: "slideIn 0.3s ease-out",
+        pulseGlow: "pulseGlow 2s ease-in-out infinite",
+        scaleUp: "scaleUp 0.2s ease-out",
       },
       screens: {
-        'xs': '375px',
-        'sm': '640px',
-        'md': '768px',
-        'lg': '1024px',
-        'xl': '1280px',
-        '2xl': '1536px',
+        xs: "320px", // Adjusted for better small device support
+        sm: "640px",
+        md: "768px",
+        lg: "1024px",
+        xl: "1280px",
+        "2xl": "1536px",
+        "3xl": "1600px", // Added ultra-wide screen support
       },
       spacing: {
-        'safe-top': 'env(safe-area-inset-top)',
-        'safe-bottom': 'env(safe-area-inset-bottom)',
-        'safe-left': 'env(safe-area-inset-left)',
-        'safe-right': 'env(safe-area-inset-right)',
+        "safe-top": "env(safe-area-inset-top)",
+        "safe-bottom": "env(safe-area-inset-bottom)",
+        "safe-left": "env(safe-area-inset-left)",
+        "safe-right": "env(safe-area-inset-right)",
       },
     },
   },
   plugins: [
     require("tailwindcss-animate"),
-    require("@tailwindcss/forms")
+    require("@tailwindcss/forms"), // Improved form styling
+    require("@tailwindcss/aspect-ratio"), // Responsive images
   ],
 } satisfies Config;
