@@ -1,11 +1,13 @@
 
-import OverwatchDashboard from "@/pages/admin/OverwatchDashboard";
-import UserManagement from "@/pages/admin/UserManagement";
-import SystemLogs from "@/pages/admin/SystemLogs";
-import FeatureManagement from "@/pages/admin/FeatureManagement";
-import BillingExemptions from "@/pages/admin/BillingExemptions";
+import { lazy } from "react";
 import { ROLE_ACCESS } from "./role-access";
 import type { RouteConfig } from "./types";
+
+const OverwatchDashboard = lazy(() => import("@/pages/admin/OverwatchDashboard"));
+const UserManagement = lazy(() => import("@/pages/admin/UserManagement"));
+const SystemLogs = lazy(() => import("@/pages/admin/SystemLogs"));
+const FeatureManagement = lazy(() => import("@/pages/admin/FeatureManagement"));
+const BillingExemptions = lazy(() => import("@/pages/admin/BillingExemptions"));
 
 export const adminRoutes: RouteConfig[] = [
   {
