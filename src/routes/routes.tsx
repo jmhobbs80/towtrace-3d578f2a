@@ -33,7 +33,7 @@ const LoadingFallback = () => (
 
 const protectedRoutes = [
   {
-    path: "/",
+    path: "/dashboard",  // Changed from "/" to "/dashboard"
     element: (
       <Suspense fallback={<LoadingFallback />}>
         <Dashboard />
@@ -79,7 +79,7 @@ export const router = createBrowserRouter([
     children: [
       {
         path: "/",
-        element: <Navigate to="/auth" replace />,
+        element: <Navigate to="/auth" replace />,  // You can change this to any route you want as the initial route
       },
       ...authRoutes,
       ...publicRoutes,
@@ -116,5 +116,5 @@ export const router = createBrowserRouter([
     ]
   }
 ], {
-  basename: import.meta.env.BASE_URL // Add this line to handle base URL correctly
+  basename: import.meta.env.BASE_URL
 });
